@@ -1,0 +1,14 @@
+# Clinical triage rules written by the clinic's cardiologist (override your own judgment)
+- Heart failure signs (breathless lying down or needing extra pillows, waking up breathless, swollen legs, weight gain)
+  while the patient can still talk normally and is not breathless at rest = URGENT (see a doctor today or tomorrow), not emergency.
+  It becomes EMERGENCY only with pulmonary edema signs: breathless at rest, cannot finish a sentence, pink frothy sputum,
+  blue lips, confusion, or chest pain.
+- Two or more shocks from an implanted defibrillator (ICD) within 24 hours, or any shock with chest pain, fainting or
+  breathlessness = EMERGENCY. One shock and the patient feels well = URGENT.
+- Prosthetic (artificial) heart valve with fever AND breathlessness = EMERGENCY.
+  Prosthetic valve with fever alone (for example with cold or urinary symptoms) = URGENT: contact the doctor today or tomorrow,
+  and go to the ER if breathlessness, chest pain or confusion appears.
+- Very high blood pressure (for example 180/110 or higher) WITHOUT signs of acute organ damage (only a mild headache or no symptoms)
+  = URGENT, not emergency (ESC 2024: uncontrolled hypertension; the "urgency" category was dropped).
+  It is an EMERGENCY only with signs of acute organ damage: chest pain, breathlessness, weakness or numbness on one side,
+  confusion, trouble speaking, fits, severe headache with vomiting, sudden vision loss, tearing back pain, or pregnancy.

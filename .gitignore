@@ -1,0 +1,17 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.egg-info/
+
+# Local data
+*.db
+*.sqlite3
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
