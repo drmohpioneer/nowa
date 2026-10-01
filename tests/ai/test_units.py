@@ -9,6 +9,7 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
+from nowa import schema as s
 from nowa.ai.adapters import (
     FixedReplyAdapter,
     FixtureAdapter,
@@ -17,15 +18,37 @@ from nowa.ai.adapters import (
     ProviderError,
     RawResult,
 )
+from nowa.ai.cards import faq
 from nowa.ai.chain import run_structured
 from nowa.ai.lang import detect
 from nowa.ai.prompt import Prompt, build_prompt
 from nowa.ai.schema import TURN_JSON_SCHEMA, HistoryTurn, TurnOutput, gemini_schema
 from nowa.core.text_norm import mask_phones, normalize_question
+from nowa.db import write_tx
 from tests.ai.support import output
 
 ROOT = Path(__file__).resolve().parents[2]
 PROMPT = Prompt("prefix", "clinic", "patient")
+
+
+def test_faq_labels_are_arabic(engine, clinic_id) -> None:
+    expected = {
+        "price": "سعر الكشف",
+        "address": "العنوان",
+        "what_to_bring": "أجيب معايا إيه؟",
+        "other": "معلومات تانية",
+    }
+    with write_tx(engine) as conn:
+        conn.execute(s.clinic_info.delete().where(s.clinic_info.c.clinic_id == clinic_id))
+        conn.execute(
+            s.clinic_info.insert(),
+            [dict(clinic_id=clinic_id, key=key, text="FAQ answer") for key in expected],
+        )
+        buttons = faq(conn, clinic_id)
+    assert {b.action.payload["faq"]: b.label for b in buttons} == expected
+    assert all(b.label != b.action.payload["faq"] for b in buttons)
+    assert all(b.id == "faq:" + b.action.payload["faq"] for b in buttons)
+    assert all(b.action.kind == "none" for b in buttons)
 
 
 @pytest.fixture

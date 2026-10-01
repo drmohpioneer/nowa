@@ -5,7 +5,7 @@ const base = "/c/" + encodeURIComponent(config.slug);
 const chat = document.getElementById("chat"), controls = document.getElementById("controls");
 const error = document.getElementById("error");
 let session, selectedDay, selectedArea = null;
-function line(text) { const p = document.createElement("p"); p.textContent = text; chat.append(p); }
+function line(text) { const p = document.createElement("div"); p.className = "bubble"; p.textContent = text; chat.insertBefore(p, controls); }
 async function tap(action, payload) {
   const response = await fetch(base + "/tap", {method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({session, idempotency_key: crypto.randomUUID(), action, payload})});

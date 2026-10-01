@@ -21,6 +21,8 @@ def render(
     chat_url = None
     paper_start = None
     clinic_now = None
+    doctor_name = None
+    doctor_day = None
     if mode in {"tonight", "settings", "report"}:
         session = auth.session_for(
             request.app.state.engine,
@@ -63,9 +65,27 @@ def render(
             chat_url = get_settings().public_base_url + "/c/" + clinic["slug"]
             clinic_now = request.app.state.clock.now(session.clinic_id, conn=conn)
             tonight = booking.tonight_evening(conn, session.clinic_id, clinic_now)
+            if mode == "tonight":
+                evening_id = tonight.evening_id if tonight else None
             if tonight:
                 paper = projection.paper_hours(conn, session.clinic_id, tonight.evening_date)
                 paper_start = paper[0].isoformat() if paper else None
+            doctor = (
+                conn.execute(
+                    select(s.doctors).where(
+                        s.doctors.c.id == session.doctor_id,
+                        s.doctors.c.clinic_id == session.clinic_id,
+                    )
+                )
+                .mappings()
+                .one()
+            )
+            doctor_name = doctor["name_en"] if doctor["lang"] == "en" else doctor["name_ar"]
+            from nowa.messaging.templates import format_day
+
+            doctor_day = format_day(
+                tonight.evening_date if tonight else clinic_now.date(), doctor["lang"]
+            )
             lang = conn.execute(
                 select(s.doctors.c.lang).where(
                     s.doctors.c.id == session.doctor_id, s.doctors.c.clinic_id == session.clinic_id
@@ -74,6 +94,8 @@ def render(
     return HTMLResponse(
         environment.get_template("doctor/page.html").render(
             evening_id=evening_id,
+            doctor_name=doctor_name,
+            doctor_day=doctor_day,
             clinic=clinic,
             chat_url=chat_url,
             clinic_now=clinic_now,

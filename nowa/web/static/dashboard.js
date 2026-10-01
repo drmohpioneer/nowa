@@ -55,21 +55,44 @@ bindButton(document.getElementById("logout"), async () => { await api("/d/logout
 let queueRefresh;
 async function refresh() {
   const data = await api("/d/api/tonight");
+  document.getElementById("evening-dot").classList.toggle("live", Boolean(data.evening_id));
   const reportLink = document.getElementById("latest-report");
   reportLink.hidden = !data.latest_report_id;
   if (data.latest_report_id) reportLink.href = "/d/report/" + data.latest_report_id;
   const queue = document.getElementById("queue");
   queue.replaceChildren();
   if (!data.evening_id) { queue.textContent = t("no_evening"); }
+  const make = (tag, className, text) => {
+    const el = document.createElement(tag); el.className = className; el.textContent = text; return el;
+  };
+  const booked = data.rows.filter(row => row.state !== "cancelled").length;
+  const seen = data.rows.filter(row => row.state === "seen").length;
+  const remaining = data.rows.filter(row => row.remaining);
+  const stats = document.getElementById("stats"); stats.replaceChildren();
+  for (const [count, key] of [[booked, "booked_count"], [seen, "seen_count"], [remaining.length, "remaining_count"]]) {
+    const stat = make("div", "stat", ""); stat.append(make("b", "num", String(count)), make("span", "", t(key))); stats.append(stat);
+  }
+  const room = data.rows.find(row => row.state === "in_room");
+  document.getElementById("in-room").textContent = room ? room.queue_number + " · " + (room.patient_first_name || t("walk_in")) : "—";
+  const who = document.getElementById("who");
+  who.querySelectorAll("button:not(.walk)").forEach(button => button.remove());
+  for (const row of remaining.slice(0, 4)) {
+    const button = make("button", "", "");
+    button.append(make("span", "num", String(row.queue_number)), make("span", "", row.patient_first_name || t("walk_in")));
+    if (row.no_show_count > 0) button.append(make("span", "warn", "⚠️" + row.no_show_count));
+    bindButton(button, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
+    who.insertBefore(button, who.querySelector(".walk"));
+  }
+  document.getElementById("pace-count").textContent = seen + " / " + booked;
+  document.getElementById("pace-progress").style.width = (booked ? seen / booked * 100 : 0) + "%";
   for (const row of data.rows) {
-    const card = document.createElement("div"); card.className = "queue-row";
-    const name = `${row.queue_number} ${row.patient_first_name || t("walk_in")}${row.no_show_count > 0 ? " ⚠️" + row.no_show_count : ""}`;
-    const title = document.createElement(row.remaining ? "button" : "strong");
-    title.textContent = name;
+    const card = make("div", "qrow" + (["seen", "didnt_come", "cancelled"].includes(row.state) ? " done" : ""), "");
+    const name = (row.patient_first_name || t("walk_in")) + (row.no_show_count > 0 ? " ⚠️" + row.no_show_count : "");
+    const title = make(row.remaining ? "button" : "span", "name", name);
     if (row.remaining) bindButton(title, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
-    const state = document.createElement("span");
-    state.textContent = [t(row.state), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · ");
-    card.append(title, state); queue.append(card);
+    const state = make("span", row.state === "in_room" ? "pill" : "st", [t(row.state === "in_room" ? "in_room" : row.state), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · "));
+    if (row.state === "in_room") state.prepend(make("span", "dot live", ""));
+    card.append(make("span", "n", String(row.queue_number)), title, state); queue.append(card);
   }
   const select = document.getElementById("areas");
   const previous = select.value;
@@ -205,12 +228,13 @@ async function loadQuestions() {
   const data = await api("/d/api/questions");
   panel.replaceChildren();
   for (const question of data) {
-    const card = document.createElement("form"); card.className = "queue-row";
+    const card = document.createElement("form"); card.className = "ask";
     const title = document.createElement("p"); title.textContent = question.text_display;
     const count = document.createElement("span"); count.textContent = question.count > 1 ? String(question.count) : "";
     const draft = document.createElement("textarea"); draft.minLength = 1; draft.maxLength = 1000;
-    draft.required = true; draft.value = question.draft_answer || ""; draft.setAttribute("aria-label", t("q_answer"));
+    draft.className = "field"; draft.required = true; draft.value = question.draft_answer || ""; draft.setAttribute("aria-label", t("q_answer"));
     card.append(title, count, draft);
+    const acts = document.createElement("div"); acts.className = "acts"; card.append(acts);
     for (const action of ["draft", "save", "later", "dismiss"]) {
       const button = document.createElement("button"); button.type = "button";
       button.textContent = t(action === "draft" ? "q_answer" : "q_" + action);
@@ -221,7 +245,7 @@ async function loadQuestions() {
         message(t(result.reason === "saved" ? "saved" : "q_" + result.reason));
         await loadQuestions();
       });
-      card.append(button);
+      acts.append(button);
     }
     card.addEventListener("submit", event => event.preventDefault());
     panel.append(card);
@@ -235,7 +259,7 @@ if (document.body.dataset.mode === "report") {
       .replace("answered by the AI", "answered");
     const list = document.getElementById("health-answers");
     for (const answer of data.health_answers) {
-      const card = document.createElement("article");
+      const card = document.createElement("article"); card.className = "card section";
       for (const field of ["question", "answer", "why", "at_display", "model"]) {
         const line = document.createElement("p"); line.textContent = answer[field] || ""; card.append(line);
       }

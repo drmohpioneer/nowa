@@ -185,9 +185,14 @@ def book_page() -> HTMLResponse:
     return HTMLResponse(
         environment.from_string(
             '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8">'
-            '<link rel="stylesheet" href="/static/nowa.css"><main class="container">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<link rel="stylesheet" href="/static/nowa.css"><main class="page chat">'
+            '<div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span>'
+            '<i class="o" aria-hidden="true"></i><span>wa</span></span></div>'
+            '<section class="card section">'
             "<h1>{{ title }}</h1><p>{{ banner }}</p>"
-            '<form action="/demo/book" method="post"><button>{{ start }}</button></form>'
+            '<form action="/demo/book" method="post">'
+            '<button class="btn btn-main">{{ start }}</button></form></section>'
             "</main></html>"
         ).render(
             title=STRINGS["demo.public_book"]["ar"],

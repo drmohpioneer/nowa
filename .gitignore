@@ -20,3 +20,4 @@ __pycache__/
 *.db-shm
 .mypy_cache/
 .ruff_cache/
+tests/visual/out/

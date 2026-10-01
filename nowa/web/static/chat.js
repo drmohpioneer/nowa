@@ -4,10 +4,14 @@ const base = "/c/" + encodeURIComponent(config.slug);
 let session, lang = "ar", history = [], areaId = null;
 const chat = document.getElementById("chat"), controls = document.getElementById("controls");
 const error = document.getElementById("error"), send = document.getElementById("send");
+const bookChip = document.getElementById("book-chip");
 const strings = () => config.strings[lang];
-function line(text) { const p = document.createElement("p"); p.textContent = text; chat.append(p); }
+function line(text, mine = false) { const p = document.createElement("div"); p.className = mine ? "bubble me" : "bubble"; p.textContent = text; chat.insertBefore(p, controls); }
 function labels() {
-    send.textContent = strings().send;
+    send.setAttribute("aria-label", strings().send);
+    document.getElementById("message").placeholder = strings().message;
+    bookChip.textContent = strings().book_chip;
+    document.getElementById("chat-emergency").textContent = strings().emergency;
     document.getElementById("message-label").textContent = strings().message;
     document.documentElement.lang = lang === "ar" ? "ar" : "en";
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
@@ -28,7 +32,7 @@ function distance(a, lat, lng) {
     return Math.sin(dlat / 2) ** 2 + Math.cos(lat * rad) * Math.cos(a.lat * rad) * Math.sin(dlng / 2) ** 2;
 }
 function lookupForm() {
-    const f = document.createElement("form");
+    const f = document.createElement("form"); f.className = "card";
     const name = document.createElement("input"), last4 = document.createElement("input");
     name.required = true; name.maxLength = 60; name.placeholder = strings().name;
     name.setAttribute("aria-label", strings().name);
@@ -83,21 +87,21 @@ function show(data) {
     const last = data.reply.split("\n").at(-1);
     if (/^https:\/\//.test(last)) {
         const a = document.createElement("a"); a.href = last; a.textContent = data.reply.split("\n").at(-2);
-        a.rel = "noopener noreferrer"; a.target = "_blank"; chat.append(a);
+        a.rel = "noopener noreferrer"; a.target = "_blank"; a.className = "bubble"; chat.insertBefore(a, controls);
     }
 }
 labels(); send.disabled = true;
-post("/session", {}).then(data => { session = data.session; send.disabled = false; }).catch(() => { error.textContent = strings().error; });
+post("/session", {}).then(data => { session = data.session; send.disabled = false; bookChip.disabled = false; }).catch(() => { error.textContent = strings().error; });
+bookChip.onclick = () => submitText(strings().book_text);
 for (const b of config.faq) {
     const el = document.createElement("button"); el.textContent = b.label;
     document.getElementById("faq").append(el);
     el.onclick = async () => { if (!session) return; try { show(await command("/tap", {action: "none", payload: b.action.payload})); }
         catch { error.textContent = strings().error; } };
 }
-document.getElementById("message-form").onsubmit = async e => {
-    e.preventDefault(); if (!session) return;
-    const input = document.getElementById("message"), text = input.value;
-    send.disabled = true; controls.replaceChildren(); line(text); input.value = "";
+async function submitText(text) {
+    if (!session || send.disabled) return;
+    send.disabled = true; bookChip.disabled = true; controls.replaceChildren(); line(text, true);
     try {
         const data = await command("/turn", {text, history: history.slice(-10)});
         history.push({role: "user", text});
@@ -108,5 +112,12 @@ document.getElementById("message-form").onsubmit = async e => {
         // Booking and lookup cards never become model context.
         show(data);
     } catch { error.textContent = strings().error; }
-    finally { send.disabled = false; }
+    finally { send.disabled = false; bookChip.disabled = false; }
+}
+document.getElementById("message-form").onsubmit = e => {
+    e.preventDefault();
+    if (!session || send.disabled) return;
+    const input = document.getElementById("message"), text = input.value;
+    input.value = "";
+    return submitText(text);
 };

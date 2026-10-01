@@ -13,7 +13,7 @@ function show(data) {
   minute = data.minute;
   document.getElementById("status").textContent = new Date(data.clock).toLocaleString("ar-EG", {timeZone: "Africa/Cairo"}) + " · " + texts.travel + " " + data.doctor_travel_min + " " + texts.minutes + " · " + (data.closed ? texts.closed : texts.minutes + " " + minute);
   const queue = document.getElementById("queue"); queue.replaceChildren();
-  for (const row of data.queue) { const p = document.createElement("p"); p.textContent = row.queue_number + " · " + (row.patient_first_name || texts.walkin) + " · " + row.state + " · " + (row.expected_shown ? new Date(row.expected_shown).toLocaleTimeString("ar-EG", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) : "") + " · " + (row.no_show_count ? "⚠ " + row.no_show_count : ""); queue.append(p); }
+  for (const row of data.queue) { const p = document.createElement("p"); p.className = "qrow" + (["seen", "didnt_come", "cancelled"].includes(row.state) ? " done" : ""); p.textContent = row.queue_number + " · " + (row.patient_first_name || texts.walkin) + " · " + row.state + " · " + (row.expected_shown ? new Date(row.expected_shown).toLocaleTimeString("ar-EG", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) : "") + " · " + (row.no_show_count ? "⚠ " + row.no_show_count : ""); queue.append(p); }
   const groups = new Map();
   for (const message of data.phones) {
     if (!groups.has(message.recipient)) groups.set(message.recipient, []);
@@ -21,11 +21,11 @@ function show(data) {
   }
   for (const [recipient, messages] of groups) {
     let phone = phoneElements.get(recipient);
-    if (!phone) { phone = document.createElement("section"); phone.className = "phone"; phone.setAttribute("aria-label", recipient); phoneElements.set(recipient, phone); document.getElementById("phones").append(phone); }
+    if (!phone) { phone = document.createElement("section"); phone.className = "phone card thread"; phone.setAttribute("aria-label", recipient); phoneElements.set(recipient, phone); document.getElementById("phones").append(phone); }
     window.NowaPhoneCards(phone, messages);
   }
   const timeline = document.getElementById("timeline"); timeline.replaceChildren();
-  for (const event of data.timeline) { const li = document.createElement("li"); li.textContent = new Date(event.at).toLocaleTimeString("ar-EG", {timeZone: "Africa/Cairo"}) + " · " + event.kind; timeline.append(li); }
+  for (const event of data.timeline) { const li = document.createElement("li"); li.className = "row"; li.textContent = new Date(event.at).toLocaleTimeString("ar-EG", {timeZone: "Africa/Cairo"}) + " · " + event.kind; timeline.append(li); }
   const report = document.getElementById("report"); report.hidden = !data.report_url;
   if (data.report_url) report.href = data.report_url;
   if (data.closed) pause();

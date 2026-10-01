@@ -115,6 +115,16 @@ def text(key: str, lang: str) -> str:
 
 
 DOCTOR_TEXTS = {
+    "login_sub": ("عيادة النهارده، الإعدادات، والتقرير", "Tonight's clinic, settings and report"),
+    "create_clinic": ("لسه معندكش عيادة؟ اعمل واحدة", "No clinic yet? Create one"),
+    "booked_count": ("محجوز", "Booked"),
+    "seen_count": ("خلصوا", "Completed"),
+    "remaining_count": ("لسه", "Remaining"),
+    "in_room": ("جوه دلوقتي", "In the room now"),
+    "who_next": ("مين يدخل بعده؟", "Who comes in next?"),
+    "all_queue": ("الطابور كله", "Full queue"),
+    "clinic_link": ("لينك عيادتك", "Your clinic link"),
+    "timing_title": ("توقيت وصول المرضى", "Patient arrival timing"),
     "brand": ("نوا", "Nowa"),
     "login": ("دخول الدكتور", "Doctor login"),
     "mobile": ("رقم الموبايل", "Mobile number"),
@@ -132,6 +142,7 @@ DOCTOR_TEXTS = {
         "If the number is registered, a code will arrive by message",
     ),
     "tonight": ("عيادة النهارده", "Tonight's clinic"),
+    "board_title": ("{day} · د. {name}", "{day} · Dr. {name}"),
     "report": ("تقرير العيادة", "Clinic report"),
     "questions": ("أسئلة للدكتور", "Questions for the doctor"),
     "health_answers": ("إجابات صحية", "Health answers"),
@@ -474,13 +485,36 @@ for _key, (_ar, _en, _franco) in CHAT_TEXTS.items():
 
 # APPROVED under Decisions 048 and 050.
 SIGNUP_TEXTS = {
+    "patient_door": ("عندي حجز", "I have a booking"),
+    "patient_sms": ("افتح لينك رسالة الـ SMS اللي وصلتك", "Open the link in the SMS you received"),
+    "doctor_door": ("أنا دكتور", "I am a doctor"),
+    "doctor_start": ("افتح عيادتك على نوا في ٥ دقايق", "Open your clinic on Nowa in 5 minutes"),
+    "how": ("إزاي بيشتغل", "How it works"),
+    "step1": (
+        "المريض بيحجز من لينك العيادة، وبياخد رقم دوره ومعاد تقريبي في رسالة.",
+        "The patient books through the clinic link and receives a queue number "
+        "and expected time by SMS.",
+    ),
+    "step2_before": ("الدكتور بيضغط", "The doctor taps"),
+    "on_way": ("أنا في الطريق", "I'm on my way"),
+    "step2_after": ("لما يتحرك، وضغطة بعد كل كشف.", "when leaving, then once after each visit."),
+    "step3_before": (
+        "نوا بيحسب الطابور والطريق، وبيبعت لكل مريض",
+        "Nowa calculates the queue and travel, then tells each patient",
+    ),
+    "leave_now": ("انزل دلوقتي", "Leave now"),
+    "step3_after": ("في وقته هو.", "at their own time."),
+    "emergency": (
+        "نوا مش بديل للطوارئ. لو فيه ألم في الصدر أو إغماء اتصل بـ 123 فورًا.",
+        "Nowa does not replace emergency care. For chest pain or fainting, call 123 immediately.",
+    ),
     "brand": ("نوا", "Nowa"),
     "headline": ("كل مريض يتحرك من البيت في وقته", "Each patient leaves home at the right time"),
     "intro": (
-        "نوا بيظبط وقت وصول المرضى من مواعيد العيادة وحركة الطابور. "
-        "ضغطة وانت في الطريق، وضغطة بعد كل كشف.",
-        "Nowa times patient arrivals from your clinic hours and queue. "
-        "Tap when you leave, then after each visit.",
+        "نوا بيبعت لكل مريض رسالة لما ييجي وقت نزوله، على حسب حركة الطابور الحقيقية "
+        "في العيادة. مفيش انتظار بالساعات.",
+        "Nowa texts each patient when it is time to leave, based on the real clinic queue. "
+        "No waiting for hours.",
     ),
     "signup": ("اعمل عيادتك", "Create your clinic"),
     "login": ("دخول الدكتور", "Doctor login"),
@@ -595,3 +629,42 @@ DEMO_TEXTS = {
 for _key, (_ar, _en) in DEMO_TEXTS.items():
     STRINGS["demo." + _key] = {"ar": _ar, "en": _en}
 STRINGS["signup.public_book"] = STRINGS["demo.public_book"]
+
+# Slice 14 presentation strings; no message-template or engine changes.
+_add("your_turn", "أهلاً {name}، دورك", "Hello {name}, your number", "Ahlan {name}, dorak")
+_add("leave_now", "انزل دلوقتي", "Leave now", "Enzel delwa2ty")
+_add("leave_number", "{name}، دورك رقم", "{name}, your number", "{name}, dorak rakm")
+_add(
+    "travel",
+    "الطريق حوالي {minutes} دقيقة. هتوصل قبل دورك بشوية.",
+    "Travel is about {minutes} minutes. You will arrive shortly before your turn.",
+    "El tareek 7awaly {minutes} de2ee2a. Hatewsal abl dorak beshowaya.",
+)
+_add(
+    "tap_help",
+    "الضغطة دي بتقول للدكتور إنك اتحركت. لو اتأخرت، اضغط لسه ما اتحركتش.",
+    "This tap tells the doctor you have left. If delayed, tap I haven't left yet.",
+    "El daghta de bet2ool lel doctor ennak et7arrakt. Law et2akhart, edghat lessa ma et7arraktesh.",
+)
+_add(
+    "emergency",
+    "لو حسيت بألم في الصدر أو إغماء، متستناش دورك. اتصل بـ 123 فورًا.",
+    "For chest pain or fainting, do not wait for your turn. Call 123 immediately.",
+    "Law 7asseet be alam fel sadr aw eghma2, matestannash dorak. Ettesel be 123 fawran.",
+)
+_add("in_room", "جوه دلوقتي", "In the room now", "Gowa delwa2ty")
+for _key, _values in {
+    "emergency": (
+        "لو طوارئ، اتصل بـ 123. نوا مش بديل للطوارئ.",
+        "In an emergency, call 123. Nowa does not replace emergency care.",
+        "Law tawari2, ettesel be 123. Nowa mesh badeel lel tawari2.",
+    ),
+    "clinic_title": ("عيادة د. {name}", "Dr. {name}'s clinic", "3eyadet Dr. {name}"),
+    "faq_price": ("سعر الكشف", "Price", "Se3r el kashf"),
+    "faq_address": ("العنوان", "Address", "El 3enwan"),
+    "faq_what_to_bring": ("أجيب معايا إيه؟", "What to bring?", "Ageeb ma3aya eh?"),
+    "faq_other": ("معلومات تانية", "Other info", "Ma3lomat tanya"),
+    "book_chip": ("احجز", "Book", "E7gez"),
+    "book_text": ("عايز أحجز", "I want to book", "3ayez a7gez"),
+}.items():
+    STRINGS["chat." + _key] = dict(zip(("ar", "en", "franco"), _values, strict=True))

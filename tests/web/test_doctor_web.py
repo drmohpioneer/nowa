@@ -355,6 +355,7 @@ def test_no_evening_and_logout(web):
     client, _, _, clock, _ = web
     clock.advance(minutes=24 * 60)
     assert client.get("/d/api/tonight").json()["reason"] == "no_evening"
+    assert 'id="evening-dot" class="dot"' in client.get("/d").text
     assert post(client, "undo").json()["reason"] == "no_evening"
     assert client.post("/d/logout", headers=headers(client)).status_code == 200
     assert client.get("/d/api/tonight").status_code == 401
@@ -365,11 +366,14 @@ def test_pages_cookies_language_and_escaping(web, engine):
     page = client.get("/d")
     assert page.status_code == 200 and 'dir="rtl"' in page.text
     assert page.headers["cache-control"] == "no-store"
+    assert 'id="evening-dot" class="dot live"' in page.text
+    assert " · د. " in page.text
     assert client.get("/d/settings").status_code == 200
     with write_tx(engine) as conn:
         conn.execute(s.doctors.update().where(s.doctors.c.clinic_id == cid).values(lang="en"))
     assert 'dir="ltr"' in client.get("/d").text
     assert "Tonight&#39;s clinic" in client.get("/d").text
+    assert " · Dr. " in client.get("/d").text
     assert client.get("/d/login").status_code == client.get("/d/reset").status_code == 200
     response = client.post(
         "/d/login", json={"mobile": "01000000001", "password": "demo1234"}, headers=ORIGIN

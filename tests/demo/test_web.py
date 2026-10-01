@@ -126,11 +126,11 @@ def test_gets_create_nothing_and_public_booking(demo_client, engine, demo_clock,
     second_session = demo_client.post(chat + "/session").json()["session"]
     assert demo_client.get(chat + "/demo/phone", params={"session": second_session}).json() == []
     seed(engine)
-    assert "<textarea" in demo_client.get("/c/dr-hesham").text
+    assert '<input id="message"' in demo_client.get("/c/dr-hesham").text
     # A sandbox with a judge owner also retains the accepted AI chat surface.
     with engine.begin() as conn:
         conn.execute(s.clinics.update().where(s.clinics.c.id == cid).values(judge_id="test-judge"))
-    assert "<textarea" in demo_client.get(chat).text
+    assert '<input id="message"' in demo_client.get(chat).text
     run = start(demo_client)
     assert demo_client.post(
         "/demo/evening/" + run["run_id"] + "/advance",

@@ -396,11 +396,28 @@ def test_cancel_failure_rolls_back(engine, page, monkeypatch):
     assert rows(engine, s.bookings) == before and not messages(engine, "3")
 
 
+def test_telegram_form_is_view_only(engine, page):
+    client, cid, eid, clock, ids, code = page
+    get_settings().telegram_bot_username = "nowa_test_bot"
+    for path in (f"/w/{code}", f"/l/{code}/change", f"/l/{code}"):
+        response = client.get(path)
+        assert response.status_code == 200
+        assert (f'action="/l/{code}/telegram"' in response.text) == (path == f"/l/{code}")
+    doctor = rows(engine, s.doctors)[0]["id"]
+    token = timing.request_cancel_tonight(engine, clock, cid, eid, doctor)
+    assert timing.cancel_tonight(engine, clock, cid, eid, doctor, token, "cancel-for-rebook").ok
+    for path in (f"/w/{code}", f"/r/{code}", f"/l/{code}"):
+        response = client.get(path)
+        assert response.status_code == 200
+        assert (f'action="/l/{code}/telegram"' in response.text) == (path == f"/l/{code}")
+
+
 def test_telegram_token_once_replace_and_expiry(engine, page):
     client, cid, eid, clock, ids, code = page
     get_settings().telegram_bot_username = "nowa_test_bot"
     with write_tx(engine) as conn:
         conn.execute(s.clinics.update().values(is_sandbox=False))
+    assert '<button class="btn btn-danger">' in client.get(f"/l/{code}").text
     data = fields(client.get(f"/l/{code}"), "/telegram") | {"last4": "0000"}
     response = post(client, f"/l/{code}/telegram", data)
     assert response.status_code == 303
@@ -768,7 +785,10 @@ def test_rebook_page_isolates_cancelled_booking_on_shared_contact(engine, page):
     response = client.get(f"/r/{code}")
     assert response.status_code == 200
     # Compare booking details only: the available-day buttons may legitimately list B's day.
-    details = response.text.split("<dl>", 1)[1].split("</dl>", 1)[0]
+    details = (
+        response.text.split('id="booking-details">', 1)[1]
+        .split('<a class="btn btn-ghost"', 1)[0]
+    )
     assert "Karim" in response.text and "Zain" not in response.text
     assert format_day(a.date, "en") in details and format_day(b.date, "en") not in details
     assert format_time(a.expected_shown, "en") in details

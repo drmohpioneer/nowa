@@ -58,7 +58,7 @@ def button(id: str, label: str, kind: Any, **payload: Any) -> Button:
 
 def faq(conn: Connection, clinic_id: int) -> list[Button]:
     return [
-        button("faq:" + row.key, row.key, "none", faq=row.key)
+        button("faq:" + row.key, ui("faq_" + row.key, "ar"), "none", faq=row.key)
         for row in conn.execute(
             select(s.clinic_info.c.key)
             .where(s.clinic_info.c.clinic_id == clinic_id)

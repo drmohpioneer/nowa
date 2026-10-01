@@ -1,28 +1,33 @@
 <!doctype html><html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ t('brand') }}</title><link rel="stylesheet" href="/static/nowa.css"><script defer src="/static/phone.js"></script><script defer src="/static/signup.js"></script></head>
-<body><main class="doctor-shell"><header><span class="dot" aria-hidden="true"></span>{{ t('brand') }}</header>
-<nav><a href="?lang={{ 'en' if lang == 'ar' else 'ar' }}">{{ 'English' if lang == 'ar' else 'العربية' }}</a><a href="/d/login">{{ t('login') }}</a>{% if watch_enabled %}<a href="/demo/evening">{{ t('watch') }}</a>{% endif %}</nav>
-<form method="post" action="/demo/book"><button>{{ t('public_book') }}</button></form>
-<h1>{{ t('headline') }}</h1><p>{{ t('intro') }}</p><a class="button" href="#code-form">{{ t('signup') }}</a>
-<p id="signup-message" role="status" aria-live="polite"></p>
-{% if judge_enabled %}<form id="judge-form"><label>{{ t('judge') }}<input name="code" type="password" required autocomplete="off"></label><button>{{ t('judge_start') }}</button></form>{% endif %}
-<section id="verification"><form id="code-form"><label>{{ t('mobile') }}<input name="mobile" type="tel" required autocomplete="tel"></label><button>{{ t('request_code') }}</button></form>
-<form id="verify-form" hidden><label>{{ t('code') }}<input name="code" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" required></label><button>{{ t('verify') }}</button></form></section>
-{% if demo %}<section id="signup-phone" class="phone" hidden aria-label="{{ t('phone') }}" aria-live="polite"></section>{% endif %}
-<form id="complete-form" hidden>
-{% for key in ['name_ar','name_en'] %}<label>{{ t(key) }}<input name="{{ key }}" minlength="2" maxlength="60" required></label>{% endfor %}
-<label>{{ t('specialty') }}<select name="specialty">{% for specialty in specialties %}<option value="{{ specialty }}">{{ t(specialty) }}</option>{% endfor %}</select></label>
-<label>{{ t('address') }}<textarea name="address" required maxlength="500"></textarea></label>
-<label>{{ t('pin_kind') }}<select name="pin_kind" id="pin-kind"><option value="area">{{ t('area') }}</option><option value="here">{{ t('here') }}</option><option value="link">{{ t('link') }}</option></select></label>
-<div id="pin-area"><select name="area_id" aria-label="{{ t('area') }}">{% for area in areas %}<option value="{{ area.id }}">{{ area.name_en if lang == 'en' else area.name_ar }}</option>{% endfor %}</select></div>
-<div id="pin-here" hidden><button type="button" id="locate">{{ t('locate') }}</button><p id="location-status" role="status"></p></div>
-<div id="pin-link" hidden><label>{{ t('map_link') }}<input name="map_link" type="url" maxlength="2000"></label></div>
-<h2>{{ t('hours') }}</h2><div class="hours-grid">{% for day in ['mon','tue','wed','thu','fri','sat','sun'] %}<fieldset data-weekday="{{ loop.index0 }}"><legend>{{ t(day) }}</legend><label><input type="checkbox" name="enabled" checked>{{ t('enabled') }}</label><label>{{ t('start') }}<input type="time" name="start" value="19:00" required></label><label>{{ t('end') }}<input type="time" name="end" value="23:00" required></label></fieldset>{% endfor %}</div>
-<label>{{ t('price') }}<input name="price_egp" type="number" min="0" max="100000" step="1" required></label>
-<label>{{ t('clinic_phone') }}<input name="clinic_phone" type="tel"></label>
-<label>{{ t('password') }}<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+<body><main class="page front">
+<div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span><nav><a href="/d/login" class="cur">{{ t('login') }}</a><a class="ltr" href="?lang={{ 'en' if lang == 'ar' else 'ar' }}">{{ 'English' if lang == 'ar' else 'العربية' }}</a></nav></div>
+<div class="hero"><div><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span></div><div><h1>{{ t('headline') }}</h1><p>{{ t('intro') }}</p>
+<div class="paths"><div class="path"><div><b>{{ t('patient_door') }}</b><small>{{ t('patient_sms') }}</small></div></div>
+<a class="path" href="#code-form"><div><b>{{ t('doctor_door') }}</b><small>{{ t('doctor_start') }}</small></div><span class="arrow">→</span></a></div></div></div>
+<div class="how"><h2>{{ t('how') }}</h2><div class="steps">{% for n in [1,2,3] %}<div class="step"><i>{{ n }}</i><div>{% if n == 1 %}{{ t('step1') }}{% else %}{{ t('step' ~ n ~ '_before') }} <b>{{ t('on_way' if n == 2 else 'leave_now') }}</b> {{ t('step' ~ n ~ '_after') }}{% endif %}</div></div>{% endfor %}</div></div>
+<p class="foot">{{ t('emergency') }}</p>
+<section class="section"><h2>{{ t('signup') }}</h2>
+<p class="pill status" id="signup-message" role="status" aria-live="polite"></p>
+{% if judge_enabled %}<form id="judge-form" class="card"><h2>{{ t('judge') }}</h2><label class="field"><span>{{ t('judge') }}</span><input name="code" type="password" required autocomplete="off"></label><button class="btn btn-main">{{ t('judge_start') }}</button></form>{% endif %}
+<section id="verification" class="card"><form id="code-form"><label class="field"><span>{{ t('mobile') }}</span><input name="mobile" type="tel" required autocomplete="tel"></label><button class="btn btn-main">{{ t('request_code') }}</button></form>
+<form id="verify-form" hidden><label class="field"><span>{{ t('code') }}</span><input name="code" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" required></label><button class="btn btn-main">{{ t('verify') }}</button></form></section>
+{% if demo %}<section id="signup-phone" class="phone card thread" hidden aria-label="{{ t('phone') }}" aria-live="polite"></section>{% endif %}
+<form id="complete-form" class="card" hidden>
+{% for key in ['name_ar','name_en'] %}<label class="field"><span>{{ t(key) }}</span><input name="{{ key }}" minlength="2" maxlength="60" required></label>{% endfor %}
+<label class="field"><span>{{ t('specialty') }}</span><select name="specialty">{% for specialty in specialties %}<option value="{{ specialty }}">{{ t(specialty) }}</option>{% endfor %}</select></label>
+<label class="field"><span>{{ t('address') }}</span><textarea name="address" required maxlength="500"></textarea></label>
+<label class="field"><span>{{ t('pin_kind') }}</span><select name="pin_kind" id="pin-kind"><option value="area">{{ t('area') }}</option><option value="here">{{ t('here') }}</option><option value="link">{{ t('link') }}</option></select></label>
+<div id="pin-area" class="field"><select name="area_id" aria-label="{{ t('area') }}">{% for area in areas %}<option value="{{ area.id }}">{{ area.name_en if lang == 'en' else area.name_ar }}</option>{% endfor %}</select></div>
+<div id="pin-here" hidden><button class="btn btn-ghost" type="button" id="locate">{{ t('locate') }}</button><p id="location-status" role="status"></p></div>
+<div id="pin-link" hidden><label class="field"><span>{{ t('map_link') }}</span><input name="map_link" type="url" maxlength="2000"></label></div>
+<h2>{{ t('hours') }}</h2><div class="hours-grid">{% for day in ['mon','tue','wed','thu','fri','sat','sun'] %}<fieldset class="card" data-weekday="{{ loop.index0 }}"><legend>{{ t(day) }}</legend><label class="field"><input type="checkbox" name="enabled" checked>{{ t('enabled') }}</label><label class="field"><span>{{ t('start') }}</span><input type="time" name="start" value="19:00" required></label><label class="field"><span>{{ t('end') }}</span><input type="time" name="end" value="23:00" required></label></fieldset>{% endfor %}</div>
+<label class="field"><span>{{ t('price') }}</span><input name="price_egp" type="number" min="0" max="100000" step="1" required></label>
+<label class="field"><span>{{ t('clinic_phone') }}</span><input name="clinic_phone" type="tel"></label>
+<label class="field"><span>{{ t('password') }}</span><input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
 <h2>{{ t('agreement') }} {{ agreement.version }}</h2><pre class="agreement">{{ agreement.text }}</pre>
-<input name="agreement_version" type="hidden" value="{{ agreement.version }}"><label><input name="agree" type="checkbox" required>{{ t('agree') }}</label><button>{{ t('complete') }}</button></form>
-<section id="signup-success" hidden><h2>{{ t('success') }}</h2><p id="success-mobile"></p><a id="chat-url">{{ t('chat') }}</a><br><a id="poster-url">{{ t('poster') }}</a><br><a href="/d">{{ t('dashboard') }}</a></section>
+<input name="agreement_version" type="hidden" value="{{ agreement.version }}"><label class="field"><input name="agree" type="checkbox" required>{{ t('agree') }}</label><button class="btn btn-main">{{ t('complete') }}</button></form>
+<section id="signup-success" class="card" hidden><h2>{{ t('success') }}</h2><p id="success-mobile"></p><a id="chat-url">{{ t('chat') }}</a><br><a id="poster-url">{{ t('poster') }}</a><br><a href="/d">{{ t('dashboard') }}</a></section>
+</section><section class="section card">{% if watch_enabled %}<a class="btn btn-ghost" href="/demo/evening">{{ t('watch') }}</a>{% endif %}<form method="post" action="/demo/book"><button class="btn btn-ghost">{{ t('public_book') }}</button></form></section>
 <div id="signup-translations" hidden>{% for key,value in texts.items() %}<span data-key="{{ key }}">{{ value }}</span>{% endfor %}</div>
 </main></body></html>

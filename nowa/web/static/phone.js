@@ -5,7 +5,7 @@ window.NowaPhoneCards = function (element, messages) {
   if (!cards) { cards = new Map(); phoneCards.set(element, cards); }
   for (const msg of messages) {
     let card = cards.get(msg.outbox_id);
-    if (!card) { card = document.createElement("article"); cards.set(msg.outbox_id, card); element.append(card); }
+    if (!card) { card = document.createElement("article"); card.className = "bubble"; cards.set(msg.outbox_id, card); element.append(card); }
     const title = document.createElement("strong"); title.textContent = msg.recipient;
     const body = document.createElement("p"); body.textContent = msg.body;
     const status = document.createElement("small"); status.textContent = msg.created_at + " · " + msg.status;

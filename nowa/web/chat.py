@@ -74,6 +74,7 @@ def page(request: Request, slug: str) -> HTMLResponse:
             buttons_only=buttons_only(clinic),
             demo_strings={k: v[0] for k, v in DEMO_TEXTS.items()},
             greeting=ui("greeting", "ar", name=doctor),
+            doctor_name=doctor,
             config={
                 "slug": slug,
                 "demo_strings": {k: v[0] for k, v in DEMO_TEXTS.items()},
