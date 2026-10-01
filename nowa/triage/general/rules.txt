@@ -1,0 +1,154 @@
+# STATUS: DRAFT
+# GENERAL emergency layer: runs FIRST in EVERY clinic, whatever the specialty (override your own judgment)
+# EMERGENCY = fixed message (go to the nearest ER / call 123 now), booking disabled.
+# URGENT = must be seen today or tomorrow (offer the nearest slot, and say which signs mean go to the ER instead).
+# ROUTINE here = no general red flag. Hand the message to the specialty layer, which may still rate it URGENT.
+# UNCLEAR = ask ONE short question. Never ask instead of ER advice: if any sign below could be present, give the ER
+#   advice first, then ask. A relative writing for someone ("ابويا", "مراتي", "جوزي", "ابني") is triaged exactly the same.
+# Words that push UP: فجأة (suddenly), دلوقتي / لسه (now, still), "أسوأ مرة" (worst ever), "مش بيرد" (not responding).
+# What pushes DOWN: the symptom has fully gone, there is a clear harmless trigger, and the patient feels normal now.
+# The patient saying "I'm fine" does NOT cancel a red flag (overdose, head injury on blood thinners, poison).
+
+- Chest pain
+  EMERGENCY: chest pain, pressure, heaviness or tightness happening now or in the last few hours AND any of: lasting more
+  than 15 minutes, came at rest, spreads to the arm, jaw, neck or back, with sweating, breathlessness, vomiting, dizziness
+  or fainting, or in someone with a stent, bypass, diabetes or high blood pressure.
+  Also: sudden tearing pain in the chest or between the shoulder blades; chest pain or sudden breathlessness after
+  surgery, a long trip, childbirth, or with one swollen painful leg (clot in the lung).
+  URGENT: heaviness that comes only with effort and goes within minutes of rest, new or worse in recent days or weeks,
+  and the patient has no pain now.
+  ROUTINE: pain at one spot on the ribs that hurts when pressed, after lifting or a knock; stabs lasting a second or two;
+  old chest pain already treated, now booking follow-up.
+
+- Stroke (BE-FAST): any of these starting SUDDENLY
+  EMERGENCY: face drooping on one side; weakness, heaviness or numbness of the arm and/or leg on one side; slurred
+  speech, cannot find words or cannot understand; sudden loss of vision or sudden double vision; sudden loss of balance
+  or cannot walk with dizziness; sudden headache that reaches full strength within 5 minutes ("like a blow to the head",
+  "worst ever"). Still EMERGENCY if it improved or went away within the last 48 hours (TIA). Never "wait and see".
+  URGENT: the same kind of symptoms that fully went away 2 to 14 days ago and have not come back.
+  ROUTINE: numbness from sleeping or leaning on the arm that went when moving; tingling in both feet or both hands that
+  came slowly over months; an old stroke booking follow-up.
+
+- Breathing difficulty
+  EMERGENCY: breathless at rest or cannot finish a sentence; blue or grey lips; noisy high-pitched breathing; choking on
+  something; home oxygen reading (pulse oximeter) 92% or lower in someone whose usual reading is normal; asthma attack
+  not easing after the usual reliever inhaler; breathless with chest pain, fainting, drowsiness or confusion.
+  URGENT: breathlessness with ordinary activity that is new or getting worse over days, but talks normally at rest and
+  the oximeter (if they have one) reads 93% or 94%.
+  ROUTINE: breathless only with heavy effort (for example 4 flights of stairs), long-standing and unchanged.
+
+- Severe allergic reaction (anaphylaxis)
+  EMERGENCY: within minutes to a few hours of a food, medicine, injection, insect sting or scan dye, any of: swelling of
+  the lips, tongue, face or throat; hoarse voice, trouble swallowing, wheeze or trouble breathing; dizziness, fainting
+  or collapse; widespread hives together with vomiting or crampy belly pain. Also face, lip or tongue swelling in
+  someone taking a blood pressure pill ending in "pril" (captopril, enalapril, lisinopril, perindopril), even without
+  hives. If they carry an adrenaline pen, tell them to use it now.
+  ROUTINE: itchy hives only, with no swelling of the mouth or throat, no breathing trouble, no dizziness, no vomiting.
+
+- Severe bleeding
+  EMERGENCY: bleeding that spurts, soaks through cloth, or does not stop after 10 minutes of firm continuous pressure;
+  nosebleed not stopping after 20 minutes of pinching; vomiting blood or coffee-ground material; black, tarry, sticky
+  stool not explained by iron tablets; more than streaks of fresh blood from the back passage; coughing up more than
+  streaks of blood; any bleeding with fainting, dizziness on standing, or pale and sweaty skin; bleeding that will not
+  stop in someone on blood thinners (warfarin/Marevan, rivaroxaban/Xarelto, apixaban/Eliquis, dabigatran/Pradaxa).
+  URGENT: on a blood thinner with easy bruising or gum bleeding that stops by itself; repeated nosebleeds today that
+  each stop with pressure.
+  ROUTINE: streaks of bright blood on the toilet paper with hard stool or piles, feeling well; a nosebleed that stopped
+  with pressure; streaks of blood in phlegm with a cold; black stool while on iron tablets, feeling well.
+
+- Pregnancy (pregnant, might be pregnant, or delivered in the last 6 weeks)
+  EMERGENCY: any vaginal bleeding after 20 weeks (5th month onward); heavy bleeding at any stage (a pad soaked in an
+  hour, or clots); bleeding with belly pain, shoulder-tip pain, dizziness or fainting at any stage; severe belly pain at
+  any stage, including a woman with a missed period who does not know if she is pregnant; a gush of fluid before 37
+  weeks; baby moving less than usual or not at all after 24 weeks; after 20 weeks: severe headache, blurred vision or
+  flashing lights, pain under the ribs or upper stomach, sudden swelling of the face or hands, blood pressure 160/110
+  or higher, or 140/90 or higher with any of those symptoms; fits; breathlessness, chest pain or one swollen painful leg;
+  after delivery: heavy bleeding, fever with foul discharge, severe headache, or thoughts of harming herself or the baby.
+  URGENT: light spotting in the first 3 months with no pain and no dizziness; blood pressure 140/90 to 159/109 after
+  20 weeks with no symptoms; vomiting and unable to keep any fluids down for 24 hours but not dizzy and still passing urine.
+  ROUTINE: morning sickness while still drinking and eating some food; routine antenatal questions.
+
+- Altered consciousness and collapse
+  EMERGENCY: unresponsive, cannot be woken, or very hard to wake; new confusion, talking nonsense, not recognising family,
+  or sudden strange behaviour (including sudden worsening in someone with dementia); fainted and not fully back to
+  normal within a few minutes; fainted with chest pain, palpitations, breathlessness, severe headache or a head injury;
+  a person with diabetes who is sweaty, confused or drowsy (treat as low sugar; never pour drinks into a drowsy mouth);
+  found on the floor and cannot get up.
+  URGENT: fainted once during exercise, while lying down, or with no warning at all, and is now completely back to normal.
+  ROUTINE: one faint with a clear trigger (standing long in heat, seeing blood, a painful needle, standing up fast) with
+  warning feelings first, back to normal within a minute, no injury; memory problems that came slowly over months.
+
+- Seizures (fits, تشنجات)
+  EMERGENCY: a fit happening now; a fit lasting 5 minutes or longer; a second fit without waking up in between; not
+  waking up properly after the fit; the first fit ever, within the last 24 hours; a fit with a head injury, in pregnancy,
+  in someone with diabetes, with fever and stiff neck or rash, in water, or followed by breathing trouble; any fit in a
+  child with fever.
+  URGENT: first fit ever more than 24 hours ago and fully back to normal; known epilepsy with one usual short fit, fully
+  back to normal, no injury.
+  ROUTINE: known epilepsy, no recent fits, booking follow-up or a prescription.
+
+- Child with fever (use for any child; thresholds from the under-5 guidance)
+  EMERGENCY: baby under 3 months with temperature 38 or higher (even if the baby looks well); child hard to wake, floppy,
+  or not responding normally; weak, high-pitched or non-stop cry; rash that does not fade when a glass is pressed on it;
+  pale, mottled, blue or grey skin; grunting, very fast breathing, or skin pulling in under the ribs; stiff neck or
+  bulging soft spot on the head; a fit; baby under 1 year refusing feeds, or any child refusing all drinks with no urine
+  (no wet nappy) for 12 hours or more.
+  URGENT: baby 3 to 6 months with temperature 39 or higher who otherwise looks well; fever lasting 5 days or more;
+  drinking less but still passing urine; not using an arm or leg, or a swollen joint, with fever.
+  ROUTINE: child over 3 months, fever less than 5 days, alert and playing when the fever comes down, drinking and passing
+  urine, no rash or a rash that fades on pressing.
+
+- Suicidal thoughts or self-harm
+  EMERGENCY: talks about ending their life with a plan, a method or a time; has pills, poison or a rope ready; has
+  already harmed themselves or taken an overdose (any amount); says goodbye or gives things away; hears voices telling
+  them to harm themselves or others; threatens to harm someone else. Reply kindly, tell them to stay with someone,
+  go to the ER / call 123 now.
+  URGENT: thoughts that life is not worth living or wishing not to wake up, with NO plan and NO intent, safe right now:
+  needs a mental health professional within 24 hours; give the ER advice for if things change.
+  Never rate ROUTINE or out_of_scope any message that mentions wanting to die, in any clinic.
+
+- Poisoning, overdose, bites and stings
+  EMERGENCY: any overdose taken on purpose, whatever the amount and even if they feel well now (paracetamol damage shows
+  after 1 to 3 days); more than 8 tablets of 500 mg paracetamol (4 g) in a day; a child who swallowed any medicine not
+  meant for them, a button battery, a magnet, or a household chemical (bleach, kerosene, drain cleaner, pesticide);
+  anyone who swallowed pesticide, rat poison, or "حبة الغلة" (aluminium phosphide, deadly); headache, dizziness,
+  vomiting or drowsiness in people sharing a room with a gas heater or gas water heater (carbon monoxide), more so if
+  more than one person is affected; any scorpion sting or snake bite; an extra dose of insulin, diabetes pills that
+  cause lows (gliclazide/Diamicron, glimepiride/Amaryl, glibenclamide/Daonil), digoxin, lithium or sleeping pills;
+  an extra dose of any medicine followed by drowsiness, fainting, or a very slow or very fast pulse.
+  URGENT: an accidental extra dose of warfarin with no bleeding (needs a blood test today or tomorrow).
+  ROUTINE: took a regular tablet late, or one accidental extra dose of a low-risk medicine (a vitamin, a stomach pill,
+  a cholesterol pill) and feels well.
+
+- Severe trauma and injuries
+  EMERGENCY: car or motorbike crash at speed, a pedestrian hit by a car, a fall from more than 1 metre or more than 5
+  stairs, a stab or gunshot wound; head injury with any of: passed out even briefly, cannot remember what happened,
+  vomiting, severe or worsening headache, confusion or drowsiness, a fit, blood or clear fluid from the nose or ears,
+  taking a blood thinner; neck pain, numbness or weakness after an injury; bone through the skin, a limb that looks
+  bent, or cold, blue or numb beyond the injury; a deep or gaping cut that needs stitches; burns larger than the
+  patient's palm, or on the face, hands, genitals or joints, or electrical or chemical burns, or burns with smoke.
+  URGENT: cannot put weight on an ankle or foot, or a wrist very swollen and painful after a fall (needs an X-ray),
+  with normal feeling and colour beyond the injury.
+  ROUTINE: a minor bump on the head with none of the signs above, not on a blood thinner, feels normal; an old sprain
+  that is improving.
+
+- Serious infection (sepsis) in adults
+  EMERGENCY: fever, or shivering and feeling very cold, with any of: new confusion or drowsiness; breathless at rest or
+  breathing very fast; pulse 130 or more at rest; top blood pressure number below 90 on a home machine; no urine in the
+  last 18 hours; mottled, blue or grey skin; a rash that does not fade under a glass; severe headache with stiff neck;
+  fever during chemotherapy (in the last 6 weeks) or after removal of the spleen; "the worst I have ever felt".
+  URGENT: fever 39 or higher for 3 days or more, or any fever for 5 days or more, without the signs above; fever in
+  someone with a kidney transplant, on dialysis, or on steroid or immune-suppressing medicines, without the signs above;
+  fever with burning urine and pain in the side or back.
+  ROUTINE: fever for less than 3 days with cold or flu symptoms, eating, drinking and alert.
+
+- Other sudden emergencies in any clinic
+  EMERGENCY: sudden severe belly pain that stops the patient from standing or moving, or a hard rigid belly; swollen
+  belly with vomiting and no stool or wind for 24 hours; sudden severe pain in a testicle; cannot pass urine at all with
+  a painful full bladder; sudden painful red eye with blurred vision.
+
+# UNCLEAR: use only when the message names a symptom with NO red flag in it AND one answer would change the level.
+# Ask the ONE question that decides it, and always add "if X, go to the ER now". Examples:
+#   "ابني سخن" -> how old is he and is he alert and drinking?  "وقع" -> did he hit his head, is he awake, blood thinner?
+#   "مراتي حامل وتعبانة" -> which month and what exactly does she feel (bleeding, pain, headache)?
+# Never UNCLEAR when a red flag is already in the message: that is EMERGENCY.

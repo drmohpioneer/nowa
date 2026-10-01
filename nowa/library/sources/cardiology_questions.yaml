@@ -1,0 +1,19 @@
+specialty: cardiology
+questions:
+  - id: q1
+    text_ar: هل دوا الضغط هفضل واخده طول عمري؟
+    approved: true
+  - id: q2
+    text_ar: الضغط ١٤٠ على ٩٠ ده خطر؟
+    approved: true
+  - id: q3
+    text_ar: ينفع أوقف دوا السيولة قبل ما أخلع ضرس؟
+    must_end_with: اسأل دكتورك قبل ما توقف أي دوا.
+    approved: true
+  - id: q4
+    text_ar: إيه الفرق بين رسم القلب والإيكو؟
+    approved: true
+  - id: q5
+    text_ar: بحس بخفقان، ده طبيعي ولا لازم أقلق؟
+    must_contain: لو حسيت بألم في الصدر أو إغماء اتصل بـ 123 فورًا.
+    approved: true

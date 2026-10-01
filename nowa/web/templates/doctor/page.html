@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ t(mode) }} · {{ t('brand') }}</title><link rel="stylesheet" href="/static/nowa.css">
+<script defer src="/static/phone.js"></script><script defer src="/static/dashboard.js"></script></head>
+<body data-mode="{{ mode }}" {% if evening_id %}data-evening-id="{{ evening_id }}"{% endif %} {% if clinic %}data-clinic-slug="{{ clinic.slug }}"{% endif %}><main class="doctor-shell">
+<header><span class="dot" aria-hidden="true"></span>{{ t('brand') }}</header>
+<nav>{% if mode in ['tonight', 'settings', 'report'] %}<a href="/d">{{ t('tonight') }}</a> · <a href="/d/settings">{{ t('settings') }}</a> <button id="logout">{{ t('logout') }}</button>{% else %}<a href="/d/login">{{ t('login') }}</a> · <a href="/d/reset">{{ t('reset') }}</a><a href="?lang={{ 'en' if lang == 'ar' else 'ar' }}">{{ 'English' if lang == 'ar' else 'العربية' }}</a>{% endif %}</nav>
+<h1>{{ t(mode) }}</h1><p id="message" role="status" aria-live="polite"></p>
+{% if mode == 'login' %}
+<form id="login"><label>{{ t('mobile') }}<input name="mobile" type="tel" autocomplete="username" required></label><label>{{ t('password') }}<input name="password" type="password" autocomplete="current-password" required></label><button>{{ t('login') }}</button></form>
+{% elif mode == 'reset' %}
+<form id="reset-request"><label>{{ t('mobile') }}<input name="mobile" type="tel" autocomplete="username" required></label><button>{{ t('request_code') }}</button></form>
+<form id="reset-confirm"><label>{{ t('mobile') }}<input name="mobile" type="tel" autocomplete="username" required></label><label>{{ t('code') }}<input name="code" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" required></label><label>{{ t('new_password') }}<input name="new_password" type="password" minlength="8" autocomplete="new-password" required></label><button>{{ t('confirm_reset') }}</button></form>
+{% elif mode == 'tonight' %}
+<div class="actions"><button id="on-way">{{ t('on_way') }}</button><button data-command="who-comes-in" data-walk-in="true">{{ t('walk_in') }}</button><button data-command="undo">{{ t('undo') }}</button><button id="close">{{ t('close') }}</button><button id="cancel">{{ t('cancel') }}</button></div>
+<form id="area-form" hidden><label>{{ t('area') }}<select id="areas" required></select></label><button>{{ t('send') }}</button></form>
+<div id="queue" aria-live="polite"></div>
+<a id="latest-report" hidden>{{ t('report') }}</a>
+<section><h2>{{ t('questions') }}</h2><div id="questions"></div></section>
+{% if clinic %}<h2>{{ clinic.name }}</h2><p>{{ clinic.address }}</p><a href="{{ chat_url }}">{{ signup_t('chat') }}</a> · <a href="/d/poster">{{ signup_t('poster') }}</a>{% endif %}
+{% if clinic and clinic.is_sandbox %}<section id="sandbox-controls" data-paper-start="{{ paper_start or '' }}"><h2>{{ signup_t('clock') }}</h2><time id="sandbox-clock">{{ clinic_now.isoformat() }}</time><div class="actions"><button data-advance="10">{{ signup_t('advance10') }}</button><button data-advance="60">{{ signup_t('advance60') }}</button><button id="sandbox-jump">{{ signup_t('jump') }}</button></div><h2>{{ signup_t('phone') }}</h2><div id="sandbox-phone" class="phone" aria-live="polite"></div><span id="sandbox-expired" hidden>{{ signup_t('expired') }}</span></section>{% endif %}
+{% elif mode == 'report' %}
+<pre id="report-text" style="white-space:pre-wrap"></pre>
+<section><h2>{{ t('health_answers') }}</h2><div id="health-answers"></div></section>
+<section><h2>{{ t('questions') }}</h2><div id="questions"></div></section>
+{% elif mode == 'settings' %}
+<form id="hours"><h2>{{ t('hours') }}</h2><div class="hours-grid">
+{% for day in ['mon','tue','wed','thu','fri','sat','sun'] %}<fieldset data-weekday="{{ loop.index0 }}"><legend>{{ t(day) }}</legend><label><input type="checkbox" name="enabled">{{ t('enabled') }}</label><label>{{ t('start') }}<input type="time" name="start" value="19:00" required></label><label>{{ t('end') }}<input type="time" name="end" value="23:00" required></label></fieldset>{% endfor %}
+</div><button>{{ t('save') }}</button></form>
+<form id="overrides"><h2>{{ t('override') }}</h2><select id="saved-overrides"><option value=""></option></select><label>{{ t('date') }}<input type="date" name="date" required></label><label><input type="checkbox" name="closed">{{ t('closed') }}</label><label>{{ t('start') }}<input type="time" name="start" value="19:00"></label><label>{{ t('end') }}<input type="time" name="end" value="23:00"></label><button>{{ t('save') }}</button><button type="button" id="delete-override">{{ t('delete_override') }}</button></form>
+<form id="timing">
+{% for field,low,high in [('usual_visit_min',5,60),('safe_drive_min',10,120),('max_per_evening',1,100)] %}<label>{{ t(field) }}<input name="{{ field }}" type="number" min="{{ low }}" max="{{ high }}" {% if field != 'max_per_evening' %}required{% endif %}></label>{% endfor %}
+<label>{{ t('cushion_min') }}<select name="cushion_min">{% for n in [5,10,15] %}<option>{{ n }}</option>{% endfor %}</select></label><button>{{ t('save') }}</button></form>
+<form id="info"><h2>{{ t('info') }}</h2>{% for key in ['price','address','what_to_bring','other'] %}<label>{{ t(key) }}<textarea name="{{ key }}" maxlength="500"></textarea></label>{% endfor %}<button>{{ t('save') }}</button></form>
+<form id="lang"><label>{{ t('lang') }}<select name="lang"><option value="ar">العربية</option><option value="en">English</option></select></label><button>{{ t('save') }}</button></form>
+<form id="secretary_alerts"><label><input name="on" type="checkbox">{{ t('secretary_alerts') }}</label><button>{{ t('save') }}</button></form>
+<button id="telegram">{{ t('telegram') }}</button><a id="telegram-url" hidden rel="noreferrer">{{ t('telegram_open') }}</a>
+{% endif %}
+<div id="translations" hidden>{% for key, value in translations.items() %}<span data-key="{{ key }}">{{ value }}</span>{% endfor %}</div>
+</main></body></html>

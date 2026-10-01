@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نوا | Nowa</title><link rel="stylesheet" href="/static/nowa.css"></head>
+<body><main class="container"><h1>{{ greeting }}</h1>
+{% if buttons_only %}<p class="emergency-banner" role="note">{{ demo_strings.banner }}</p>{% endif %}
+<nav id="faq" aria-label="FAQ"></nav><section id="chat" aria-live="polite"></section>
+<section id="controls"></section><p id="error" role="alert"></p>
+{% if not buttons_only %}<form id="message-form"><label id="message-label" for="message"></label>
+<textarea id="message" maxlength="1000" required></textarea><button id="send" type="submit"></button></form>{% else %}<section id="phone" class="phone" aria-label="{{ demo_strings.patient_phone }}"></section>{% endif %}
+<script id="chat-config" type="application/json">{{ config|tojson }}</script>
+{% if buttons_only %}<script src="/static/phone.js" defer></script><script src="/static/public-chat.js" defer></script>{% else %}<script src="/static/chat.js" defer></script>{% endif %}</main></body></html>

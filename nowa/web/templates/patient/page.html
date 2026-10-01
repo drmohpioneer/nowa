@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="{{ 'ar' if v.lang == 'ar' else 'en' }}" dir="{{ 'rtl' if v.lang == 'ar' else 'ltr' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t('title') }} · {{ t('brand') }}</title><link rel="stylesheet" href="/static/nowa.css"></head>
+<body><main><header><span class="dot"></span>{{ t('brand') }}</header>
+<h1>{{ v.patient_first_name }}</h1>
+{% if message %}<p role="status">{{ t(message) }}</p>{% endif %}
+<dl><dt>{{ t('doctor') }}</dt><dd>{{ v.doctor_name }}</dd>
+<dt>{{ t('day') }}</dt><dd>{{ day }}</dd><dt>{{ t('queue') }}</dt><dd>{{ v.queue_number }}</dd>
+<dt>{{ t('expected') }}</dt><dd>{{ expected }}</dd><dt>{{ t('state') }}</dt><dd>{{ t(v.state) }}</dd>
+<dt>{{ t('address') }}</dt><dd>{{ v.clinic_address }}</dd><dt>{{ t('phone') }}</dt><dd><a href="tel:{{ v.clinic_phone }}" rel="noopener noreferrer">{{ v.clinic_phone }}</a></dd></dl>
+<a class="button" href="{{ map_url }}" rel="noopener noreferrer">{{ t('map') }}</a>
+{% macro form_fields() %}<input type="hidden" name="form_token" value="{{ form.value }}"><input type="hidden" name="exp" value="{{ form.exp }}"><label>{{ t('last4') }}<input name="last4" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" required autocomplete="off"></label>{% endmacro %}
+{% macro tap_fields() %}<input type="hidden" name="tap_token" value="{{ tap.value }}"><input type="hidden" name="exp" value="{{ tap.exp }}">{% endmacro %}
+{% if mode == 'way' %}
+  {% if active and v.state == 'told_to_leave' %}
+    <form id="omw" method="post" action="/w/{{ code }}/tap">{{ tap_fields() }}
+    {% if auto %}<noscript><button>{{ t('tap') }}</button></noscript>{% else %}<button>{{ t('tap') }}</button>{% endif %}</form>
+    {% if auto %}<script src="/static/omw.js" defer></script>{% endif %}
+  {% elif active and v.state == 'on_my_way' %}
+    <p role="status">{{ t('done') }}</p><form method="post" action="/w/{{ code }}/undo">{{ tap_fields() }}<button>{{ t('undo') }}</button></form>
+  {% elif v.state != 'booked' %}<p>{{ t('readonly') }}</p>{% endif %}
+{% elif mode in ('change', 'rebook') %}
+  {% if (mode == 'change' and active) or (mode == 'rebook' and v.state_reason in ('cancel_tonight', 'close_untold')) %}
+    <h2>{{ t('change' if mode == 'change' else 'rebook') }}</h2>
+    {% if days %}<form method="post" action="{{ '/l/' + code + '/change' if mode == 'change' else '/r/' + code }}">{{ form_fields() }}
+    {% for date, label in days %}<button name="date" value="{{ date }}">{{ label }}</button>{% endfor %}</form>
+    {% else %}<p>{{ t('no_days') }}</p>{% endif %}
+  {% else %}<p>{{ t('readonly') }}</p>{% endif %}
+{% elif mode == 'view' %}
+  {% if active %}
+    {% if v.state == 'told_to_leave' %}<a class="button" href="/w/{{ code }}">{{ t('tap') }}</a>{% endif %}
+    <a class="button" href="/l/{{ code }}/change">{{ t('change') }}</a>
+    <form method="post" action="/l/{{ code }}/cancel">{{ form_fields() }}<button>{{ t('cancel') }}</button></form>
+  {% endif %}
+  {% if telegram %}<form method="post" action="/l/{{ code }}/telegram">{{ form_fields() }}<button>{{ t('telegram') }}</button></form>{% endif %}
+{% endif %}
+</main></body></html>

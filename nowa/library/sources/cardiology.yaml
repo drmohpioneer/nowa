@@ -1,0 +1,62 @@
+specialty: cardiology
+sites:
+  - site: nhs.uk
+    approved: true
+    terms_url: https://www.nhs.uk/our-policies/terms-and-conditions/
+    reuse_terms: OGL v3; NHS attribution and licence link; no patient charge; translations are adaptations at reuser risk.
+    urls:
+      - https://www.nhs.uk/conditions/high-blood-pressure-hypertension/
+      # High blood pressure medicines for life
+      - https://www.nhs.uk/medicines/ramipril/common-questions-about-ramipril/
+      - https://www.nhs.uk/medicines/amlodipine/how-and-when-to-take-amlodipine/
+      - https://www.nhs.uk/conditions/high-cholesterol/
+      - https://www.nhs.uk/conditions/statins/
+      - https://www.nhs.uk/conditions/angina/
+      - https://www.nhs.uk/conditions/heart-attack/
+      - https://www.nhs.uk/conditions/heart-attack/recovery/
+      - https://www.nhs.uk/conditions/heart-failure/
+      - https://www.nhs.uk/conditions/atrial-fibrillation/
+      - https://www.nhs.uk/conditions/heart-palpitations/
+      - https://www.nhs.uk/conditions/anticoagulants/
+      - https://www.nhs.uk/medicines/warfarin/
+      - https://www.nhs.uk/medicines/apixaban/
+      - https://www.nhs.uk/medicines/low-dose-aspirin/common-questions-about-low-dose-aspirin/
+      - https://www.nhs.uk/conditions/electrocardiogram/
+      - https://www.nhs.uk/conditions/echocardiogram/
+      - https://www.nhs.uk/conditions/coronary-angiography/
+      - https://www.nhs.uk/conditions/coronary-angioplasty/
+      - https://www.nhs.uk/conditions/chest-pain/
+      - https://www.nhs.uk/live-well/eat-well/food-types/salt-nutrition/
+      - https://www.nhs.uk/live-well/quit-smoking/nhs-stop-smoking-services-help-you-quit/
+      - https://www.nhs.uk/conditions/pre-eclampsia/
+  - site: medlineplus.gov
+    approved: true
+    terms_url: https://medlineplus.gov/copyright.html
+    reuse_terms: NLM-authored Health Topic summaries are public domain; attribute NLM; exclude A.D.A.M., drug monographs, images and third-party linked material.
+    urls:
+      - https://medlineplus.gov/highbloodpressure.html
+      - https://medlineplus.gov/cholesterol.html
+      - https://medlineplus.gov/angina.html
+      - https://medlineplus.gov/heartattack.html
+      - https://medlineplus.gov/heartfailure.html
+      - https://medlineplus.gov/atrialfibrillation.html
+      - https://medlineplus.gov/bloodthinners.html
+      - https://medlineplus.gov/hearthealthtests.html
+  - site: nhlbi.nih.gov
+    approved: true
+    terms_url: https://www.nhlbi.nih.gov/about/contact/website-privacy-and-accessibility
+    reuse_terms: US government authored text is public domain; attribute NHLBI; exclude third-party content and images.
+    urls:
+      - https://www.nhlbi.nih.gov/health/high-blood-pressure
+      - https://www.nhlbi.nih.gov/health/high-blood-pressure/treatment
+      - https://www.nhlbi.nih.gov/health/heart-attack/treatment
+      - https://www.nhlbi.nih.gov/health/stents/living-with
+      - https://www.nhlbi.nih.gov/health/heart-tests
+      - https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods
+  - site: cdc.gov
+    approved: true
+    terms_url: https://www.cdc.gov/other/agencymaterials.html
+    reuse_terms: US government authored text is public domain; attribute CDC; exclude third-party material and images.
+    urls:
+      - https://www.cdc.gov/high-blood-pressure/about/index.html
+      - https://www.cdc.gov/high-blood-pressure/about/high-blood-pressure-during-pregnancy.html

@@ -1,0 +1,1240 @@
+{
+  "checked_at": "2026-09-30T22:58:18.689053+00:00",
+  "threshold": 0.64,
+  "k": 12,
+  "library_version": "80dd119d5e94853d989456e159a6aaa4f58f60b94149af6f4f2c805f108afc6d",
+  "rows": [
+    {
+      "group": "in_library",
+      "question": "هل دوا الضغط هفضل واخده طول عمري؟",
+      "best_score": 0.70209234692277,
+      "top_scores": [
+        0.70209234692277,
+        0.6993216457424893,
+        0.6974216094838199,
+        0.6892070011171132,
+        0.6783214976556136,
+        0.6761943037772284,
+        0.6628017699992116,
+        0.6615006912008794,
+        0.6596065556973869,
+        0.6530578538565627,
+        0.6516889210265766,
+        0.6493217022821771
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "d7895d762d11c0260b8889b0d11941c94f92af453c63620380c43274efc226e3",
+          "score": 0.70209234692277,
+          "url": "https://medlineplus.gov/highbloodpressure.html",
+          "text_first_200": "When your blood pressure stays high over time, it causes the heart to pump harder and work overtime, possibly leading to serious health problems such as heart attack , stroke , heart failure , and kid"
+        },
+        {
+          "key": "74d9f40fdcb33b2a1416123a0df2cfdfee074167f09579536acea9ef9d9fa49d",
+          "score": 0.6993216457424893,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure/treatment",
+          "text_first_200": "Home Health Topics < Back To High Blood Pressure Treatment Home Health Topics < Back To High Blood Pressure Treatment What Is High Blood Pressure? Symptoms Diagnosis Causes and Risk Factors Treatment "
+        },
+        {
+          "key": "ba2122a52752fa33cd39eb65ae11ce8a6c9bc71e8969eeb13f123f817fd783da",
+          "score": 0.6974216094838199,
+          "url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+          "text_first_200": "NHS Better Health has free tools and support to help you lose weight, get active, quit smoking and drink less. Visit the NHS Better Health website A GP will usually prescribe medicine for high blood p"
+        },
+        {
+          "key": "008ffe087617138a8c24e1247c46dc2943a99c91773c041f59e7a169928e975f",
+          "score": 0.6892070011171132,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure/treatment",
+          "text_first_200": "When healthy lifestyle changes alone do not control or lower high blood pressure, your provider may prescribe blood pressure medicines. These medicines act in different ways to lower blood pressure. W"
+        },
+        {
+          "key": "40159d4254e15d5d11b12960904f2a0e40428a071bff664d94b9bc75cc410b8b",
+          "score": 0.6783214976556136,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "High blood pressure (hypertension) is consistently at or above 130/80 mm Hg. High blood pressure typically has no signs or symptoms but can cause problems for your heart, brain, kidneys, and eyes. No "
+        },
+        {
+          "key": "f5ed72c681b918a1abef72f09e12d4eb27ad366a6cbf2d464284a499886cffdd",
+          "score": 0.6761943037772284,
+          "url": "https://www.nhs.uk/medicines/amlodipine/how-and-when-to-take-amlodipine/",
+          "text_first_200": "Amlodipine comes as tablets or a liquid that you swallow. You'll usually need to take it once a day, at the same time every day. You can take it before or after eating or drinking. Your doctor will te"
+        },
+        {
+          "key": "810860a66c01dc0fde246d8918b1832da7dc16194078dd2ce6d88a9f014ab2c0",
+          "score": 0.6628017699992116,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure",
+          "text_first_200": "Symptoms Symptom (SIMP-tum): A problem that a patient experiences that may indicate disease but cannot be seen and does not show up on medical tests or procedures; some examples include headache, fati"
+        },
+        {
+          "key": "de267bbdd66b0b0a3a61b99d86cb0d0ba09b72e67b2c4110beafdeee3e1028af",
+          "score": 0.6615006912008794,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "High blood pressure can cause heart valve disease , which is when any valve in the heart is damaged or diseased. Adults with diabetes, high blood pressure, or both have a higher risk of developing chr"
+        },
+        {
+          "key": "e56d214b51f6b9fd377ef1d8d59d70dc23c27ea2f5bc8243d0dc61f264cba3af",
+          "score": 0.6596065556973869,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure/treatment",
+          "text_first_200": "Calcium channel blockers prevent calcium from entering the muscle cells of your heart and blood vessels. This allows blood vessels to relax. Diuretics remove extra water and sodium (salt) from your bo"
+        },
+        {
+          "key": "41547b52f1b3f5fa1f0e3a0b6033a42472b6718f89eec802eecbc41df711cee2",
+          "score": 0.6530578538565627,
+          "url": "https://www.nhs.uk/medicines/amlodipine/how-and-when-to-take-amlodipine/",
+          "text_first_200": "Amlodipine is a medicine used to treat high blood pressure and angina. It's only available with a prescription. Amlodipine is used to: lower high blood pressure (hypertension), reducing risk of seriou"
+        },
+        {
+          "key": "0b7bcae311d04bfa5df6d56a0970c8e473536dbc85539d6c2ba01a8f4b1ae8a6",
+          "score": 0.6516889210265766,
+          "url": "https://www.nhs.uk/medicines/ramipril/common-questions-about-ramipril/",
+          "text_first_200": "Ramipril is a type of medicine called an angiotensin-converting enzyme (ACE) inhibitor. Like other ACE inhibitors, ramipril relaxes and widens your blood vessels. This lowers your blood pressure and m"
+        },
+        {
+          "key": "5de7598635a7ee5ea18374d76fde630b6d50dfe76a740e9de22fa7943ed1516a",
+          "score": 0.6493217022821771,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "Blood pressure is the pressure that occurs when blood pushes against the walls of your arteries. Arteries carry blood from your heart to other parts of your body. Normal blood pressure is less than 12"
+        }
+      ],
+      "answer": "بشكل عام، إذا كنت بحاجة لأدوية خفض ضغط الدم، فمن المرجح أنك ستحتاج لتناولها مدى الحياة، وتحديد مدة علاجك يرجع لطبيبك. تذكر المصادر: \"If you need blood pressure-lowering medicines, you'll probably need to take them for the rest of your life.\" Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+      "source_url": "https://www.nhs.uk/medicines/ramipril/common-questions-about-ramipril/",
+      "supporting_sentence": "If you need blood pressure-lowering medicines, you'll probably need to take them for the rest of your life.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "الضغط ١٤٠ على ٩٠ ده خطر؟",
+      "best_score": 0.7104995672225354,
+      "top_scores": [
+        0.7104995672225354,
+        0.6957837188194169,
+        0.6871955183511035,
+        0.6823277835047556,
+        0.6641121631555997,
+        0.658535418387348,
+        0.6583665111291045,
+        0.6580002369368942,
+        0.654928250942955,
+        0.6546253797519117,
+        0.6455442049203888,
+        0.6453788296501269
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "c8adf1c0ea686d3c36cb43fad448ddf5a62daa9bcd88f811d722ee8c15b5813f",
+          "score": 0.7104995672225354,
+          "url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+          "text_first_200": "Blood pressure readings are given as 2 numbers, with the first number higher than the second (for example, 130/80). You're usually considered to have high blood pressure if your reading is: 140/90 or "
+        },
+        {
+          "key": "5de7598635a7ee5ea18374d76fde630b6d50dfe76a740e9de22fa7943ed1516a",
+          "score": 0.6957837188194169,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "Blood pressure is the pressure that occurs when blood pushes against the walls of your arteries. Arteries carry blood from your heart to other parts of your body. Normal blood pressure is less than 12"
+        },
+        {
+          "key": "40159d4254e15d5d11b12960904f2a0e40428a071bff664d94b9bc75cc410b8b",
+          "score": 0.6871955183511035,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "High blood pressure (hypertension) is consistently at or above 130/80 mm Hg. High blood pressure typically has no signs or symptoms but can cause problems for your heart, brain, kidneys, and eyes. No "
+        },
+        {
+          "key": "540f2671a3a1591f6a2be7bd6199bb4d07eae5fb345e4fcdf0fd976eace6d2ca",
+          "score": 0.6823277835047556,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure",
+          "text_first_200": "Blood pressures are written as two numbers separated by a slash like this: 120/80 mm Hg. You can say this as “120 over 80 millimeters of mercury” or just as “120 over 80.” The first number is your sys"
+        },
+        {
+          "key": "e7808954fd58c56bf34e937562b92bb5fc685191e088bf539802ccd487c04938",
+          "score": 0.6641121631555997,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/high-blood-pressure-during-pregnancy.html",
+          "text_first_200": "Health care professionals can make the following diagnoses for pregnancy-related high blood pressure. Your doctor or nurse should look for these conditions before, during, and after pregnancy: High bl"
+        },
+        {
+          "key": "8474072c5a185ab2c5ab6b9bfbe6732cf7e76450b5a80ce458e4a053e3ece921",
+          "score": 0.658535418387348,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "High blood pressure usually has no warning signs or symptoms, and many people do not know they have it. Measuring your blood pressure is the only way to know whether you have high blood pressure. Ther"
+        },
+        {
+          "key": "9cc708e048993d75ac2c29e0125715f18e55f958980c0785a5516e8677fdd040",
+          "score": 0.6583665111291045,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "Your health care team can diagnose high blood pressure. They can also make treatment decisions by reviewing your systolic (first number) and diastolic (second number) blood pressure levels and compari"
+        },
+        {
+          "key": "d5d7d87005829a1dc38f1c36b4e396c25d57f0d18dc5b7635a0fbac9facc2067",
+          "score": 0.6580002369368942,
+          "url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+          "text_first_200": "If your blood pressure is too high, it puts extra strain on your blood vessels, heart and other organs, such as your brain, kidneys and eyes. If it's not treated, it can increase your risk of serious "
+        },
+        {
+          "key": "234a51d0f074e34781d7d9528a7adcac4cfa7258d51b8a7b99c95daefc636e01",
+          "score": 0.654928250942955,
+          "url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+          "text_first_200": "High blood pressure (also called hypertension) can lead to serious problems like heart attacks or strokes. But lifestyle changes and blood pressure medicines can help you stay healthy. High blood pres"
+        },
+        {
+          "key": "2527d9c3265e9ce31050e63c379dee4c8e74c83778c977d30d20118bd49f59ba",
+          "score": 0.6546253797519117,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "High blood pressure can damage your health in many ways. It can seriously hurt important organs like your heart, brain, kidneys, and eyes. The good news is that, in most cases, you can manage your blo"
+        },
+        {
+          "key": "c9639696033040d1efc61146acb5593117bdbfcac45c86c704ac4bf08b0a26dc",
+          "score": 0.6455442049203888,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure",
+          "text_first_200": "Home < Back To Health Topics High Blood Pressure Home < Back To Health Topics High Blood Pressure What Is High Blood Pressure? Symptoms Diagnosis Causes and Risk Factors Treatment Living With High Blo"
+        },
+        {
+          "key": "810860a66c01dc0fde246d8918b1832da7dc16194078dd2ce6d88a9f014ab2c0",
+          "score": 0.6453788296501269,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure",
+          "text_first_200": "Symptoms Symptom (SIMP-tum): A problem that a patient experiences that may indicate disease but cannot be seen and does not show up on medical tests or procedures; some examples include headache, fati"
+        }
+      ],
+      "answer": "قراءة 140/90 بتُعتبر ضغط دم مرتفع عند قياسها بواسطة أخصائي رعاية صحية، حيث تنص الإرشادات على: \"You're usually considered to have high blood pressure if your reading is: 140/90 or higher when checked by a healthcare professional\". ارتفاع ضغط الدم ممكن يسبب إجهاد للأوعية الدموية والقلب ويزيد من خطر النوبات القلبية أو السكتات، عشان كده مهم تستشير طبيبك لمتابعة القراءة. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+      "source_url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+      "supporting_sentence": "You're usually considered to have high blood pressure if your reading is: 140/90 or higher when checked by a healthcare professional",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "ينفع أوقف دوا السيولة قبل ما أخلع ضرس؟",
+      "best_score": 0.6851627385214731,
+      "top_scores": [
+        0.6851627385214731,
+        0.6599853683534592,
+        0.6579433950132529,
+        0.6500525906263642,
+        0.6474345292090465,
+        0.6469688121894981,
+        0.642719696122486,
+        0.6405965450707649,
+        0.6404913512460992,
+        0.6378001178355488,
+        0.6376624099971538,
+        0.6372335929090053
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "97c6d51f69b7e1c0df3e85e11dabd21ef2f7d2721c76d0d28ad156c9d58d2959",
+          "score": 0.6851627385214731,
+          "url": "https://www.nhs.uk/conditions/anticoagulants/",
+          "text_first_200": "There are several things you need to be aware of when taking anticoagulant medicines. If you're going to have surgery or a test such as an endoscopy , make sure your doctor or surgeon is aware that yo"
+        },
+        {
+          "key": "608f506ec8cd2a7f464ae03b96675c91561673808619370af949695c81ded3b4",
+          "score": 0.6599853683534592,
+          "url": "https://www.nhs.uk/conditions/anticoagulants/",
+          "text_first_200": "If a blood clot blocks the flow of blood through a blood vessel, the affected part of the body will become starved of oxygen and will stop working properly. Depending on where the clot forms, this can"
+        },
+        {
+          "key": "082a2f5e9adcd85638f80e3c0d383f51518d32e43ca887863d0246b57104d5cd",
+          "score": 0.6579433950132529,
+          "url": "https://www.nhs.uk/medicines/warfarin/",
+          "text_first_200": "You're taking warfarin and: you have symptoms of bleeding you've had a head injury you think you might be having any other serious side effects You'll be given an anticoagulant alert card because warf"
+        },
+        {
+          "key": "73b15861d08b722af834f9eb9c2d3c4e2acff46024b73fc2ae66c625e682fff8",
+          "score": 0.6500525906263642,
+          "url": "https://medlineplus.gov/bloodthinners.html",
+          "text_first_200": "Blood thinners are medicines that prevent blood clots from forming. They do not break up clots that you already have. But they can stop those clots from getting bigger. It's important to treat blood c"
+        },
+        {
+          "key": "009e144d10263f0599676cdb572350e1feffd1ebd837eb180e904231803b957c",
+          "score": 0.6474345292090465,
+          "url": "https://medlineplus.gov/bloodthinners.html",
+          "text_first_200": "There are different types of blood thinners: Anticoagulants, such as heparin or warfarin (also called Coumadin), slow down your body's process of making clots. Antiplatelets, such as aspirin and clopi"
+        },
+        {
+          "key": "72445752e10087204ff140e00cfdb741f11fb70079c8e0a61c4a6ea93e1d2e1e",
+          "score": 0.6469688121894981,
+          "url": "https://www.nhs.uk/medicines/warfarin/",
+          "text_first_200": "These are not all the side effects of warfarin. For a full list, see the leaflet that comes with your medicine or search for your medicine leaflet on the electronic medicines compendium website . You "
+        },
+        {
+          "key": "db2221eeb2c89ba4b615e0dd1dc0512bbf1c14c8e95a79a8d24d9c72650f091d",
+          "score": 0.642719696122486,
+          "url": "https://www.nhs.uk/conditions/anticoagulants/",
+          "text_first_200": "Anticoagulants are medicines that help prevent blood clots. They're given to people at a high risk of getting clots, to reduce their chances of developing serious conditions such as strokes and heart "
+        },
+        {
+          "key": "dce40b23d2593ed48669a6132b3a21859c3f331c2ca330aaf8edb95c06b16d91",
+          "score": 0.6405965450707649,
+          "url": "https://www.nhs.uk/medicines/apixaban/",
+          "text_first_200": "You're taking apixaban and: you have symptoms of bleeding you've had a head injury you think you might be having any other serious side effects You'll be given an anticoagulant alert card because apix"
+        },
+        {
+          "key": "62333d564969311430b377d7f1db802978b78dab2ab809a901c8e45e1a87182d",
+          "score": 0.6404913512460992,
+          "url": "https://medlineplus.gov/bloodthinners.html",
+          "text_first_200": "Bleeding is the most common side effect of blood thinners. They can also cause an upset stomach, nausea , and diarrhea . Other possible side effects can depend on which type of blood thinner that you "
+        }
+      ],
+      "answer": "لو بتاخد أدوية سيولة زي الوارفارين، بيكون معاك كارت تنبيه ولازم توريه لطبيب الأسنان قبل أي إجراء، والمصدر بيوضح: \"Show it to your doctor or dentist before you have any medical or dental procedures.\" مينفعش توقف الدوا من نفسك لأن القرار بيرجع للطبيب المعالج. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/). اسأل دكتورك قبل ما توقف أي دوا.",
+      "source_url": "https://www.nhs.uk/medicines/warfarin/",
+      "supporting_sentence": "Show it to your doctor or dentist before you have any medical or dental procedures.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "إيه الفرق بين رسم القلب والإيكو؟",
+      "best_score": 0.7037896558672536,
+      "top_scores": [
+        0.7037896558672536,
+        0.6972214759261852,
+        0.6943373790889492,
+        0.6935052933683215,
+        0.6923539298889327,
+        0.6905244860124468,
+        0.6878516789498702,
+        0.6867720402687252,
+        0.6782774048885245,
+        0.66394740731981,
+        0.6628343089657014,
+        0.6621365288516797
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "9c029cfe19876b9e41807769d7bac47c853008e70ad31306b6128cda13be9caf",
+          "score": 0.7037896558672536,
+          "url": "https://medlineplus.gov/hearthealthtests.html",
+          "text_first_200": "Echocardiography, or echo, is a painless test that uses sound waves to create moving pictures of your heart. The pictures show the size and shape of your heart. They also show how well your heart's ch"
+        },
+        {
+          "key": "afe66266dc191abab863ee1f07a29698ce0dc527deb3177f1ba3c7d4c04671d9",
+          "score": 0.6972214759261852,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "An electrocardiogram, also called an ECG or EKG, is a simple, painless test that detects and records your heart’s electrical activity. An EKG can show how fast your heart is beating, whether the rhyth"
+        },
+        {
+          "key": "6263327b6ae3381bbf72ed424db6544ef9dabc299b6fcc554a4a646dc6060cf0",
+          "score": 0.6943373790889492,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "You may have the echocardiography in your doctor’s office or at a hospital. You won’t need to do anything to prepare for most types of echo. For a transesophageal echo, your doctor may ask you not to "
+        },
+        {
+          "key": "7d0383c19c94ffa74a754c884f77790d512be76b58e391f9f13671fb16c55312",
+          "score": 0.6935052933683215,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "Echocardiography, or echo, is a painless test that uses sound waves to create moving pictures of your heart. The pictures show the size and shape of your heart and how well your heart is pumping blood"
+        },
+        {
+          "key": "16c2885cef1ed97f77cf8c3dfa441fe82f5f69adc8e3dba96cd30d4923da2ed9",
+          "score": 0.6923539298889327,
+          "url": "https://www.nhs.uk/conditions/electrocardiogram/",
+          "text_first_200": "An ECG (electrocardiogram) is a test that records the electrical activity of your heart, including the rate and rhythm. It's usually quick and painless. You'll usually have an ECG (electrocardiogram) "
+        },
+        {
+          "key": "45868192aacd08fb693b2a0da674b5065bd7caa3d4cea10d9bdebd6913416d2c",
+          "score": 0.6905244860124468,
+          "url": "https://medlineplus.gov/hearthealthtests.html",
+          "text_first_200": "An electrocardiogram, also called an ECG or EKG, is a painless test that detects and records your heart's electrical activity. It shows how fast your heart is beating and whether its rhythm is steady "
+        },
+        {
+          "key": "ce3fc19353094f6de419be5d56f992c5487493c229ee4918030d5b456c0a216d",
+          "score": 0.6878516789498702,
+          "url": "https://www.nhs.uk/conditions/echocardiogram/",
+          "text_first_200": "An echocardiogram is usually done in hospital by a healthcare professional called a sonographer. The scan works by using soundwaves (ultrasound) to create an image of your heart, similar to an ultraso"
+        },
+        {
+          "key": "78db03a7eefb915e0ea185a85d067b0edf4b89c95004622fbc69fccd8a2badea",
+          "score": 0.6867720402687252,
+          "url": "https://www.nhs.uk/conditions/echocardiogram/",
+          "text_first_200": "An echocardiogram is a scan of your heart that's done to see how well your heart is working. You'll usually have an echocardiogram to either: check if your symptoms could be caused by a heart conditio"
+        },
+        {
+          "key": "bbb260408e27a4a060056da1fe028bb0ba2c6589db3a41195604e9795fdfac5e",
+          "score": 0.6782774048885245,
+          "url": "https://www.nhs.uk/conditions/electrocardiogram/",
+          "text_first_200": "An ECG (electrocardiogram) is done by a specially trained healthcare professional at a hospital, clinic or GP surgery. There are 3 different ways an ECG may be done: while resting over a period of tim"
+        },
+        {
+          "key": "6ff26ddc3ae17bfb017449094b607eec85425664312bea1b04dca1aedf1c7e2b",
+          "score": 0.66394740731981,
+          "url": "https://www.nhs.uk/conditions/electrocardiogram/",
+          "text_first_200": "The healthcare professional will attach sticky patches, called electrodes, to your chest and tape them down. These are attached to a small portable ECG recorder, which you wear on a belt around your w"
+        },
+        {
+          "key": "5f5b66ab9bc140f2c00d9fa512aff9c5b87ad7936eef5c63c70d2aa3c7db6c64",
+          "score": 0.6628343089657014,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "Stress echocardiography is done as part of a stress test. During a stress test, you exercise or take medicine to make your heart work hard and beat fast. A technician will use echo to create pictures "
+        },
+        {
+          "key": "1bc6cc1bec73f3f3acb4ac43d975f8f7b61a9eb198054f53c8d1551f5ae1f65c",
+          "score": 0.6621365288516797,
+          "url": "https://www.nhs.uk/conditions/heart-attack/",
+          "text_first_200": "You'll need tests including an electrocardiogram (ECG) and blood tests to find out if you're having a heart attack. If these tests show you're having a heart attack, you may have further tests such as"
+        }
+      ],
+      "answer": "رسم القلب يسجل النشاط الكهربائي للقلب، بينما الإيكو يعتمد على الموجات الصوتية لتصوير القلب. كما توضح المصادر: \"Echocardiography, or echo, is a painless test that uses sound waves to create moving pictures of your heart.\" وتوضح الصور حجم القلب وشكله وكفاءة عمل الصمامات والحجرات، في حين يسجل رسم القلب سرعة ونظام ضربات القلب ونشاطه الكهربائي عبر أقطاب توضع على الجلد. Source: MedlinePlus, National Library of Medicine.",
+      "source_url": "https://medlineplus.gov/hearthealthtests.html",
+      "supporting_sentence": "Echocardiography, or echo, is a painless test that uses sound waves to create moving pictures of your heart.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "بحس بخفقان، ده طبيعي ولا لازم أقلق؟",
+      "best_score": 0.7328362438547679,
+      "top_scores": [
+        0.7328362438547679,
+        0.7232194216049073,
+        0.7011661769096511,
+        0.6885525921273541,
+        0.6860154875895168,
+        0.6708224454053632,
+        0.6598452513712126,
+        0.6573706238678882,
+        0.65713577910231,
+        0.6492519092385842,
+        0.6481205923272778,
+        0.6476787996512365
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "82ca41ea345386f7b6eec14ea4722ed9b473d7b741d86b62d1b41b4b269bb52a",
+          "score": 0.7328362438547679,
+          "url": "https://www.nhs.uk/conditions/heart-palpitations/",
+          "text_first_200": "Heart palpitations are when your heartbeat becomes more noticeable. They're usually harmless, but get help if you keep getting them or you also have other symptoms. When you have heart palpitations, y"
+        },
+        {
+          "key": "b9cef703c931c16c722efcc2bde74f50058c929efed65fe02fc7b75d500ae1f3",
+          "score": 0.7232194216049073,
+          "url": "https://www.nhs.uk/conditions/heart-palpitations/",
+          "text_first_200": "Heart palpitations are common and not usually a sign of anything serious. Common causes include: strenuous exercise lack of sleep stress and anxiety medicines (check the leaflet that comes with the me"
+        },
+        {
+          "key": "98df8083db791943fd6eec8eaf05c3670ddb6f8ef94ba7815a10df8f1fabb3b7",
+          "score": 0.7011661769096511,
+          "url": "https://www.nhs.uk/conditions/heart-palpitations/",
+          "text_first_200": "You've had heart palpitations and feel well but: they keep coming back or they are happening more often they last longer than a few minutes you have a heart condition you have a history of heart probl"
+        },
+        {
+          "key": "71b9dc6747ca143ad59a6c6216b22f65018285c3cd9fe370342e8ce9b5d8b3b1",
+          "score": 0.6885525921273541,
+          "url": "https://www.nhs.uk/conditions/atrial-fibrillation/",
+          "text_first_200": "Atrial fibrillation (sometimes called afib or AF) is a type of heart rhythm problem where your heartbeat is not steady. See a GP if you think you may have it. The main symptoms of atrial fibrillation "
+        },
+        {
+          "key": "aea2e071c83ab068f463bb4105a29a11e1bf2ca80b70341580ebadb8eddfd1dc",
+          "score": 0.6860154875895168,
+          "url": "https://www.nhs.uk/conditions/heart-palpitations/",
+          "text_first_200": "Treatment for heart palpitations depends on the cause. They often do not need to be treated. Avoiding things that can trigger palpitations, such as stress, smoking, caffeine and alcohol, can help if p"
+        },
+        {
+          "key": "0ae5688e8a0a8ce5e40803098eff3e14d09c8cc75e07bd68777baf29a6a33428",
+          "score": 0.6708224454053632,
+          "url": "https://medlineplus.gov/atrialfibrillation.html",
+          "text_first_200": "Some people who have AFib don't have any symptoms and don't know they have it. If you do have symptoms, you may only notice them once in a while. Or you may have symptoms that are more frequent. And i"
+        },
+        {
+          "key": "66e5f7b22b83fad016d2d19344d29d556e77f193f52e5586630c7f40cc8bd794",
+          "score": 0.6598452513712126,
+          "url": "https://www.nhs.uk/conditions/atrial-fibrillation/",
+          "text_first_200": "you think you may have symptoms of atrial fibrillation you have heart palpitations that keep happening or are getting worse you have been diagnosed with atrial fibrillation and treatment is not helpin"
+        },
+        {
+          "key": "16c2885cef1ed97f77cf8c3dfa441fe82f5f69adc8e3dba96cd30d4923da2ed9",
+          "score": 0.6573706238678882,
+          "url": "https://www.nhs.uk/conditions/electrocardiogram/",
+          "text_first_200": "An ECG (electrocardiogram) is a test that records the electrical activity of your heart, including the rate and rhythm. It's usually quick and painless. You'll usually have an ECG (electrocardiogram) "
+        },
+        {
+          "key": "d5f27925589f1c6aeb36839d351386fb0d355aafee6c08fc4c69fd2dd10660df",
+          "score": 0.65713577910231,
+          "url": "https://medlineplus.gov/atrialfibrillation.html",
+          "text_first_200": "Atrial fibrillation, also known as AFib or AF, is one of the most common types of arrhythmias . Arrhythmias are problems with the rate or rhythm of your heartbeat. They can cause your heart to beat to"
+        },
+        {
+          "key": "b7676a1a818302ea8160489e02912bb4ea54372b5c6d416bcd64fc09027ff788",
+          "score": 0.6492519092385842,
+          "url": "https://www.nhs.uk/conditions/atrial-fibrillation/",
+          "text_first_200": "If a GP thinks you could have atrial fibrillation, they will refer you to a heart specialist (cardiologist). At your appointment, they will ask about your symptoms and check your heart rate. You will "
+        },
+        {
+          "key": "afe66266dc191abab863ee1f07a29698ce0dc527deb3177f1ba3c7d4c04671d9",
+          "score": 0.6481205923272778,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "An electrocardiogram, also called an ECG or EKG, is a simple, painless test that detects and records your heart’s electrical activity. An EKG can show how fast your heart is beating, whether the rhyth"
+        },
+        {
+          "key": "2dfaad1016eed42f75beebb15a2c90909c90c544b00b3c4882747d43a225667c",
+          "score": 0.6476787996512365,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "Holter and event monitors are small, portable electrocardiogram devices that record your heart’s electrical activity for long periods of time while you do your normal activities. These monitors can re"
+        }
+      ],
+      "answer": "خفقان القلب شائع وغالبًا ما يكون غير خطير، كما يوضح المصدر: \"Heart palpitations are common and not usually a sign of anything serious.\" لكن استشر الطبيب لو كان الخفقان بيتكرر أو بيزيد أو بيستمر أكتر من دقايق، أو لو عندك تاريخ لأمراض القلب. لو حسيت بألم في الصدر أو إغماء اتصل بـ 123 فورًا. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+      "source_url": "https://www.nhs.uk/conditions/heart-palpitations/",
+      "supporting_sentence": "Heart palpitations are common and not usually a sign of anything serious.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "What is high cholesterol?",
+      "best_score": 0.7434082950541092,
+      "top_scores": [
+        0.7434082950541092,
+        0.7271049856614863,
+        0.7072603533703598,
+        0.7038996542650724,
+        0.6961032922191199,
+        0.6913060945073634,
+        0.6786105716011108,
+        0.6765456500737987,
+        0.6629304576427736,
+        0.6559314898065595,
+        0.6559314898065595,
+        0.6485088954330719
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "2374473434a8991f5003ba089773fed006e21fd2343609d009eadb2e514e3050",
+          "score": 0.7434082950541092,
+          "url": "https://www.nhs.uk/conditions/high-cholesterol/",
+          "text_first_200": "High cholesterol is when you have too much of a fatty substance called cholesterol in your blood. You're more likely to get high cholesterol if you're over 50, a man, you've been through the menopause"
+        },
+        {
+          "key": "8feba6879493b595e35c96c7dffe3fa78d8d7e25363f2025442c7cc6768d028e",
+          "score": 0.7271049856614863,
+          "url": "https://medlineplus.gov/cholesterol.html",
+          "text_first_200": "The most common cause of high cholesterol is an unhealthy lifestyle. This can include: Unhealthy eating habits, such as eating lots of saturated fats . These fats are found in red meats, full-fat dair"
+        },
+        {
+          "key": "da9464b319e2f4ed22fd213a9ce7860d65c908b2d90a6f19903984eeb4ea6706",
+          "score": 0.7072603533703598,
+          "url": "https://medlineplus.gov/cholesterol.html",
+          "text_first_200": "There are usually no signs or symptoms that you have high cholesterol. A blood test can measure your cholesterol levels . When and how often you should get this test depends on your age, risk factors,"
+        },
+        {
+          "key": "212ccdc7b916522a5743e4c403596fef26bfd87065b496d63551bf8e7e65e602",
+          "score": 0.7038996542650724,
+          "url": "https://medlineplus.gov/cholesterol.html",
+          "text_first_200": "A variety of things can raise your risk of high cholesterol: Age. Your cholesterol levels tend to rise as you get older. Even though it is less common, younger people, including children and teens , c"
+        },
+        {
+          "key": "f4df8cd5f35129908841476bac42005e6f92da2225f154fc69994acf253f07f8",
+          "score": 0.6961032922191199,
+          "url": "https://medlineplus.gov/cholesterol.html",
+          "text_first_200": "Undiagnosed or untreated high blood cholesterol can lead to serious health problems: If you have large deposits of plaque in your arteries, an area of plaque can rupture (break open). This can cause a"
+        },
+        {
+          "key": "63073843d5c28eb32b4e62e51a42ca011341ce37fcdfad1f6af457a6c6f88652",
+          "score": 0.6913060945073634,
+          "url": "https://medlineplus.gov/cholesterol.html",
+          "text_first_200": "Cholesterol is a waxy, fat-like substance that's found in all the cells in your body. Your body needs some cholesterol to make hormones , vitamin D , and substances that help you digest foods. Your bo"
+        },
+        {
+          "key": "f6edaae556bf65332f184b3396459be939cdf95243e056580637f0ea676084f1",
+          "score": 0.6786105716011108,
+          "url": "https://medlineplus.gov/cholesterol.html",
+          "text_first_200": "You can lower your cholesterol through heart-healthy lifestyle changes. They include a heart-healthy eating plan , weight management , and regular physical activity . If the lifestyle changes alone do"
+        },
+        {
+          "key": "98e2614fd41cc090573e59700e2a0bd12253a591c2166324a11eba1aa2bed03f",
+          "score": 0.6765456500737987,
+          "url": "https://medlineplus.gov/cholesterol.html",
+          "text_first_200": "HDL, LDL, and VLDL are lipoproteins. They are a combination of fat (lipid) and protein. The lipids need to be attached to the proteins so they can move through the blood. Different types of lipoprotei"
+        },
+        {
+          "key": "6a239f704109ded270922e413a1cefd92f18b579f7901677d748bd5e7128e850",
+          "score": 0.6629304576427736,
+          "url": "https://www.nhs.uk/conditions/statins/",
+          "text_first_200": "Statins are medicines used to lower cholesterol. High cholesterol increases the risk of heart problems and stroke, but taking statins can help prevent these conditions. Statins are used to lower high "
+        },
+        {
+          "key": "54eae4bcfdac88dcac8c31881e8f64192b7210e0091ebfa0c99972df2a8f8e1e",
+          "score": 0.6559314898065595,
+          "url": "https://www.nhs.uk/conditions/heart-attack/",
+          "text_first_200": "Heart attacks are usually caused by a blood clot stopping enough blood getting to your heart. You're more likely to have a heart attack if you: smoke have high blood pressure have high cholesterol hav"
+        },
+        {
+          "key": "e45ddd675af1750b7fc47ed335b4fa343466c83ff89aaa6dfb7f348407911bda",
+          "score": 0.6559314898065595,
+          "url": "https://www.nhs.uk/conditions/heart-attack/recovery/",
+          "text_first_200": "Heart attacks are usually caused by a blood clot stopping enough blood getting to your heart. You're more likely to have a heart attack if you: smoke have high blood pressure have high cholesterol hav"
+        },
+        {
+          "key": "fb39366f01b055085ce516c0e0f3eccee4afa6cc13c4dacdebc58a4dc440c879",
+          "score": 0.6485088954330719,
+          "url": "https://www.nhs.uk/conditions/statins/",
+          "text_first_200": "You may be offered statins if: you're at higher risk of getting cardiovascular disease and healthy lifestyle changes have not helped or are unlikely to help on their own you already have cardiovascula"
+        }
+      ],
+      "answer": "\"High cholesterol is when you have too much of a fatty substance called cholesterol in your blood.\" It does not usually cause symptoms and can block blood vessels, which makes you more likely to have heart problems or a stroke. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+      "source_url": "https://www.nhs.uk/conditions/high-cholesterol/",
+      "supporting_sentence": "High cholesterol is when you have too much of a fatty substance called cholesterol in your blood.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "What is angina?",
+      "best_score": 0.7605337193468544,
+      "top_scores": [
+        0.7605337193468544,
+        0.7412461246423319,
+        0.7351184928543635,
+        0.7105602232162216,
+        0.7041571052601663,
+        0.7017891640429909,
+        0.6968209067997139,
+        0.6927334277752512,
+        0.6848023009026826,
+        0.6781947712212609,
+        0.67059365317856,
+        0.6618239056230717
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "0448755eb8319015b9f4f6bea306daa727615eaffa7c87cc4f55c15c1e776d6d",
+          "score": 0.7605337193468544,
+          "url": "https://medlineplus.gov/angina.html",
+          "text_first_200": "Angina is chest pain or discomfort you feel when there is not enough blood flow to your heart muscle. Your heart muscle needs the oxygen that the blood carries. Angina may feel like pressure or a sque"
+        },
+        {
+          "key": "5fa325a1cfec375519a89ad1bb8fcc33792a69110febdbcf69c11e0b969cfd4b",
+          "score": 0.7412461246423319,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "Angina is a feeling of pain or tightness, usually in your chest. It can be a sign of a heart problem, so it's important to see a GP as soon as possible if you think you may have it. The main symptom o"
+        },
+        {
+          "key": "2e9ce9ae7d89acf8220134072213440d44cfce7317ff729c750575a6cfeded84",
+          "score": 0.7351184928543635,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "Angina happens when the heart does not get enough blood. This is usually due to coronary heart disease , where the blood vessels supplying blood to the heart become narrowed or blocked by fatty deposi"
+        },
+        {
+          "key": "c7865412e36f970395c296f945fb2a31180e82087f7f0667a452777fc29f47c2",
+          "score": 0.7105602232162216,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "If you have angina, you may be given medicine to: treat an angina attack if you have one ( glyceryl trinitrate ) lower your chances of having an angina attack, such as beta blockers reduce your risk o"
+        },
+        {
+          "key": "c72ed057aa4f0bb13de3fa83c6b2c99c9aa84eee467c84a97edbe01df55da457",
+          "score": 0.7041571052601663,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "you've been diagnosed with angina and have chest pain that does not stop after resting for a few minutes or after taking your angina medicine you get sudden pain or discomfort in your chest that does "
+        },
+        {
+          "key": "884d039e48279459eb1a40758742a85fd1f8f11c6204063229af24f4867b8d93",
+          "score": 0.7017891640429909,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "If you've been diagnosed with angina and get chest pain, follow the instructions you've been given for treating your angina: Stop what you're doing and rest. Use any medicine you've been prescribed – "
+        },
+        {
+          "key": "69b6480d1317dc15be11719aadbbb2e6d8ab5d216e471fe6b814d19d9f71245e",
+          "score": 0.6968209067997139,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "you have chest pain or other symptoms of angina that come and go you've been diagnosed with angina and it feels worse than before, is happening more often, lasts longer or happens when you're resting "
+        },
+        {
+          "key": "92b6adc0b39f0318753568a10c41c77648ac77a38f4ce4196f04896ea4c01403",
+          "score": 0.6927334277752512,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "NHS Better Health has free tools and support to help you lose weight, quit smoking, drink less and get active. Visit the NHS Better Health website Having angina means you're at higher risk of having a"
+        },
+        {
+          "key": "c33228bc7ad48cdb38364d1e928e1020568609bebedf7f43213370276b74af8d",
+          "score": 0.6848023009026826,
+          "url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+          "text_first_200": "Like all organs in the body, the heart needs a constant supply of blood. This is supplied by the coronary arteries. In some people, these arteries can become narrowed and hardened (known as atheroscle"
+        },
+        {
+          "key": "e40cbf8b6be438946093cd936f5ef5f854d6bafde8a66732ae5e613b91b3c15b",
+          "score": 0.6781947712212609,
+          "url": "https://www.nhs.uk/conditions/angina/",
+          "text_first_200": "If you have angina, there are things you can do to help symptoms or reduce the chance of attacks. avoid things that trigger your angina attacks as much as possible, like stress, cold temperatures or e"
+        },
+        {
+          "key": "1e0221673f358013d7549cdaf58e6f428c564bbb93b42c42b9907104f9ee9fb0",
+          "score": 0.67059365317856,
+          "url": "https://www.nhs.uk/conditions/chest-pain/",
+          "text_first_200": "The most common heart problems that cause chest pain include: pericarditis – which usually causes a sudden, sharp, stabbing pain that gets worse when you breathe deeply or lie down angina or a heart a"
+        },
+        {
+          "key": "3e728f283abc104a5949c1e9f1731c994a60a36a3b11244b671cacfb0321ef40",
+          "score": 0.6618239056230717,
+          "url": "https://www.nhs.uk/conditions/heart-attack/",
+          "text_first_200": "A heart attack happens when blood flow to your heart is blocked. It can be life-threatening and needs emergency treatment in hospital. Symptoms of a heart attack may include: chest pain which may feel"
+        }
+      ],
+      "answer": "Angina is chest pain or discomfort you feel when there is not enough blood flow to your heart muscle. It can feel like pressure or squeezing in your chest, and may spread to your shoulders, arms, neck, jaw, or back. Source: MedlinePlus, National Library of Medicine.",
+      "source_url": "https://medlineplus.gov/angina.html",
+      "supporting_sentence": "Angina is chest pain or discomfort you feel when there is not enough blood flow to your heart muscle.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "What is heart failure?",
+      "best_score": 0.7469593803703127,
+      "top_scores": [
+        0.7469593803703127,
+        0.7397676889640068,
+        0.7162864175095949,
+        0.7147726427815652,
+        0.7120099120329458,
+        0.7088883015245382,
+        0.6918949860505127,
+        0.6916275564298359,
+        0.6901077989364178,
+        0.688757865783873,
+        0.6837958431171632,
+        0.6708123011898093
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "62507a8b824dfd58351917992b3bda600dee49523b5705e837403df496a78782",
+          "score": 0.7469593803703127,
+          "url": "https://medlineplus.gov/heartfailure.html",
+          "text_first_200": "Heart failure means that your heart can't pump enough oxygen-rich blood to meet your body's needs. Heart failure doesn't mean that your heart has stopped or is about to stop beating. But without enoug"
+        },
+        {
+          "key": "21a7be13b18d78e5f44710e443f52bfd38e362000ab580e6c08f2feab76ec083",
+          "score": 0.7397676889640068,
+          "url": "https://www.nhs.uk/conditions/heart-failure/",
+          "text_first_200": "Heart failure is when your heart cannot pump blood properly. It does not mean your heart has stopped working or is about to stop working. There's no cure, but treatment and lifestyle changes can help."
+        },
+        {
+          "key": "add7b19ec631d5f504dcb36491c86ad7b3cb8f19cbd84700c3ee0f4078814de5",
+          "score": 0.7162864175095949,
+          "url": "https://www.nhs.uk/conditions/heart-failure/",
+          "text_first_200": "There are lots of possible causes of heart failure. It can happen suddenly, such as after a heart attack or infection, or from long-term strain on your heart from high blood pressure or coronary heart"
+        },
+        {
+          "key": "bff463cb4c2e51893638880dfe9ec2471c7ba7cb79516e284279deed8f3cd548",
+          "score": 0.7147726427815652,
+          "url": "https://www.nhs.uk/conditions/heart-failure/",
+          "text_first_200": "There are different types and stages of heart failure. If you're diagnosed with heart failure, your doctor will discuss the type and stage with you. The type relates to why your heart is not pumping a"
+        },
+        {
+          "key": "dd9547c9c5b2f79e11eb06a474093b947be8542a354375d5d49415a8bd87b1a2",
+          "score": 0.7120099120329458,
+          "url": "https://medlineplus.gov/heartfailure.html",
+          "text_first_200": "Heart failure can start suddenly after a medical condition or injury damages your heart muscle. But in most cases, heart failure develops slowly from long-term medical conditions. Conditions that can "
+        },
+        {
+          "key": "321e6ddebc7e0c7d21163049537626620cab211f35125d64fd99e5d597a9a526",
+          "score": 0.7088883015245382,
+          "url": "https://medlineplus.gov/heartfailure.html",
+          "text_first_200": "The symptoms of heart failure depend on which side of your heart is affected and how serious your condition has become. Most symptoms are caused by reduced blood flow to your organs and fluid buildup "
+        },
+        {
+          "key": "b4988703cca502b092470d0d515264c3da1a5b7101ecf05f95cf5ae43c09e082",
+          "score": 0.6918949860505127,
+          "url": "https://medlineplus.gov/heartfailure.html",
+          "text_first_200": "To find out if you have heart failure, your health care provider will Ask about your medical history , including your symptoms Ask about your family health history , including relatives who have had h"
+        },
+        {
+          "key": "330d3ef5aa3c536c218dc3ba2282d5ec54fae17dc226e192c61bfa7518903311",
+          "score": 0.6916275564298359,
+          "url": "https://medlineplus.gov/heartfailure.html",
+          "text_first_200": "Fluid buildup and reduced blood flow to your organs can lead to serious problems, including: Breathing problems from fluid in and around your lungs (also called congestive heart failure) Kidney or liv"
+        },
+        {
+          "key": "6943e4708f54d8c2ad4acabb23e5453cb7886ceb305abf1ff347c71b2b0bca6b",
+          "score": 0.6901077989364178,
+          "url": "https://medlineplus.gov/heartfailure.html",
+          "text_first_200": "Your treatment will depend on the type of heart failure you have and how serious it is. There's no cure for heart failure. But treatment can help you live longer with fewer symptoms. Even with treatme"
+        },
+        {
+          "key": "82a9d7551b19d65e0bdc73840e35f35fb76be7f31b710f3398526ed5c75ebeb0",
+          "score": 0.688757865783873,
+          "url": "https://www.nhs.uk/conditions/heart-failure/",
+          "text_first_200": "There is currently no cure for heart failure, but treatment aims to ease symptoms and help prevent your condition from getting worse. Your treatment will depend on the type and stage of heart failure "
+        },
+        {
+          "key": "9543b1b8eded16214014c3c21b754b83f49208fc57bd350d79bd4aeb7dfaa479",
+          "score": 0.6837958431171632,
+          "url": "https://www.nhs.uk/conditions/heart-failure/",
+          "text_first_200": "Medicines (Pumping Marvellous) Cardiac devices (Pumping Marvellous) Cardiac rehabilitation (British Heart Foundation) Heart failure is a serious condition that affects everyone differently. Symptoms c"
+        },
+        {
+          "key": "f9e6a7171da7f5e2ea9f92540a45fbbf2fa7c43a9a468284afd27eb016965f54",
+          "score": 0.6708123011898093,
+          "url": "https://www.nhs.uk/conditions/heart-failure/",
+          "text_first_200": "Anyone can get heart failure but you may be more at risk if you: are 65 or older are living with overweight or obesity are pregnant smoke drink a lot of alcohol use cocaine If the doctor thinks you ma"
+        }
+      ],
+      "answer": "Heart failure means that your heart can't pump enough oxygen-rich blood to meet your body's needs. It doesn't mean your heart has stopped or is about to stop beating, but without enough blood flow, your organs may not work properly. It can affect one or both sides of the heart. Source: MedlinePlus, National Library of Medicine.",
+      "source_url": "https://medlineplus.gov/heartfailure.html",
+      "supporting_sentence": "Heart failure means that your heart can't pump enough oxygen-rich blood to meet your body's needs.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "How does salt affect blood pressure?",
+      "best_score": 0.7209208777744011,
+      "top_scores": [
+        0.7209208777744011,
+        0.6986529980430742,
+        0.6830059189293983,
+        0.6764081072410935,
+        0.6741748519768236,
+        0.6669588017484769,
+        0.6635590733055553,
+        0.6634746313353111,
+        0.6622768465966469,
+        0.6602621565413063,
+        0.6600419089572744,
+        0.6584567951927012
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "de92742eae9719f6ab3fcc6ae1c54d863abfef00bbc788ad8732ec545d78f685",
+          "score": 0.7209208777744011,
+          "url": "https://www.nhs.uk/live-well/eat-well/food-types/salt-nutrition/",
+          "text_first_200": "Find out why having too much salt can be bad for you and how to cut down. Eating too much salt can cause high blood pressure , which increases the risk of heart attacks and strokes. It's easy to have "
+        },
+        {
+          "key": "9f0328ae1b1f84d63532aaa7a0f4970903cb644272293f1ed904990769d723b2",
+          "score": 0.6986529980430742,
+          "url": "https://www.nhs.uk/live-well/eat-well/food-types/salt-nutrition/",
+          "text_first_200": "try not to use too many sauces that can be high in salt, such as soy sauce, gravy granules, ketchup, mustard, mayonnaise and brown sauce do not have salt on the table if you're trying to cut down NHS "
+        },
+        {
+          "key": "6d36a3afc700144dfa6e6162fd98eb7d008a121ad69fd89efb8484f763ad0963",
+          "score": 0.6830059189293983,
+          "url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+          "text_first_200": "Healthy lifestyle changes can help lower your blood pressure. have a healthy, balanced diet exercise regularly – aim to do at least 150 minutes of exercise a week lose weight if you're overweight do n"
+        },
+        {
+          "key": "5de7598635a7ee5ea18374d76fde630b6d50dfe76a740e9de22fa7943ed1516a",
+          "score": 0.6764081072410935,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "Blood pressure is the pressure that occurs when blood pushes against the walls of your arteries. Arteries carry blood from your heart to other parts of your body. Normal blood pressure is less than 12"
+        },
+        {
+          "key": "de267bbdd66b0b0a3a61b99d86cb0d0ba09b72e67b2c4110beafdeee3e1028af",
+          "score": 0.6741748519768236,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "High blood pressure can cause heart valve disease , which is when any valve in the heart is damaged or diseased. Adults with diabetes, high blood pressure, or both have a higher risk of developing chr"
+        },
+        {
+          "key": "5a8a425761ccbc6c3cf636f87b22a2635e5bafd33c8380fb14112ff868cd835f",
+          "score": 0.6669588017484769,
+          "url": "https://www.nhlbi.nih.gov/health/heart-healthy-living/healthy-foods",
+          "text_first_200": "A heart-healthy eating plan limits sodium (salt), saturated fat, added sugars, and alcohol. Understanding nutrition labels can help you choose healthier foods. Adults and children over age 14 should e"
+        },
+        {
+          "key": "40159d4254e15d5d11b12960904f2a0e40428a071bff664d94b9bc75cc410b8b",
+          "score": 0.6635590733055553,
+          "url": "https://www.cdc.gov/high-blood-pressure/about/index.html",
+          "text_first_200": "High blood pressure (hypertension) is consistently at or above 130/80 mm Hg. High blood pressure typically has no signs or symptoms but can cause problems for your heart, brain, kidneys, and eyes. No "
+        },
+        {
+          "key": "b29703210efe90255d32014149f0882f101ad7e177d40a471fa828d01e999451",
+          "score": 0.6634746313353111,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure/treatment",
+          "text_first_200": "If you have high blood pressure, your provider may recommend that you adopt a heart-healthy lifestyle to help lower and control high blood pressure. Choose heart-healthy foods such as those in the DAS"
+        },
+        {
+          "key": "d5d7d87005829a1dc38f1c36b4e396c25d57f0d18dc5b7635a0fbac9facc2067",
+          "score": 0.6622768465966469,
+          "url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+          "text_first_200": "If your blood pressure is too high, it puts extra strain on your blood vessels, heart and other organs, such as your brain, kidneys and eyes. If it's not treated, it can increase your risk of serious "
+        },
+        {
+          "key": "e56d214b51f6b9fd377ef1d8d59d70dc23c27ea2f5bc8243d0dc61f264cba3af",
+          "score": 0.6602621565413063,
+          "url": "https://www.nhlbi.nih.gov/health/high-blood-pressure/treatment",
+          "text_first_200": "Calcium channel blockers prevent calcium from entering the muscle cells of your heart and blood vessels. This allows blood vessels to relax. Diuretics remove extra water and sodium (salt) from your bo"
+        },
+        {
+          "key": "234a51d0f074e34781d7d9528a7adcac4cfa7258d51b8a7b99c95daefc636e01",
+          "score": 0.6600419089572744,
+          "url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
+          "text_first_200": "High blood pressure (also called hypertension) can lead to serious problems like heart attacks or strokes. But lifestyle changes and blood pressure medicines can help you stay healthy. High blood pres"
+        },
+        {
+          "key": "dab4518b5db8f5715f9f489187f7936c4428b5f583463cd4d3c891e67e0edb8d",
+          "score": 0.6584567951927012,
+          "url": "https://www.nhs.uk/live-well/eat-well/food-types/salt-nutrition/",
+          "text_first_200": "try adding flavour to your food with herbs and spices, black pepper, garlic, chili or lemon juice instead of salt limit the amount of salt you add when cooking and eating – try tasting your food befor"
+        }
+      ],
+      "answer": "Eating too much salt can impact your cardiovascular health. Specifically, \"Eating too much salt can cause high blood pressure , which increases the risk of heart attacks and strokes.\" Cutting down on salt in your diet can help lower or control your blood pressure. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+      "source_url": "https://www.nhs.uk/live-well/eat-well/food-types/salt-nutrition/",
+      "supporting_sentence": "Eating too much salt can cause high blood pressure , which increases the risk of heart attacks and strokes.",
+      "usage_calls": 2
+    },
+    {
+      "group": "in_library",
+      "question": "What is a coronary angioplasty?",
+      "best_score": 0.7573981739925733,
+      "top_scores": [
+        0.7573981739925733,
+        0.7560476754132808,
+        0.738706836387112,
+        0.727594481218451,
+        0.7258658412656496,
+        0.6964922377709303,
+        0.691581900380196,
+        0.6862795176556112,
+        0.6694747473569236,
+        0.6692247814470577,
+        0.6638458233607358,
+        0.6638458233607358
+      ],
+      "accepted": true,
+      "reason": null,
+      "retrieved": [
+        {
+          "key": "11bd0411b698afd575677fe09fbded7456ea9afc58e4fb30f13a9f27a89e119b",
+          "score": 0.7573981739925733,
+          "url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+          "text_first_200": "A coronary angioplasty is a procedure used to widen blocked or narrowed coronary arteries (the main blood vessels supplying the heart). The term \"angioplasty\" means using a balloon to stretch open a n"
+        },
+        {
+          "key": "6bc9271d589f3d5688d182960c82b6bd511113f612f0e83284f879f70c122b11",
+          "score": 0.7560476754132808,
+          "url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+          "text_first_200": "A coronary angioplasty is performed using local anaesthetic , which means you'll be awake while the procedure is carried out. A thin, flexible tube called a catheter will be inserted into one of your "
+        },
+        {
+          "key": "c33228bc7ad48cdb38364d1e928e1020568609bebedf7f43213370276b74af8d",
+          "score": 0.738706836387112,
+          "url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+          "text_first_200": "Like all organs in the body, the heart needs a constant supply of blood. This is supplied by the coronary arteries. In some people, these arteries can become narrowed and hardened (known as atheroscle"
+        },
+        {
+          "key": "87e535bac5a9b083ca1dc6edc5c26dc5de84b8884a69221471afebf779633732",
+          "score": 0.727594481218451,
+          "url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+          "text_first_200": "A coronary angioplasty is 1 of the most common types of treatment for the heart. As the procedure doesn't involve making major incisions in the body, it's usually carried out safely in most people. Do"
+        },
+        {
+          "key": "b195cf54133abce4ba42bd7d72ea8bdc7915a7c1e24e3e584be63b2d350b8995",
+          "score": 0.7258658412656496,
+          "url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+          "text_first_200": "In most cases, the blood flow through the coronary arteries improves after an angioplasty. Many people find their symptoms get significantly better and they're able to do more than they could before t"
+        },
+        {
+          "key": "a46dfa2c95059d3c20b556dead67374a2dd345649ef221f250c6bbeff7afa34e",
+          "score": 0.6964922377709303,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "Coronary angiography is often done in a hospital. You will stay awake, but receive medicine to relax during the procedure. Coronary angiography is done via a cardiac catheterization procedure. For thi"
+        },
+        {
+          "key": "5bf02efeeb0d3c76a6924159754966ba1b6f5ec366c6064f041a7b9a5c11226f",
+          "score": 0.691581900380196,
+          "url": "https://www.nhlbi.nih.gov/health/heart-attack/treatment",
+          "text_first_200": "You may need one of the following procedures at the hospital or later to help restore blood flow to your heart. These procedures are often done as soon as your healthcare team confirms that you are ha"
+        },
+        {
+          "key": "a7da587f9c9cc1dc8eca73870ca30e49fa454d7d5b0d691525bf97060eba7932",
+          "score": 0.6862795176556112,
+          "url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+          "text_first_200": "If many coronary arteries have become blocked and narrowed, or the structure of your arteries is abnormal, a coronary artery bypass graft may be considered. This is a type of invasive surgery where se"
+        },
+        {
+          "key": "175710178dc7a9a0419fc9214b7c317a3101a8f5a84dc222cf6fbe50ef53a648",
+          "score": 0.6694747473569236,
+          "url": "https://www.nhlbi.nih.gov/health/heart-tests",
+          "text_first_200": "Coronary angiography is a procedure that uses contrast dye, usually containing iodine, and X-ray pictures to detect blockages in the coronary arteries that are caused by plaque buildup. Blockages prev"
+        },
+        {
+          "key": "f5f0d47add115b17ee9f825f92766b0c38c27fe69c8e5a4ca6bac85474303009",
+          "score": 0.6692247814470577,
+          "url": "https://medlineplus.gov/hearthealthtests.html",
+          "text_first_200": "Cardiac catheterization is a medical procedure used to diagnose and treat some heart conditions. For the procedure, your provider puts a catheter (a long, thin, flexible tube) into a blood vessel in y"
+        },
+        {
+          "key": "275a24f4dd1671595e8ef9d2129e9bdc7976f9f802d9ee085a8c4908be140186",
+          "score": 0.6638458233607358,
+          "url": "https://www.nhs.uk/conditions/heart-attack/recovery/",
+          "text_first_200": "You'll need treatment in hospital for a heart attack. Your treatment will depend on how severe it is. Treatments may include: medicines to treat the blockage in your arteries and improve blood flow to"
+        },
+        {
+          "key": "42002781ed8bd5d5e0f28ddb808886dec49e9088bdcba4a1e65e447c473e6098",
+          "score": 0.6638458233607358,
+          "url": "https://www.nhs.uk/conditions/heart-attack/",
+          "text_first_200": "You'll need treatment in hospital for a heart attack. Your treatment will depend on how severe it is. Treatments may include: medicines to treat the blockage in your arteries and improve blood flow to"
+        }
+      ],
+      "answer": "\"A coronary angioplasty is a procedure used to widen blocked or narrowed coronary arteries (the main blood vessels supplying the heart).\" The term angioplasty refers to using a balloon to stretch open a narrowed or blocked artery, and modern procedures often involve inserting a wire mesh tube (stent) to keep it open. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+      "source_url": "https://www.nhs.uk/conditions/coronary-angioplasty/",
+      "supporting_sentence": "A coronary angioplasty is a procedure used to widen blocked or narrowed coronary arteries (the main blood vessels supplying the heart).",
+      "usage_calls": 2
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "How is a retinal detachment treated?",
+      "best_score": 0.5565685973333087,
+      "top_scores": [
+        0.5565685973333087,
+        0.5540791926920824,
+        0.5535598086583938,
+        0.5530870783092586,
+        0.5530870783092586,
+        0.5462568576516318,
+        0.5446873315733134,
+        0.539467345388365,
+        0.5340149538349889,
+        0.5308593821333013,
+        0.5300784288056426,
+        0.5287732133945099
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "What is the recommended treatment for eczema?",
+      "best_score": 0.5746093733181009,
+      "top_scores": [
+        0.5746093733181009,
+        0.5738992122943208,
+        0.5727965500328165,
+        0.5720305664922662,
+        0.5688904478932235,
+        0.5667787409541393,
+        0.5661969042793663,
+        0.565575823389784,
+        0.5653128071620974,
+        0.5649069765708095,
+        0.5624663329583264,
+        0.5600011488594757
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "How do I treat a tooth abscess?",
+      "best_score": 0.5672943803403006,
+      "top_scores": [
+        0.5672943803403006,
+        0.561624509823617,
+        0.5582341728052788,
+        0.5581253697111972,
+        0.5581253697111972,
+        0.552997354065245,
+        0.5520472196106412,
+        0.5519135918199208,
+        0.5440900815420339,
+        0.5436957332138881,
+        0.5436957332138881,
+        0.5429569149277471
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "What causes appendicitis?",
+      "best_score": 0.5853257701513874,
+      "top_scores": [
+        0.5853257701513874,
+        0.5848712318049237,
+        0.5831587474222297,
+        0.5831587474222297,
+        0.576031925775658,
+        0.5606692682358865,
+        0.5524440974259183,
+        0.5493526945904171,
+        0.5491920634923941,
+        0.5482487036571335,
+        0.5466557892093223,
+        0.541612849371443
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "Which antibiotic treats my pneumonia?",
+      "best_score": 0.5769375468155621,
+      "top_scores": [
+        0.5769375468155621,
+        0.5751260870251514,
+        0.5599741100204765,
+        0.550140087526926,
+        0.5491631418314791,
+        0.5466211423698742,
+        0.5431745659086246,
+        0.5431489146120505,
+        0.5413253883233183,
+        0.5407322896975064,
+        0.5405961746838581,
+        0.5403509684531073
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "How is a broken wrist treated?",
+      "best_score": 0.559214180262399,
+      "top_scores": [
+        0.559214180262399,
+        0.5531593594902251,
+        0.5479810919764673,
+        0.5479810919764673,
+        0.5423044447684308,
+        0.5412345237645881,
+        0.5376565712546174,
+        0.5337914058592725,
+        0.5333849104569672,
+        0.5312521819583303,
+        0.5290228808727945,
+        0.5287077065941373
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "How do I train a neural network?",
+      "best_score": 0.5217742001927347,
+      "top_scores": [
+        0.5217742001927347,
+        0.5212811872971025,
+        0.5201659356098601,
+        0.5157834459794617,
+        0.5151662017941807,
+        0.5149564429130361,
+        0.5143503951421375,
+        0.5140674305605742,
+        0.5136131482116615,
+        0.5134509670548373,
+        0.5122271704372836,
+        0.5119932052435947
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "What are the visa requirements for Japan?",
+      "best_score": 0.496714599840785,
+      "top_scores": [
+        0.496714599840785,
+        0.49007447833488316,
+        0.483057023215959,
+        0.4804601564594981,
+        0.4794327592882246,
+        0.47859090681692285,
+        0.47764687553116014,
+        0.47694885757905275,
+        0.4764798385124397,
+        0.47476715071979286,
+        0.4745492622521523,
+        0.4744819431173491
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "What are the stages of melanoma?",
+      "best_score": 0.5175119193763135,
+      "top_scores": [
+        0.5175119193763135,
+        0.5154488202985599,
+        0.5093303892043294,
+        0.5087836843434111,
+        0.5071889437181342,
+        0.4994930018433995,
+        0.49810005151299863,
+        0.4980215709198513,
+        0.4969119398017328,
+        0.49666047459588136,
+        0.49517435614846445,
+        0.4946198966099182
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    },
+    {
+      "group": "out_of_library_or_scope",
+      "question": "What dose of levothyroxine should I take?",
+      "best_score": 0.568460549413756,
+      "top_scores": [
+        0.568460549413756,
+        0.5665417423909508,
+        0.561513707546951,
+        0.5546295511582043,
+        0.5479858950731908,
+        0.5457174282054164,
+        0.544407970513495,
+        0.5373765911602116,
+        0.5367656913868517,
+        0.53623729435178,
+        0.5336886525960028,
+        0.5333318844163525
+      ],
+      "accepted": false,
+      "reason": "no_match",
+      "retrieved": [],
+      "answer": null,
+      "source_url": null,
+      "supporting_sentence": null,
+      "usage_calls": 1
+    }
+  ]
+}

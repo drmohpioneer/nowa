@@ -1,0 +1,4769 @@
+{
+  "passed": false,
+  "results": [
+    {
+      "id": "T01",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 5.098093749998952
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.633181750003132
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.734753874996386
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T02",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 3.0271053329997812
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.8125472920000902
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5318195420040865
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T03",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 3.35832541599666
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6304890000028536
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6688586669988581
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T04",
+      "run": 1,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "TimeoutError",
+          "seconds": 8.003230041998904
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6046839999980875
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5736559590004617
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T05",
+      "run": 1,
+      "gold": "emergency",
+      "label": "emergency",
+      "model": "gemini-3.8-flash",
+      "commit": "local",
+      "schema_valid": true,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": true,
+          "error": null,
+          "seconds": 2.02465829099674
+        }
+      ],
+      "injection": false,
+      "pass": true
+    },
+    {
+      "id": "T06",
+      "run": 1,
+      "gold": "emergency",
+      "label": "emergency",
+      "model": "gemini-3.8-flash",
+      "commit": "local",
+      "schema_valid": true,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": true,
+          "error": null,
+          "seconds": 1.959995458004414
+        }
+      ],
+      "injection": false,
+      "pass": true
+    },
+    {
+      "id": "T07",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4169403330015484
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.651975583001331
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5398343750057393
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T08",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4344065839977702
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6495024579999154
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.76326470800268
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T09",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 1.381248957994103
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4187967500038212
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.541305166996608
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T10",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42924470900470624
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4583248749986524
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.505069666003692
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T11",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.414359542002785
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41167745900020236
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5544996250027907
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T12",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4268987079994986
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41993579200061504
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5124715420024586
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T13",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42354591700132005
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4241684999942663
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5287632499967003
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T14",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4368534169989289
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4429621249946649
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5351631250014179
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T15",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5034262499975739
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6393179579972639
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.8075974169987603
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T16",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.44380762500077253
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.44669250000151806
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5789277500007302
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T17",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4309083330008434
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.45190783399448264
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5772021250013495
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T18",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4240244579996215
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43064324999431847
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5870977909944486
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T19",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4484214170006453
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40159066599881044
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5596031669992954
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T20",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4354587499983609
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4658076659979997
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 1.1402467079969938
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N01",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42327116600063164
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42635574999439996
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.530487500000163
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N02",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.441386667000188
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4360898340019048
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.533108584000729
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N03",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3922308749970398
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3996236669991049
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5821132080018288
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N04",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.411490207996394
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4236730000047828
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.7111696669962839
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N05",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43294500000047265
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4119564580032602
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5607879999952274
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N06",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 1.3514817920004134
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5335672919973149
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5680924589978531
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N07",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 1.5211479999998119
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.928492125000048
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.9921777080016909
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N08",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "TimeoutError",
+          "seconds": 8.0026127500023
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6433325830003014
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5634426250035176
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N09",
+      "run": 1,
+      "gold": "normal",
+      "label": "normal",
+      "model": "gemini-3.8-flash",
+      "commit": "local",
+      "schema_valid": true,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": true,
+          "error": null,
+          "seconds": 2.25062925000384
+        }
+      ],
+      "injection": false,
+      "pass": true
+    },
+    {
+      "id": "N10",
+      "run": 1,
+      "gold": "normal",
+      "label": "normal",
+      "model": "gemini-3.8-flash",
+      "commit": "local",
+      "schema_valid": true,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": true,
+          "error": null,
+          "seconds": 2.6504448330015293
+        }
+      ],
+      "injection": false,
+      "pass": true
+    },
+    {
+      "id": "N11",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 2.530777708001551
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5951234999956796
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5309066660047392
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N12",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4639945419985452
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6209132500007399
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5295586670035846
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N13",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4235172920016339
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6560967909972533
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5607183329993859
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N14",
+      "run": 1,
+      "gold": "normal",
+      "label": "normal",
+      "model": "gemini-3.8-flash",
+      "commit": "local",
+      "schema_valid": true,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": true,
+          "error": null,
+          "seconds": 2.5918387080018874
+        }
+      ],
+      "injection": false,
+      "pass": true
+    },
+    {
+      "id": "N15",
+      "run": 1,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4359829160021036
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6135461660014698
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6195653340037097
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N16",
+      "run": 1,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4158647500007646
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42218695799965644
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5180110419969424
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N17",
+      "run": 1,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40921670800162246
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6018194999996922
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5450387919991044
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N18",
+      "run": 1,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4262920410037623
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40891375000501284
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5426811659999657
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N19",
+      "run": 1,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4279866669967305
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4281920840003295
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5392909579968546
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N20",
+      "run": 1,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5234698749991367
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4160176660006982
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5841120420009247
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "I01",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4305217079963768
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4144151669970597
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.547830208997766
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I02",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3930728750056005
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4134610410037567
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5749673750033253
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I03",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.45276270899921656
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4095623329994851
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5072900830055005
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I04",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3986221670056693
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43781341700378107
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4957146250017104
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I05",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42739604199596215
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42735125000035623
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5220139160010149
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I06",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4367320829987875
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42396179199567996
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5504274160048226
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I07",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4363606670012814
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40825537500495557
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5324722919976921
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I08",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.44851475000177743
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4211199170022155
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5296854590051225
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I09",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4142198749977979
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4885934590056422
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5674265830020886
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I10",
+      "run": 1,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42543429099896457
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38937525000073947
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.8122642500020447
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I11",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4518387080024695
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41199624999717344
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.513421166993794
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I12",
+      "run": 1,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4164776659963536
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.47893754200049443
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6369990839957609
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "T01",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42625529100041604
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40107699999498436
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.578759916999843
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T02",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": true,
+          "error": "ProviderError",
+          "seconds": 4.173862750001717
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.8270117499996559
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5869960830023047
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T03",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.39718149999680463
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42046983299951535
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5547206250048475
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T04",
+      "run": 2,
+      "gold": "urgent",
+      "label": "urgent",
+      "model": "gemini-3.8-flash",
+      "commit": "local",
+      "schema_valid": true,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": true,
+          "error": null,
+          "seconds": 3.1162025420053396
+        }
+      ],
+      "injection": false,
+      "pass": true
+    },
+    {
+      "id": "T05",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41967983300128253
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40701462499418994
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5308527089946438
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T06",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4341125830032979
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3998318330050097
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.78695074999996
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T07",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42891245799546596
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41217720799613744
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5269080419966485
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T08",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43977362499572337
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.614661542000249
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5101507079962175
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T09",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.565211665998504
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42016383400186896
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.746028124995064
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T10",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43243824999808567
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40818391700304346
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5136392909989809
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T11",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41207824999582954
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41729625000152737
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5594872079964262
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T12",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3950501249928493
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.39990333400055533
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5492297909950139
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T13",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41617629199754447
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.47410291700361995
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5051402499957476
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T14",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4246702920063399
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4275412920032977
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5989066660040407
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T15",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4931122920024791
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3992081250034971
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5347683330037398
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T16",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4920588749955641
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4317581249997602
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5330953339944244
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T17",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.39219049999519484
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41474141700018663
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.524784458000795
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T18",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4309597500032396
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.39347450000059325
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6200891670014244
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T19",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.451416165997216
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4173951670018141
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5445221249974566
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T20",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5022507079993375
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38590870900225127
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5283566669968423
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N01",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3906889999998384
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4153573330040672
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.741161749996536
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N02",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4344024999954854
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.45329545799904736
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5158050419995561
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N03",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.46297083299577935
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43868758300232
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5503452920020209
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N04",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4317269579987624
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40699050000694115
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6992099580020295
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N05",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41804804199637147
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4203092919997289
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6235345829991275
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N06",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.44013162500050385
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4224128329951782
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5416523750027409
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N07",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.500625292006589
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43374716700054705
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5235209169986774
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N08",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5216159999981755
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.45853475000330945
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.49941279100312386
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N09",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40503795899712713
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4118474580027396
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5474106249967008
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N10",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.45103650000237394
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40901391599618364
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.8133929160030675
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N11",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38785595900117187
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.45812095799919916
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.583147542005463
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N12",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3850254170029075
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43707420899590943
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5396688749970053
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N13",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.39220279100118205
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4464932080009021
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.514282332995208
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N14",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4367159579996951
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43226537499867845
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.547151541999483
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N15",
+      "run": 2,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38882141599606257
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.44543925000471063
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5048775000032037
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N16",
+      "run": 2,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40228920800291235
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.471048208004504
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6025533749998431
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N17",
+      "run": 2,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5001689159980742
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4218716250034049
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6283888329999172
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N18",
+      "run": 2,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.47757174999424024
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4281630000041332
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.537459500003024
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N19",
+      "run": 2,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4018429159987136
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41253204199892934
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.550565582998388
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N20",
+      "run": 2,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3859672909966321
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38465754199569346
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5724524170000223
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "I01",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.442623791997903
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4371271659983904
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5527692079995177
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I02",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.46924579199549044
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4142563749992405
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5567327500029933
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I03",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5188985419954406
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.49875558399799047
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.523487541002396
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I04",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4172057500036317
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43036762500560144
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5571725000045262
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I05",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4988147920012125
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4365456669984269
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5647615829948336
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I06",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3831199159976677
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42514679199666716
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5403232910030056
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I07",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4355647089978447
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4279877500011935
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 1.010045375005575
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I08",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3893278339965036
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.411581041997124
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.588292458000069
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I09",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43733158300165087
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42999641700589564
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5401476670012926
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I10",
+      "run": 2,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3844762919979985
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.518123125002603
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5378956249987823
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I11",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40994470899750013
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4144922499981476
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5263484999959473
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I12",
+      "run": 2,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5054692499979865
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5010112910022144
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5424504580005305
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "T01",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5137706670066109
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41121812500205124
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6019815840045339
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T02",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3975870840004063
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4532522500012419
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5737819579953793
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T03",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3939462500056834
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5064969169980031
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5128133749967674
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T04",
+      "run": 3,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4303932090042508
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42275912500190316
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5176228749987786
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T05",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.49079333300323924
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4055548749965965
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.513142167001206
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T06",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40942637500120327
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4246091660024831
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5951139999961015
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T07",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41041366599529283
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4106106249964796
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5516365000003134
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T08",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6256420419958886
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4138343340018764
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5587994159941445
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T09",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4233562920053373
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4251921670002048
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5369598750039586
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T10",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.44467312499909895
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.450517541001318
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5561945410008775
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T11",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42060704200412147
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4183079579961486
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6974770000015269
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T12",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4135246250007185
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4311667910005781
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5190189580025617
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T13",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4286502500035567
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.499577374997898
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5685266669970588
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T14",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43359045900433557
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.44969920800213004
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5664129580036388
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T15",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41409358300006716
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4645627079953556
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5270304999939981
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T16",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40778795900405385
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4424790830016718
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5601451249967795
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T17",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42203887500363635
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4027745419953135
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5443535419981345
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T18",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4084980830011773
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4984019170005922
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.501531417001388
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T19",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41592062499694293
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.407670666994818
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5670249160029925
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "T20",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40782604099513264
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4211664579997887
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5100074160000077
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N01",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41173949999938486
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41463354200095637
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5491194169953815
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N02",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4557695830008015
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41412566699727904
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5813358750019688
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N03",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41320458299742313
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41207816699898103
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.736572250003519
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N04",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38850683299824595
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4517612920026295
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5415622500004247
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N05",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4060987920020125
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4247962910012575
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5943043750012293
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N06",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40738387500459794
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.543436334002763
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.6190315409985487
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N07",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4332386249952833
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4930390420049662
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5303077499993378
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N08",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4560548329973244
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4609859170013806
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5237982499966165
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N09",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4356895410019206
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.40754616699996404
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.7558160420012427
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N10",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4178386249986943
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4511168750032084
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5706373330031056
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N11",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.409064125000441
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4040235419961391
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.9164461250038585
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N12",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.37783345799834933
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4073056670022197
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5841427909981576
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N13",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41910975000064354
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42923049999808427
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5200269999986631
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N14",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38546833299915306
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5059599589949357
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5317825409947545
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N15",
+      "run": 3,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4616348330018809
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.419651750002231
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5730426250011078
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N16",
+      "run": 3,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4446163339962368
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42343312500452157
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.547695916997327
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N17",
+      "run": 3,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43659683399891946
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4120652500059805
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5451217500012717
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N18",
+      "run": 3,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4354405000049155
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5571249580025324
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5585099590025493
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N19",
+      "run": 3,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5176677920026123
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4126580830052262
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5775575829975423
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "N20",
+      "run": 3,
+      "gold": "urgent",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.49543899999844143
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41723808299866505
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.546974582997791
+        }
+      ],
+      "injection": false,
+      "pass": false
+    },
+    {
+      "id": "I01",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4858821249945322
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4549600829996052
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5331814169985591
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I02",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3923677500060876
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43381366600078763
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5174136249988806
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I03",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4810272500035353
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.426146667006833
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5427367500014952
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I04",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.46214829200471286
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4173487500011106
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5405553330056136
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I05",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.38806833399576135
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43123583299893653
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5905472909944365
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I06",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4178689160034992
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4978174170028069
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.9206013750008424
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I07",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.45229441699484596
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4087608750051004
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5350727910044952
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I08",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4196704159985529
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.43657804100075737
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5676527920004446
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I09",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4244638340023812
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.3974827079946408
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5820993749948684
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I10",
+      "run": 3,
+      "gold": "normal",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.41922045800311025
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42423212499852525
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5570868330032681
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I11",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4348610000015469
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.42723554199619684
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.5540456250018906
+        }
+      ],
+      "injection": true,
+      "pass": false
+    },
+    {
+      "id": "I12",
+      "run": 3,
+      "gold": "emergency",
+      "label": "safe_mode",
+      "model": "fixed",
+      "commit": "local",
+      "schema_valid": false,
+      "attempts": [
+        {
+          "model": "gemini-3.8-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4287545000042883
+        },
+        {
+          "model": "gemini-2.5-flash",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 0.4276638750015991
+        },
+        {
+          "model": "anthropic/claude-haiku-4.5",
+          "responded": false,
+          "error": "ProviderError",
+          "seconds": 1.053049166999699
+        }
+      ],
+      "injection": true,
+      "pass": false
+    }
+  ]
+}
