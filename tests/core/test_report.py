@@ -131,7 +131,7 @@ def fixture_evening(engine):
                 closed_by="doctor",
             )
         )
-        # Two failures for Karim; Nour's backup succeeds; Ahmed's newer SMS succeeds.
+        # Historical deliveries: Karim fails twice; Nour's backup and Ahmed's newer message succeed.
         for bid, key, status, offset in [
             (ids[0], "failed-one", "failed", 1),
             (ids[0], "failed-two", "failed", 2),

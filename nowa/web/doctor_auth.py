@@ -1,4 +1,5 @@
 import hmac
+import secrets
 from typing import Annotated
 from urllib.parse import urlsplit
 
@@ -125,8 +126,13 @@ def reset_request(request: Request, body: ResetRequest, origin: Origin) -> JSONR
     result = auth.request_reset(
         request.app.state.engine, request.app.state.clock, body.mobile, client_ip(request)
     )
+    url = result.telegram_url
+    username = get_settings().telegram_bot_username
+    if url is None and username:
+        # Match a real claim's shape without tracking or granting a credential.
+        url = f"https://t.me/{username}?start=r_{secrets.token_urlsafe(32)}"
     return JSONResponse(
-        {"ok": True, "telegram_url": result.telegram_url},
+        {"ok": True, "telegram_url": url},
         status_code=200 if result.allowed else 429,
     )
 
