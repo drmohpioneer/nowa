@@ -1,88 +1,86 @@
-# Nowa — know when to leave home
+# Nowa: know when to leave home
 
-Proof recordings (owner to supply): **booking → Telegram message: pending** · **full evening → nearest day: pending** · **chest pain → 123 and booking stopped: pending**.
+Nowa is a waiting-room agent for private clinics in Egypt.
 
-Nowa tells each patient when to leave home for a private clinic in Egypt.
-The doctor's “on my way” tap and visit taps drive the queue, timing and messages.
-Waiting of ~229 minutes → ~21 minutes is **simulated on assumed inputs**, not measured patient results.
+In a typical private clinic everyone is told to come at 7 pm, the doctor arrives late from the hospital, and patients sit for hours. With Nowa a patient books a day and a queue number, the doctor taps **on my way** once and **who comes in** after each visit, and Nowa tells every patient on Telegram the minute to leave home.
 
-## Run in under 5 minutes
+The AI only talks: it understands the patient, triages, and answers from approved health pages. Code decides everything else: bookings, the queue, times, messages and limits.
 
-Install Python **3.12** first. From the cloned repository:
+Demo video (2:26, recorded from this demo): [docs/submission/nowa-demo.mp4](docs/submission/nowa-demo.mp4)
+Impact slides: [docs/submission/nowa-impact-slides.pdf](docs/submission/nowa-impact-slides.pdf)
+
+## Run it in 5 minutes, no keys
+
+You need Python 3.12 or newer.
 
 ```sh
-python -m venv .venv
-source .venv/bin/activate
+git clone https://github.com/drmohpioneer/nowa && cd nowa
+python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python -m nowa demo
 ```
 
-On Windows, activate with `.venv\Scripts\activate`. The command upgrades the database,
-loads the shipped health library, seeds the fictional clinic, starts the worker and server,
-and opens the front page at **http://127.0.0.1:8000** after `/health` succeeds.
-No API key is needed. With `python -m nowa demo --no-browser`, open
-**http://127.0.0.1:8000** yourself; use this exact host because the Origin check refuses other hosts.
-Stop with Ctrl+C. Port defaults to 8000; set PORT and PUBLIC_BASE_URL together to use another local port.
+The browser opens http://127.0.0.1:8000 (use this exact host, the server checks the Origin). The pages open in English unless your browser is set to Arabic; the link in the top bar switches language.
 
-## What to click
+Press **See Nowa working**. The demo hub has four doors:
 
-- **Watch an evening:** play, pause, change speed, or restart. Karim's drawn phone appears first.
-  The doctor leaves at 19:10; a cancellation, silent patient, no-show, walk-in and long visits
-  run through the real engine. Open the evening report at the end or the copy's doctor dashboard.
-- **Book without AI:** choose one of three fictional patients, a day and an area, then confirm.
-  Read the Telegram message on the drawn phone and open its private link. The last four phone digits shown
-  on that phone verify cancellation or a change of day. The emergency banner stays visible.
-- **Judge code (hosted instance):** use the private code supplied in the submission to create
-  a practice clinic through the real sign-up. To show the judge box locally, set `JUDGE_CODES`
-  to any value before starting, for example: `JUDGE_CODES=local-practice python -m nowa demo`.
-  AI requires configured keys; watch and public booking remain offline.
+1. **Live evening.** Press play. One Tuesday evening of a fictional cardiology clinic runs through the real engine: 18 bookings, a cancellation, a silent patient, a no-show, a walk-in and long visits. You see the clinic clock, the doctor's state, the queue tiles changing, every Telegram message as it lands, and the evening report at the end. Speed x1, x2 or x4.
+2. **Try booking as a patient.** Pick a fictional patient, a day and an area. The booking message lands on the drawn Telegram. Open its private link, tap "I'm on my way", cancel or change the day.
+3. **Doctor's board.** Log in as the demo doctor (mobile `01000000001`, password `demo1234`) and run the evening yourself: on my way, who comes in, walk-in, undo, close.
+4. **Evening report.** The numbers the doctor receives when the evening closes.
 
-## Real and simulated
+The AI chat at `/c/dr-hesham` needs a Gemini key: `GEMINI_API_KEY=... python -m nowa demo`. Everything else works without any key.
 
-Bookings, queue order, timing rules, persistent timers, fixed message templates, verification,
-copy isolation, doctor sessions and the evening report use the real application code.
-The evening's people, doctor taps, visits and patient reactions are scripted.
-Travel is fixed per Cairo area; messages appear on drawn phones, with no Telegram message sent.
-The health answer is a shipped, source-checked recording, labelled “recorded”.
+Stop with Ctrl+C. To use another port, set `PORT` and `PUBLIC_BASE_URL` together.
 
-`nowa demo` defaults `DEMO_NO_NETWORK` to 1: Telegram and Mapbox are disabled.
-Explicitly setting `DEMO_NO_NETWORK=0` enables configured real adapters for the owner's
-clinic; with `MAPBOX_TOKEN`, that clinic uses live traffic. Demo copies always use fixed travel.
-AI keys do not enable AI in watch or public booking mode.
+## What is real and what is simulated
 
-Local data persists in `nowa-demo.db`; generated server/link secrets persist in
-`.nowa-secrets`. Both are gitignored. The seeded fictional doctor's mobile is
-`+201000000001`, password `demo1234` (override with `DEMO_DOCTOR_PASSWORD`).
-Demo mode is for a local laptop; hosted deployments refuse it.
+Real application code: bookings, queue order, expected-time rules, persistent timers, the six fixed message templates, verification and lockouts, doctor sessions, triage layers, the health library, and the evening report.
+
+Scripted: the people of the Live evening, the doctor's taps and the patients' reactions. The engine computes everything that follows from them.
+
+Simulated: the headline numbers. Waiting about 229 minutes today against about 21 minutes with Nowa comes from a queue simulator on assumed inputs ([docs/reference/sim.py](docs/reference/sim.py)). It was not measured on patients.
+
+Stand-ins in the demo: the drawn Telegram replaces the real bot (the same outbox feeds the Telegram Bot API when a token is set), and travel time is fixed per Cairo area (production uses Mapbox traffic). The demo makes no network calls.
+
+Not yet proven: a live clinic. No real patient has used Nowa. The Telegram bot path (contact share proves the phone number, then messages go to the patient's own chat) is covered by offline tests against a fake Bot API, not by a field test.
+
+## How it works
+
+```
+Patient (web chat, Telegram)      Doctor (board, Telegram)
+              |                            |
+        API layer: validation, sessions, rate limits
+              |
+   Conversation layer: Gemini with structured output, emergency
+   layer first, then the specialty's triage rules. Produces
+   candidates only; it has no tool that acts.
+              |
+   Core engine: booking, queue, timing, outbox, timers.
+   Deterministic. Owns the truth.
+              |
+   Postgres (SQLite in the demo) -> Telegram sender, timer worker
+```
+
+Rules the code enforces:
+
+- A booking is a day, a queue number and an expected time. The expected time only moves later, only by 20 minutes or more, and freezes after "leave now".
+- Every message is one of six fixed templates filled from the database, in the patient's language (Arabic, English or Franco-Arabic).
+- An emergency gets the fixed "call 123" message and booking is disabled for that chat.
+- A Telegram chat is linked to a phone number only after the user shares their own contact and it matches.
+- Every action is safe to repeat. Names and phones live only in the identity tables.
 
 ## Checks
 
 ```sh
-pytest -q
+python -m pytest -q        # offline, no keys
 ruff check nowa tests
 mypy nowa
 ```
 
-The offline suite needs no keys or network. Postgres tests require `TEST_DATABASE_URL`
-pointing to a disposable test database; CI requires them.
-`python -m nowa aitest --runs 3` is the separate live AI gate and needs configured keys.
+## How it was built
 
-Environment names: `DATABASE_URL`, `DEMO_MODE`, `SERVER_SECRET`, `LINK_SECRET`,
-`PUBLIC_BASE_URL`, `DEMO_NO_NETWORK`, `WORKER_IN_PROCESS`, `GEMINI_API_KEY`,
-`OPENROUTER_API_KEY`, `TELEGRAM_BOT_TOKEN`, `MAPBOX_TOKEN`, `JUDGE_CODES`.
-and [.env.example](.env.example). Never publish credential values or judge codes.
+Nowa was designed and built by Dr Mohamed Mostafa, cardiologist, Cairo.
 
-## Deploy
 
-1. GitHub: enable secret scanning and push protection; scan the full history with gitleaks.
-2. Supabase: turn Data API off (fallback: RLS enabled, with no policies on every table).
-3. Render: deploy only after green CI, one instance, `WORKER_IN_PROCESS=1`,
-   `DEMO_MODE` unset, `TRUSTED_PROXY_HOPS` unset.
-4. UptimeRobot: check `/health` every 5 minutes and alert the owner on failure.
-Production uses Postgres; run `python -m nowa migrate`, then `python -m nowa serve`.
-
-## Design and credit
-
-[Vision](docs/vision.md) · [Architecture](docs/architecture.md) ·
-Parts build on the owner's earlier clinic assistant prototype, **Tarek**.
-The proof recordings and deployment acceptance remain the owner's lane.
+Built by Dr Mohamed Mostafa (cardiologist, Cairo) for Agents at Work 2026. Code written 30 September to 3 October 2026.
