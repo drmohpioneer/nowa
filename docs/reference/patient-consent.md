@@ -9,7 +9,7 @@ AR: بحجزك بتوافق إن نوّا تحفظ اسمك ورقمك ورسا�
 EN: By booking you agree that Nowa keeps your name, number and messages for this booking and shares them with the doctor. Privacy policy: {privacy_link}
 Franco: Be 7agzak bet-wafe2 en Nowa te7faz esmak w ra2mak w rasaylak 3ashan el 7agz da w tewasalha lel doktor. Privacy policy: {privacy_link}
 
-## Booking for someone else (booking_for = other, Decision 032)
+## Booking for someone else
 AR: عندي إذن من الشخص ده إني أحجز له وأدّي بياناته لنوّا وللدكتور.
 EN: I have this person's permission to book for them and to give their details to Nowa and the doctor.
 Franco: 3andy ezn men el shakhs da eny a7gez lo w addy bayanato le Nowa w lel doktor.
