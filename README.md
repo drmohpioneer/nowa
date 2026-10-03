@@ -6,7 +6,7 @@ In a typical private clinic everyone is told to come at 7 pm, the doctor arrives
 
 The AI only talks: it understands the patient, triages, and answers from approved health pages. Code decides everything else: bookings, the queue, times, messages and limits.
 
-Demo video (2:26, recorded from this demo): [docs/submission/nowa-demo.mp4](docs/submission/nowa-demo.mp4)
+Full walkthrough (2:19, recorded from this demo): [docs/submission/nowa-demo.mp4](docs/submission/nowa-demo.mp4)
 Impact slides: [docs/submission/nowa-impact-slides.pdf](docs/submission/nowa-impact-slides.pdf)
 
 ## Run it in 5 minutes, no keys
