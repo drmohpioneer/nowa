@@ -81,6 +81,22 @@ mypy nowa
 
 CI: the GitHub Actions workflow (lint, types, offline tests, Postgres tests) is kept at [docs/ci/github-workflow.yml](docs/ci/github-workflow.yml). Copy it to `.github/workflows/ci.yml` to enable it. It has not run on this repository yet, so the Postgres-only tests (27, skipped locally) are unverified for the last two slices.
 
+## Three runs you can check
+
+1. **A normal booking, no key.** Demo hub, "Book as a patient", pick a patient, a day and an area. Expected: the reply gives the day, the queue number and the expected time; the drawn Telegram shows one confirmation with a private link; opening the link shows the patient page.
+2. **The same request twice does nothing twice.** Every command carries an idempotency key and a replay returns the first result. Expected: `python -m pytest -q tests/test_booking.py -k "idempotency or replay or duplicate"` passes (4 tests): one booking, no second message.
+3. **An emergency stops booking.** With a Gemini key, type "chest pain" in the clinic chat. Expected: the fixed "call 123" reply and no booking offer (this is the step shown in the film). Without a key: `python -m pytest -q tests/test_message_goldens.py tests/test_messaging.py -k emergency` passes (32 tests).
+
+## When things fail
+
+- **The AI provider is slow or down.** The chat falls back through a chain (two Gemini models, a third model, then a fixed reply) with a 12 second deadline per provider. Booking by buttons and the whole timing engine never need a model.
+- **Telegram cannot deliver a message.** The message is marked failed and the doctor is alerted once. Nothing loops.
+- **The travel service fails.** Nowa uses a fixed travel time for the patient's area.
+- **The doctor has not tapped by opening time.** Nowa reminds the doctor on Telegram (you see this in the Live evening at 19:00).
+- **A request arrives twice.** The second one returns the first result.
+
+Money, stated plainly: nothing here is measured revenue. The proposed price is 1,500 EGP per clinic per month. The running cost is about 1.7 EGP per patient plus about 1,700 EGP per month shared by all clinics (both estimates), so the shared cost is covered from the second paying clinic.
+
 ## What is next
 
 Nowa is a prototype today. This is the path to a product clinics can use, in order:
