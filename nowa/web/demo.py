@@ -13,12 +13,12 @@ from sqlalchemy import select
 
 from nowa import schema as s
 from nowa.ai.sessions import load_session
+from nowa.config import get_settings
 from nowa.core import auth, booking, signup
 from nowa.core.clinic_settings import Input
 from nowa.db import write_tx
 from nowa.demo.copy import Busy, create_demo_copy, create_demo_copy_in_tx
 from nowa.demo.evening_script import KARIM
-from nowa.demo.public import buttons_only
 from nowa.demo.runner import EveningRunner
 from nowa.messaging.outbox import screen_messages
 from nowa.web.chat import clinic_for
@@ -139,20 +139,42 @@ def phones(request: Request, cid: int, contact_id: int | None = None) -> list[di
         for msg in screen_messages(conn, cid, 0):
             phone = STRINGS["demo.doctor"]["ar"]
             number = 0
+            name = (
+                conn.execute(
+                    select(s.doctors.c.name_ar).where(s.doctors.c.clinic_id == cid)
+                ).scalar_one_or_none()
+                or ""
+            )
             if msg.booking_id is not None:
                 row = conn.execute(
                     select(
-                        s.contacts.c.phone_e164, s.bookings.c.queue_number, s.bookings.c.contact_id
+                        s.contacts.c.phone_e164,
+                        s.bookings.c.queue_number,
+                        s.bookings.c.contact_id,
+                        s.patients.c.name,
                     )
                     .join(s.bookings, s.bookings.c.contact_id == s.contacts.c.id)
+                    .outerjoin(s.patients, s.patients.c.id == s.bookings.c.patient_id)
                     .where(s.bookings.c.id == msg.booking_id, s.bookings.c.clinic_id == cid)
                 ).first()
                 if row is None or (contact_id is not None and row.contact_id != contact_id):
                     continue
+                if contact_id is not None and msg.audience != "patient":
+                    continue
                 phone, number = row.phone_e164, row.queue_number
+                if msg.audience == "patient":
+                    name = row.name.split()[0] if row.name else ""
             elif contact_id is not None:
                 continue
-            messages.append(dict(asdict(msg), recipient=phone, queue_number=number))
+            messages.append(
+                dict(
+                    asdict(msg),
+                    recipient=phone,
+                    recipient_name=name,
+                    channel="telegram",
+                    queue_number=number,
+                )
+            )
         return sorted(
             messages, key=lambda m: (m["queue_number"] != KARIM, m["queue_number"], m["outbox_id"])
         )
@@ -222,7 +244,7 @@ def public_phone(
     request: Request, slug: str, session: Annotated[str, Query(min_length=1, max_length=128)]
 ) -> JSONResponse:
     clinic = clinic_for(request, slug)
-    if not buttons_only(clinic):
+    if not (get_settings().demo_mode or clinic["is_sandbox"]):
         raise HTTPException(403)
     with request.app.state.engine.connect() as conn:
         chat = load_session(conn, clinic["id"], session)

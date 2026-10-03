@@ -38,7 +38,6 @@ from nowa.web.patient_link import (
     validation_error,
 )
 from nowa.web.patient_link import router as patient_router
-from nowa.web.relay import router as relay_router
 from nowa.web.signup import router as signup_router
 from nowa.web.telegram_webhook import router as telegram_webhook_router
 
@@ -108,7 +107,6 @@ def create_app(
     app.include_router(demo_router)
     app.include_router(signup_router)
     app.include_router(chat_router)
-    app.include_router(relay_router)
     app.include_router(doctor_auth_router)
     app.include_router(doctor_api_router)
     app.include_router(doctor_pages_router)

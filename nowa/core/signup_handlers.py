@@ -6,6 +6,7 @@ from typing import Any
 from sqlalchemy import select
 
 from nowa import schema as s
+from nowa.core.telegram_tokens import delete_signup_tokens
 from nowa.core.timers import TimerContext
 from nowa.db import conflict_insert, metadata
 
@@ -21,6 +22,7 @@ def pending_signup_purge(ctx: TimerContext, payload: dict[str, Any]) -> None:
     if row and (
         row["completed_at"] is not None or ctx.now >= row["expires_at"] + timedelta(hours=24)
     ):
+        delete_signup_tokens(ctx.conn, row["id"])
         ctx.conn.execute(s.pending_signups.delete().where(s.pending_signups.c.id == row["id"]))
 
 

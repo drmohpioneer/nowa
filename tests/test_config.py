@@ -102,7 +102,6 @@ def test_defaults_and_costs(monkeypatch):
     settings = Settings()
     assert settings.demo_mode is True
     assert settings.public_base_url == "http://127.0.0.1:8000"
-    assert settings.sms_part_cost_usd == 0.006
     assert settings.mapbox_usd_per_call == 0.002
     assert settings.ai_rates_json == {}
     assert settings.library_min_score == 0.64

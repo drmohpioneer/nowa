@@ -21,6 +21,7 @@ from nowa.ai.sessions import keyed, load_clinic, load_session, public_phones, up
 from nowa.clock import Clock
 from nowa.core import booking, flows
 from nowa.core.projection import WAITING_STATES
+from nowa.core.telegram_tokens import booking_url
 from nowa.core.text_norm import mask_phones
 from nowa.db import write_tx
 from nowa.messaging.templates import format_day, format_time, render_operational
@@ -56,6 +57,14 @@ def tap(
             return emergency(session)
         if action != "book_day":
             raise HTTPException(422)
+        result_key = f"chat_booking:{session['session_key_hash']}:{idempotency_key}"
+        saved = conn.execute(
+            select(s.idempotency_keys.c.result_json).where(
+                s.idempotency_keys.c.key == result_key, s.idempotency_keys.c.clinic_id == clinic_id
+            )
+        ).scalar_one_or_none()
+        if saved is not None:
+            return ChatResponse.model_validate(saved)
         data = BookPayload.model_validate(payload)
         if not valid_draft(session_key, data.draft, session, clock):
             return response(session, ui("dead_draft", lang))
@@ -132,7 +141,7 @@ def tap(
         evening_date: date = conn.execute(
             select(s.evenings.c.date).where(s.evenings.c.id == row["evening_id"])
         ).scalar_one()
-        return response(
+        shown = response(
             session,
             ui(
                 "booked",
@@ -142,6 +151,18 @@ def tap(
                 time=format_time(result.expected_shown, lang),
             ),
         )
+        shown.telegram_url = booking_url(conn, clock, result.booking_id)
+        shown.booking_confirmed = True
+        conn.execute(
+            s.idempotency_keys.insert().values(
+                clinic_id=clinic_id,
+                key=result_key,
+                command="chat_booking",
+                result_json=shown.model_dump(),
+                created_at=clock.now(clinic_id),
+            )
+        )
+        return shown
 
 
 def consent(

@@ -49,7 +49,13 @@ function bindForm(id, action) {
   });
 }
 bindForm("login", async (_, body) => { await api("/d/login", "POST", body); location.assign("/d"); });
-bindForm("reset-request", async (_, body) => { await api("/d/reset/request", "POST", body); message(t("reset_sent")); });
+bindForm("reset-request", async (_, body) => { const result = await api("/d/reset/request", "POST", body); message(t("reset_sent"));
+  document.getElementById("reset-telegram")?.remove();
+  if (result.telegram_url) {
+    const a = document.createElement("a"); a.id = "reset-telegram"; a.href = result.telegram_url;
+    a.textContent = t("telegram_open"); a.className = "btn btn-main"; a.target = "_blank"; a.rel = "noopener";
+    document.getElementById("reset-request").after(a);
+  } });
 bindForm("reset-confirm", async (_, body) => { await api("/d/reset/confirm", "POST", body); location.assign("/d/login"); });
 bindButton(document.getElementById("logout"), async () => { await api("/d/logout", "POST", {}); location.assign("/d/login"); });
 let queueRefresh;

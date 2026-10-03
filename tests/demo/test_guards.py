@@ -9,7 +9,7 @@ from nowa.config import get_settings
 from nowa.core.travel import LatLng, TravelContext
 from nowa.core.travel_mapbox import MapboxAdapter
 from nowa.demo.runner import EveningRunner
-from nowa.messaging.adapters import MacRelayAdapter, TelegramAdapter
+from nowa.messaging.adapters import TelegramAdapter
 from nowa.telegram.api import BotAPI
 from nowa.telegram.poller import run_forever
 
@@ -37,7 +37,6 @@ def test_no_network_guards(engine, demo_setup, monkeypatch, caplog):
         TelegramAdapter(spy).send({"chat_id": "123", "body": "fictional"}).error
         == "demo_no_network"
     )
-    assert MacRelayAdapter().send({}).error == "demo_no_network"
     assert not BotAPI(spy).call("sendMessage", {"chat_id": 123})["ok"]
     with engine.connect() as conn:
         assert (
@@ -67,6 +66,7 @@ def test_cli_startup_network_guard_in_process(tmp_path, monkeypatch, caplog):
     for name in ("TELEGRAM_BOT_TOKEN", "MAPBOX_TOKEN"):
         monkeypatch.setenv(name, "offline-test-key")
     monkeypatch.delenv("DEMO_NO_NETWORK", raising=False)
+    monkeypatch.setenv("PORT", "8765")
     monkeypatch.setenv("LIBRARY_DATA_DIR", str(ROOT / "nowa/library/data"))
     get_settings.cache_clear()
     monkeypatch.setattr(launch, "check_port", lambda: None)
@@ -82,7 +82,7 @@ def test_cli_startup_network_guard_in_process(tmp_path, monkeypatch, caplog):
 
     def serve(target, **kwargs):
         assert target == "nowa.app:create_demo_app"
-        assert kwargs["port"] == 8000 and kwargs["factory"]
+        assert kwargs["port"] == 8765 and kwargs["factory"]
         called.append(target)
         with TestClient(app.create_demo_app()) as client:
             assert client.get("/health").json()["ok"]

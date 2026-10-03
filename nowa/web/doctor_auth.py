@@ -122,10 +122,13 @@ def logout(request: Request, session: CommandSession) -> JSONResponse:
 
 @router.post("/d/reset/request")
 def reset_request(request: Request, body: ResetRequest, origin: Origin) -> JSONResponse:
-    allowed = auth.request_reset(
+    result = auth.request_reset(
         request.app.state.engine, request.app.state.clock, body.mobile, client_ip(request)
     )
-    return JSONResponse({"ok": True}, status_code=200 if allowed else 429)
+    return JSONResponse(
+        {"ok": True, "telegram_url": result.telegram_url},
+        status_code=200 if result.allowed else 429,
+    )
 
 
 @router.post("/d/reset/confirm")

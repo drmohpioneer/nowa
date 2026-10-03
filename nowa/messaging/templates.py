@@ -25,7 +25,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "ar",
     ): (
         "{patient_name}: حجزك مع د. {doctor_name} {day}، رقمك "
-        "{queue_number}، معادك حوالي {expected_time} وممكن يتأخر. هنبعتلك "
+        "{queue_number}، معادك حوالي {expected_time} وممكن يتأخر. هنقولك على تليجرام "
         "امتى تتحرك. التفاصيل والعنوان: {link} تليفون العيادة "
         "{clinic_phone}"
     ),
@@ -78,7 +78,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
     ): (
         "{patient_name}: your booking with Dr. {doctor_name} on {day} is "
         "confirmed. Your number is {queue_number}, your time is around "
-        "{expected_time} and may move later. We'll text you when to "
+        "{expected_time} and may move later. We'll tell you on Telegram when to "
         "leave. Details & address: {link} Clinic: {clinic_phone}"
     ),
     (
@@ -87,7 +87,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
     ): (
         "{patient_name}: 7agzak ma3 Dr. {doctor_name} {day_franco}, "
         "rakmak {queue_number}, ma3adak 7awaly {expected_time} w momken "
-        "yet2akhar. Hanb3atlak emta tet7arrak. El tafaseel wel 3enwan: "
+        "yet2akhar. Han2ollak 3ala Telegram emta tet7arrak. El tafaseel wel 3enwan: "
         "{link} Telephone el 3eyada {clinic_phone}"
     ),
     (
@@ -290,7 +290,7 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
             "ar": "اتوقفت الرسايل هنا. لو حبيت ترجع، افتح لينك حجزك من الرسالة اللي وصلتك.",
             "en": (
                 "Messages stopped here. If you want them back, open your booking "
-                "link from the SMS you got."
+                "link from the Telegram message you got."
             ),
             "franco": (
                 "Etwa2af el rasayel hena. Law 3ayez terga3, efta7 link 7agzak men "

@@ -129,7 +129,7 @@ def test_reset_recipient_kind_unknown_and_redaction_guard(engine, frozen_clock):
     assert auth.request_reset(engine, frozen_clock, "01099999999", "ip")
     assert not rows(engine, s.outbox)
     auth.request_reset(engine, frozen_clock, PHONE, "ip")
-    assert [r["channel"] for r in rows(engine, s.outbox)] == ["sms"]
+    assert [r["channel"] for r in rows(engine, s.outbox)] == ["telegram"]
     with write_tx(engine) as conn:
         conn.execute(
             s.telegram_links.insert().values(
@@ -140,7 +140,7 @@ def test_reset_recipient_kind_unknown_and_redaction_guard(engine, frozen_clock):
             )
         )
     auth.request_reset(engine, frozen_clock, PHONE, "ip")
-    assert [r["channel"] for r in rows(engine, s.outbox)] == ["sms", "sms", "telegram"]
+    assert [r["channel"] for r in rows(engine, s.outbox)] == ["telegram", "telegram"]
     with write_tx(engine) as conn:
         oid = rows(engine, s.outbox)[0]["id"]
         conn.execute(

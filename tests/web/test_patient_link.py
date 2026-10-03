@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from nowa import record, worker
 from nowa import schema as s
@@ -166,7 +167,7 @@ def test_booked_tap_waits(engine, page):
     token = tokens.issue("omw", ids[0], clock.now(cid))
     before = rows(engine, s.bookings)
     response = post(client, f"/w/{code}/tap", {"tap_token": token.value, "exp": str(token.exp)})
-    assert "We'll text you when to leave" in unescape(response.text)
+    assert "We'll tell you on Telegram when to leave" in unescape(response.text)
     assert rows(engine, s.bookings) == before
 
 
@@ -229,12 +230,13 @@ def test_change_day_and_replay_without_new_code(engine, page):
         "date": (DAY + timedelta(days=2)).isoformat(),
     }
     response = post(client, f"/l/{code}/change", data)
-    assert "Done, your new link is in an SMS" in response.text
+    assert "Done, your new link will reach you on Telegram" in response.text
     new = rows(engine, s.bookings)[-1]
     assert new["id"] != ids[0] and row(engine, s.bookings, ids[0])["state"] == "cancelled"
     assert booking.link_code_for(new["id"]) not in response.text
     again = post(client, f"/l/{code}/change", data)
-    assert "new link is in an SMS" in again.text and len(rows(engine, s.bookings)) == 3
+    assert "new link will reach you on Telegram" in again.text
+    assert len(rows(engine, s.bookings)) == 3
     assert len([m for m in messages(engine, "1") if m["booking_id"] == new["id"]]) == 1
 
 
@@ -285,7 +287,7 @@ def test_rebook_once_from_clinic_cancel(engine, page, kind):
     response = post(client, f"/r/{code}", data)
     new = rows(engine, s.bookings)[-1]
     assert (
-        "new link is in an SMS" in response.text
+        "new link will reach you on Telegram" in response.text
         and booking.link_code_for(new["id"]) not in response.text
     )
     fresh_form = fields(client.get(f"/r/{code}"), f"/r/{code}")
@@ -473,6 +475,12 @@ def test_pending_send_block_does_not_gate_page(engine, page, monkeypatch):
         templates.OPERATIONAL, pending, dict(templates.OPERATIONAL[pending], status="PENDING")
     )
     with write_tx(engine) as conn:
+        doctor_phone = conn.execute(
+            select(s.doctors.c.mobile_e164).where(s.doctors.c.clinic_id == cid)
+        ).scalar_one()
+        conn.execute(s.telegram_links.insert().values(
+            phone_e164=doctor_phone, kind="doctor", telegram_chat_id="991", linked_at=clock.now(cid)
+        ))
         outbox_id = enqueue_message(
             conn,
             clock,
@@ -481,7 +489,7 @@ def test_pending_send_block_does_not_gate_page(engine, page, monkeypatch):
             "en",
             "doctor",
             None,
-            {"channel_label": "SMS", "count": 30},
+            {"channel_label": "Telegram", "count": 30},
             "pending-page",
         )
     assert row(engine, s.outbox, outbox_id)["status"] == "blocked_unapproved"

@@ -129,7 +129,7 @@ def main() -> None:
             "nowa.app:create_demo_app" if args.command == "demo" else "nowa.app:create_app",
             factory=True,
             host="127.0.0.1" if args.command == "demo" else "0.0.0.0",
-            port=8000 if args.command == "demo" else settings.port,
+            port=settings.port,
             proxy_headers=False,
             access_log=False,
         )

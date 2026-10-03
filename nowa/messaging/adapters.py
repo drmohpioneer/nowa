@@ -1,7 +1,6 @@
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
-from math import ceil
 from typing import Any, Literal, Protocol
 
 import httpx
@@ -28,27 +27,6 @@ class ScreenPhoneAdapter:
 
     def send(self, outbox_row: Mapping[str, Any]) -> SendResult:
         return SendResult("accepted")
-
-
-class MacRelayAdapter:
-    delivery_reports = False
-
-    def send(self, outbox_row: Mapping[str, Any]) -> SendResult:
-        if get_settings().demo_no_network:
-            logging.getLogger(__name__).warning("kind=mac_relay outcome=disabled_demo_no_network")
-            return SendResult("refused", error="demo_no_network")
-        raise RuntimeError("Mac relay sends only through its polling routes")
-
-
-class NotConfigured(RuntimeError):
-    pass
-
-
-class WEBusinessAdapter:
-    delivery_reports = True
-
-    def send(self, outbox_row: Mapping[str, Any]) -> SendResult:
-        raise NotConfigured("WE Business is not configured")
 
 
 class TelegramAdapter:
@@ -107,21 +85,5 @@ class TelegramAdapter:
 
 ADAPTERS: dict[str, Adapter] = {
     "screen_phone": ScreenPhoneAdapter(),
-    "mac_relay": MacRelayAdapter(),
     "telegram": TelegramAdapter(),
-    "we_business": WEBusinessAdapter(),
 }
-
-GSM_BASIC = set(
-    "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./"
-    "0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
-)
-GSM_EXT = set("\f^{}\\[~]|€")
-
-
-def sms_parts(body: str) -> int:
-    if all(char in GSM_BASIC or char in GSM_EXT for char in body):
-        count = sum(2 if char in GSM_EXT else 1 for char in body)
-        return 1 if count <= 160 else ceil(count / 153)
-    count = sum(2 if ord(char) > 0xFFFF else 1 for char in body)
-    return 1 if count <= 70 else ceil(count / 67)

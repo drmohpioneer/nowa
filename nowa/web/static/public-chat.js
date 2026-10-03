@@ -28,7 +28,14 @@ function identities() {
 function show(data) {
   line(data.reply); controls.replaceChildren();
   const days = data.buttons.filter(b => b.action.kind === "book_day");
-  if (!days.length) { identities(); return; }
+  if (!days.length) {
+    if (data.booking_confirmed) document.getElementById("chat-phone").hidden = false;
+    if (data.telegram_url) {
+      const a = document.createElement("a"); a.href = data.telegram_url; a.textContent = config.open_telegram[data.lang];
+      a.className = "btn btn-main"; a.target = "_blank"; a.rel = "noopener"; controls.append(a);
+    } else { identities(); }
+    return;
+  }
   line(days[0].action.payload.draft.name + " · " + days[0].action.payload.draft.phone);
   for (const day of days) button(day.label, controls, async () => {
     selectedDay = day; controls.replaceChildren(); line(texts.area);

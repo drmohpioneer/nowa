@@ -13,7 +13,7 @@ from nowa import record
 from nowa import schema as s
 from nowa.clock import Clock
 from nowa.config import get_settings
-from nowa.core import booking, ratelimit
+from nowa.core import booking, ratelimit, telegram_tokens
 from nowa.db import write_tx
 from nowa.messaging.outbox import enqueue_message, telegram_chat
 
@@ -177,10 +177,19 @@ def _redact(conn: Connection, code_id: int) -> None:
         redact_code_row(conn, oid)
 
 
-def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> bool:
+@dataclass(frozen=True)
+class ResetResult:
+    allowed: bool
+    telegram_url: str | None = field(default=None, repr=False)
+
+    def __bool__(self) -> bool:
+        return self.allowed
+
+
+def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> ResetResult:
     with write_tx(engine) as conn:
         if not ratelimit.hit(conn, clock, "doctor_reset_ip", client_ip, 900, 20):
-            return False
+            return ResetResult(False)
         phone = booking.normalize_phone(mobile)
         # The doctor lock serializes concurrent requests and confirms for this phone.
         doctor = (
@@ -191,7 +200,7 @@ def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> 
             .one_or_none()
         )
         if doctor is None:
-            return True
+            return ResetResult(True)
         now = clock.base_now().astimezone(UTC)
         phone_key = keyed_hash(phone or "")
         where = (s.auth_codes.c.phone_key == phone_key, s.auth_codes.c.purpose == "reset")
@@ -205,7 +214,7 @@ def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> 
             if row["expires_at"] <= now:
                 _redact(conn, row["id"])
         if count >= 3:
-            return True
+            return ResetResult(True)
         for row in older:
             if row["used_at"] is None:
                 conn.execute(
@@ -213,7 +222,19 @@ def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> 
                 )
             if row["used_at"] is None and row["expires_at"] > now:
                 _redact(conn, row["id"])
-        code = f"{secrets.randbelow(1000000):06d}"
+        deferred = bool(get_settings().telegram_bot_username) and not telegram_chat(
+            conn, phone or "", "doctor"
+        )
+        code = secrets.token_urlsafe(32) if deferred else f"{secrets.randbelow(1000000):06d}"
+        conn.execute(
+            s.link_tokens.update()
+            .where(
+                s.link_tokens.c.kind == "reset_telegram",
+                s.link_tokens.c.subject_id == doctor["id"],
+                s.link_tokens.c.used_at.is_(None),
+            )
+            .values(expires_at=now)
+        )
         code_id: int = conn.execute(
             s.auth_codes.insert()
             .values(
@@ -227,9 +248,17 @@ def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> 
             )
             .returning(s.auth_codes.c.id)
         ).scalar_one()
-        for channel in ("sms", "telegram"):
-            if channel == "telegram" and not telegram_chat(conn, phone or "", "doctor"):
-                continue
+        url = None
+        if deferred:
+            _, url = telegram_tokens.mint(
+                conn,
+                clock,
+                doctor["clinic_id"],
+                "reset_telegram",
+                doctor["id"],
+                lang=doctor["lang"],
+            )
+        else:
             enqueue_message(
                 conn,
                 clock,
@@ -239,11 +268,10 @@ def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> 
                 "doctor",
                 None,
                 {"code": code},
-                f"reset_code:{code_id}" + (":tg" if channel == "telegram" else ""),
-                channel=channel,
+                f"reset_code:{code_id}",
             )
         record.write_action(conn, doctor["clinic_id"], "doctor", "doctor_reset_request")
-        return True
+        return ResetResult(True, url)
 
 
 def confirm_reset(engine: Engine, clock: Clock, mobile: str, code: str, new_password: str) -> bool:

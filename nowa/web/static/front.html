@@ -3,7 +3,7 @@
 <body><main class="page front">
 <div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span><nav><a href="/d/login" class="cur">{{ t('login') }}</a><a class="ltr" href="?lang={{ 'en' if lang == 'ar' else 'ar' }}">{{ 'English' if lang == 'ar' else 'العربية' }}</a></nav></div>
 <div class="hero"><div><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span></div><div><h1>{{ t('headline') }}</h1><p>{{ t('intro') }}</p>
-<div class="paths"><div class="path"><div><b>{{ t('patient_door') }}</b><small>{{ t('patient_sms') }}</small></div></div>
+<div class="paths"><div class="path"><div><b>{{ t('patient_door') }}</b><small>{{ t('patient_telegram') }}</small></div></div>
 <a class="path" href="#code-form"><div><b>{{ t('doctor_door') }}</b><small>{{ t('doctor_start') }}</small></div><span class="arrow">→</span></a></div></div></div>
 <div class="how"><h2>{{ t('how') }}</h2><div class="steps">{% for n in [1,2,3] %}<div class="step"><i>{{ n }}</i><div>{% if n == 1 %}{{ t('step1') }}{% else %}{{ t('step' ~ n ~ '_before') }} <b>{{ t('on_way' if n == 2 else 'leave_now') }}</b> {{ t('step' ~ n ~ '_after') }}{% endif %}</div></div>{% endfor %}</div></div>
 <p class="foot">{{ t('emergency') }}</p>

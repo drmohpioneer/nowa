@@ -3,7 +3,7 @@ import os
 import secrets
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal, Self
+from typing import Self
 from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator, model_validator
@@ -24,13 +24,9 @@ class Settings(BaseSettings):
     demo_doctor_password: str = Field(default="demo1234", repr=False)
     worker_in_process: int = Field(default=0, ge=0, le=1)
     port: int = Field(default=8000, ge=1, le=65535)
-    sms_adapter: Literal["screen_phone", "mac_relay"] | None = None
-    mac_relay_token: str = Field(default="", repr=False)
-    mac_relay_allowlist: str = Field(default="", repr=False)
     telegram_bot_username: str = ""
     telegram_bot_token: str = Field(default="", repr=False)
     telegram_webhook_secret: str = Field(default="", repr=False)
-    sms_part_cost_usd: float = Field(default=0.006, ge=0)
     mapbox_token: str = Field(default="", repr=False)
     mapbox_timeout_s: float = Field(default=10, gt=0)
     demo_no_network: bool = False
@@ -122,10 +118,6 @@ def get_settings() -> Settings:
 
 def secret_ok(name: str) -> bool:
     return len(os.environ.get(name, "").encode()) >= 32
-
-
-def relay_client_config() -> tuple[str, str]:
-    return os.environ.get("NOWA_RELAY_URL", ""), os.environ.get("MAC_RELAY_TOKEN", "")
 
 
 def configure_demo_network() -> None:

@@ -9,31 +9,35 @@ import webbrowser
 
 import httpx
 
+from nowa.config import get_settings
+
 
 def check_port() -> None:
+    port = get_settings().port
     with socket.socket() as sock:
         try:
-            sock.bind(("127.0.0.1", 8000))
+            sock.bind(("127.0.0.1", port))
         except OSError as exc:
             message = (
-                "Port 8000 is busy; stop the other server and retry."
+                f"Port {port} is busy; stop the other server and retry."
                 if exc.errno == errno.EADDRINUSE
-                else f"Cannot bind port 8000: {exc.strerror}"
+                else f"Cannot bind port {port}: {exc.strerror}"
             )
             print(message, file=sys.stderr)
             raise SystemExit(1) from None
 
 
 def open_when_ready() -> None:
+    base = f"http://127.0.0.1:{get_settings().port}"
     pause = threading.Event()
     with httpx.Client(trust_env=False, timeout=1) as client:
         for _ in range(150):
             try:
-                response = client.get("http://127.0.0.1:8000/health")
+                response = client.get(base + "/health")
                 if response.status_code == 200 and response.json().get("ok"):
-                    if not webbrowser.open("http://127.0.0.1:8000"):
+                    if not webbrowser.open(base):
                         logging.getLogger(__name__).warning(
-                            "Browser did not open; visit http://127.0.0.1:8000"
+                            "Browser did not open; visit %s", base
                         )
                     return
             except (httpx.HTTPError, ValueError):
