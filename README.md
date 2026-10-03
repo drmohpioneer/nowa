@@ -8,7 +8,6 @@ The AI only talks: it understands the patient, triages, and answers from approve
 
 Status: a working prototype, tested offline and in simulation. It has not been used in a real clinic yet; a pilot in one clinic is the next step.
 
-Full walkthrough (2:19, recorded from this demo): [docs/submission/nowa-demo.mp4](docs/submission/nowa-demo.mp4)
 Impact slides: [docs/submission/nowa-impact-slides.pdf](docs/submission/nowa-impact-slides.pdf)
 
 ## Run it in 5 minutes, no keys
