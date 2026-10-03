@@ -6,6 +6,8 @@ In a typical private clinic everyone is told to come at 7 pm, the doctor arrives
 
 The AI only talks: it understands the patient, triages, and answers from approved health pages. Code decides everything else: bookings, the queue, times, messages and limits.
 
+Status: a working prototype, tested offline and in simulation. It has not been used in a real clinic yet; a pilot in one clinic is the next step.
+
 Full walkthrough (2:19, recorded from this demo): [docs/submission/nowa-demo.mp4](docs/submission/nowa-demo.mp4)
 Impact slides: [docs/submission/nowa-impact-slides.pdf](docs/submission/nowa-impact-slides.pdf)
 
@@ -20,13 +22,13 @@ pip install -r requirements.txt
 python -m nowa demo
 ```
 
-The browser opens http://127.0.0.1:8000 (use this exact host, the server checks the Origin). The pages open in English unless your browser is set to Arabic; the link in the top bar switches language.
+The browser opens http://127.0.0.1:8000 (use this exact host, the server checks the Origin). The story page, the demo hub, the Live evening and the sign-up page open in English unless your browser is set to Arabic; the link in the top bar switches language. The clinic chat, the patient page and the doctor's board are in Arabic, the way Egyptian patients and doctors use them; the Live evening labels every message in English.
 
 Press **See Nowa working**. The demo hub has four doors:
 
 1. **Live evening.** Press play. One Tuesday evening of a fictional cardiology clinic runs through the real engine: 18 bookings, a cancellation, a silent patient, a no-show, a walk-in and long visits. You see the clinic clock, the doctor's state, the queue tiles changing, every Telegram message as it lands, and the evening report at the end. Speed x1, x2 or x4.
 2. **Try booking as a patient.** Pick a fictional patient, a day and an area. The booking message lands on the drawn Telegram. Open its private link, tap "I'm on my way", cancel or change the day.
-3. **Doctor's board.** Log in as the demo doctor (mobile `01000000001`, password `demo1234`) and run the evening yourself: on my way, who comes in, walk-in, undo, close.
+3. **Doctor's board.** The quickest way is the button **Open the doctor's board** on the Live evening: it opens the board of that same evening, mid-run, and you can tap who comes in, add a walk-in, undo and close. You can also log in as the demo doctor (mobile `+201000000001`, password `demo1234`); that clinic follows the real calendar and is open on Sunday, Tuesday and Thursday evenings, so on other days its board is empty.
 4. **Evening report.** The numbers the doctor receives when the evening closes.
 
 The AI chat at `/c/dr-hesham` needs a Gemini key: `GEMINI_API_KEY=... python -m nowa demo`. Everything else works without any key.
@@ -39,7 +41,7 @@ Real application code: bookings, queue order, expected-time rules, persistent ti
 
 Scripted: the people of the Live evening, the doctor's taps and the patients' reactions. The engine computes everything that follows from them.
 
-Simulated: the headline numbers. Waiting about 229 minutes today against about 21 minutes with Nowa comes from a queue simulator on assumed inputs ([docs/reference/sim.py](docs/reference/sim.py)). It was not measured on patients.
+Simulated: the headline numbers. A median wait of about 229 minutes on a full 30-patient evening where everyone arrives at opening, against about 21 minutes with Nowa, comes from a queue simulator on assumed inputs ([docs/reference/sim.py](docs/reference/sim.py)). It was not measured on patients. The clinics we surveyed (6 colleagues) report 45 to 66 minutes today. No revenue or cost saving is claimed as measured.
 
 Stand-ins in the demo: the drawn Telegram replaces the real bot (the same outbox feeds the Telegram Bot API when a token is set), and travel time is fixed per Cairo area (production uses Mapbox traffic). The demo makes no network calls.
 
