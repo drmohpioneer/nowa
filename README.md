@@ -78,6 +78,8 @@ ruff check nowa tests
 mypy nowa
 ```
 
+CI: the GitHub Actions workflow (lint, types, offline tests, Postgres tests) is kept at [docs/ci/github-workflow.yml](docs/ci/github-workflow.yml). Copy it to `.github/workflows/ci.yml` to enable it. It has not run on this repository yet, so the Postgres-only tests (27, skipped locally) are unverified for the last two slices.
+
 ## How it was built
 
 Nowa was designed and built by Dr Mohamed Mostafa, cardiologist, Cairo.
