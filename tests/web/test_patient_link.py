@@ -471,7 +471,7 @@ def test_pending_send_block_does_not_gate_page(engine, page, monkeypatch):
     settings = get_settings()
     settings.demo_mode = False
     # All current reference keys are approved; simulate a future PENDING revision
-    # using the same file-backed operational key as slice 02's gating tests.
+    # using the same file-backed operational key as the messaging gating tests.
     pending = "doctor_alert_brake"
     monkeypatch.setitem(
         templates.OPERATIONAL, pending, dict(templates.OPERATIONAL[pending], status="PENDING")

@@ -1,4 +1,4 @@
-"""One contact per clinic and phone (Decision 052)."""
+"""One contact per clinic and phone."""
 
 from alembic import op
 

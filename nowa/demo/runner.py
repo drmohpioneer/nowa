@@ -25,7 +25,7 @@ from nowa.library.answer import RecordedHealthAnswerer
 from nowa.web.evening_view import tap_state, timeline
 
 logger = logging.getLogger(__name__)
-# One web instance per database (Decision 044). Locks serialize requests, not run state.
+# One web instance per database. Locks serialize requests, not run state.
 _LOCKS = tuple(threading.RLock() for _ in range(64))
 
 

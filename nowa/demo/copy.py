@@ -1,4 +1,4 @@
-"""Provision isolated fictional clinics; lifecycle deletion belongs to slice 10."""
+"""Provision isolated fictional clinics; lifecycle deletion is handled at sign-up expiry."""
 
 import secrets
 from datetime import timedelta

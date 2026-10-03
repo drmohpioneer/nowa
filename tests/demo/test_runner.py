@@ -114,7 +114,7 @@ def test_golden(engine, demo_setup):
         ).first()
     assert runner.state()["closed"]
     print(
-        f"Slice 12 trace: T={T}; projected_start={projected}; "
+        f"Trace: T={T}; projected_start={projected}; "
         f"visit_order={order}; counts=17/17/1/1; closed_minute={runner.state()['minute']}"
     )
 
@@ -353,7 +353,7 @@ def test_restart_after_close_checkpoint_delivers_pending_report(engine, demo_set
                 s.idempotency_keys.c.command == "report_snapshot",
             )
         ).one()
-        # Accepted slice 11 snapshots an unlinked doctor's report for the dashboard;
+        # The report module snapshots an unlinked doctor's report for the dashboard;
         # it sends template 6 only to a linked Telegram doctor, never a new demo path.
         assert not conn.execute(
             select(s.outbox.c.id).where(s.outbox.c.clinic_id == cid, s.outbox.c.template_id == "6")

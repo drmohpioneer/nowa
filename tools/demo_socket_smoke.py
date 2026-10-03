@@ -1,4 +1,4 @@
-"""Owner-run real-socket smoke; the managed sandbox denies local bind.
+"""Real-socket smoke test for a local demo.
 Run from the repository with .venv/bin/python tools/demo_socket_smoke.py.
 No install, keys or external network needed; child rejects remote DNS/sockets.
 """

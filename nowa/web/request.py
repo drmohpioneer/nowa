@@ -15,7 +15,7 @@ def client_ip(request: Request) -> str:
 
 
 def page_language(request: Request) -> str:
-    """Decision 070, used only by the judge-facing public pages."""
+    """Used only by the judge-facing public pages."""
     explicit = request.query_params.get("lang")
     if explicit in {"ar", "en"}:
         return explicit

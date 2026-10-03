@@ -1,4 +1,4 @@
-"""Decision 064: populated upgrades preserve identities and fail atomically."""
+"""Populated upgrades preserve identities and fail atomically."""
 
 import shutil
 

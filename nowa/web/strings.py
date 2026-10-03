@@ -243,7 +243,7 @@ for _key, (_ar, _en) in DOCTOR_TEXTS.items():
     STRINGS["doctor." + _key] = {"ar": _ar, "en": _en}
 
 
-# APPROVED under Decision 048 and the contracts README UI-strings rule.
+# Approved UI strings.
 TELEGRAM_TEXTS = {
     "share_contact": (
         "شارك رقمك عشان نتأكد إنه رقمك",
@@ -664,7 +664,7 @@ for _key, (_ar, _en) in DEMO_TEXTS.items():
     STRINGS["demo." + _key] = {"ar": _ar, "en": _en}
 STRINGS["signup.public_book"] = STRINGS["demo.public_book"]
 
-# Slice 14 presentation strings; no message-template or engine changes.
+# Presentation strings; no message-template or engine changes.
 _add("your_turn", "أهلاً {name}، دورك", "Hello {name}, your number", "Ahlan {name}, dorak")
 _add("leave_now", "انزل دلوقتي", "Leave now", "Enzel delwa2ty")
 _add("leave_number", "{name}، دورك رقم", "{name}, your number", "{name}, dorak rakm")
@@ -703,7 +703,7 @@ for _key, _values in {
 }.items():
     STRINGS["chat." + _key] = dict(zip(("ar", "en", "franco"), _values, strict=True))
 
-# Slice 16: approved v2 story copy, preserving the mockup inline number spans.
+# Story page copy; the inline number spans are intentional.
 UI_TEXTS = {
     "front_nowa_waiting_room_agent": ("Nowa · waiting-room agent", "Nowa · waiting-room agent"),
     "front_patients_wait_at_home_not_in_the": (

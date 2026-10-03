@@ -43,7 +43,7 @@ def completion(token):
 
 
 def test_completed_signup_cookie_cannot_display_replacement_signup_code(engine, offset_clock):
-    """Decision 063: same-time ID reuse cannot reuse the completed bearer credential."""
+    """Same-time ID reuse cannot reuse the completed bearer credential."""
     origin = {"Origin": "http://127.0.0.1:8000"}
     with TestClient(
         create_app(engine, clock=offset_clock), base_url="http://127.0.0.1:8000"

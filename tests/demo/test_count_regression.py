@@ -1,4 +1,4 @@
-"""Retained walk-in-inclusive count regression, per slice 12 DECIDED item 1."""
+"""Retained walk-in-inclusive count regression."""
 
 from datetime import datetime, timedelta
 
@@ -91,14 +91,14 @@ def test_script_population_counts_walkin_in_came(engine):
         assert states[11] == "seen"  # Silent patient still counted.
         assert states[12] == "cancelled"
         assert states[15] == "didnt_come"
-        assert states[19] == "seen"  # Walk-in also counted by accepted slice 11.
+        assert states[19] == "seen"  # Walk-in also counted by the report module.
         chat_seen = sum(state == "seen" for number, state in states.items() if number <= 18)
     assert chat_seen == 16
     assert (derived.booked, derived.came, derived.no_show_count, derived.walk_ins) == (17, 17, 1, 1)
     assert derived.came == chat_seen + derived.walk_ins
     assert derived.doctor_arrival == day + timedelta(hours=3, minutes=53)
     print(
-        "Slice 12 count trace: chat_bookings=18; cancelled_queue=12; "
+        "Count trace: chat_bookings=18; cancelled_queue=12; "
         f"no_show_queue=15; chat_seen={chat_seen}; walk_in_queue=19; "
         f"booked={derived.booked}; came={derived.came}; "
         f"no_show={derived.no_show_count}; walk_ins={derived.walk_ins}"

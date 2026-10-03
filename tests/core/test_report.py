@@ -1,4 +1,4 @@
-"""Slice 11: hand-computed reports, durable questions, and real channel flows."""
+"""Hand-computed reports, durable questions, and real channel flows."""
 
 from datetime import timedelta
 from pathlib import Path
@@ -330,7 +330,7 @@ def test_close_worker_restart_cards_and_saved_chat(engine, monkeypatch):
     with write_tx(engine) as conn:
         link(conn, cid, clock)
         conn.execute(s.doctors.update().where(s.doctors.c.clinic_id == cid).values(lang="en"))
-        # log_question is slice 08's real grouping implementation.
+        # log_question is the chat's real grouping implementation.
         for index, text in enumerate(
             ["هل الضغط مرض مزمن؟", "هل الضغط مرض مزمن", "هَل الضَغط مرض مزمن؟", "هل الضغط مرض مزمن؟"]
         ):
@@ -620,7 +620,7 @@ def test_report_and_card_buttons_and_skip_resolved(engine):
             )
         )
         report.evening_report(context(conn, clock, cid, eid), {"evening_id": eid})
-        # Simulate accepted slice 08's or another channel's resolved state before progression.
+        # Simulate the chat's or another channel's resolved state before progression.
         conn.execute(s.questions.update().where(s.questions.c.id == q2).values(status="answered"))
         questions.dismiss(conn, clock, cid, q1, "dismiss")
     cards = [r for r in rows(engine, s.outbox) if r["template_id"] == "op:question_card"]

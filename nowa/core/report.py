@@ -20,7 +20,7 @@ from nowa.messaging.templates import render
 
 
 def display_text(value: str, patient_names: Sequence[str] = ()) -> str:
-    # Slice 08's storage policy is unchanged; reports have the stronger display policy.
+    # The chat storage policy is unchanged; reports have the stronger display policy.
     for name in sorted(patient_names, key=len, reverse=True):
         parts = name.split()
         if len(parts) > 1:

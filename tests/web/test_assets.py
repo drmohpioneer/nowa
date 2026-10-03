@@ -1,4 +1,4 @@
-"""Slice 14: self-hosted assets and device-driven colour modes."""
+"""Self-hosted assets and device-driven colour modes."""
 
 import re
 from pathlib import Path

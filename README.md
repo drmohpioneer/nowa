@@ -114,7 +114,6 @@ In the demo, the people and their actions in the Live evening are scripted; the 
 
 ## More
 
-- The product vision: [docs/vision.md](docs/vision.md)
 - Environment names for your own instance: [.env.example](.env.example)
 - The queue simulator behind the wait numbers: [docs/reference/sim.py](docs/reference/sim.py)
 

@@ -1,4 +1,4 @@
-"""Slice 15: a browser token is a claim; only the user's own contact grants authority."""
+"""A browser token is a claim; only the user's own contact grants authority."""
 
 import hashlib
 import re

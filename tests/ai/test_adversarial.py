@@ -176,7 +176,7 @@ def test_no_keys_safe_and_no_judge_cap(chat, engine):
         session=public_session, text="hello", idempotency_key="public-blocked-turn"
     ))
     assert blocked.status_code == 403
-    # Slice 12 blocks the HTTP text surface; retain proof that the accepted core
+    # The demo guard blocks the HTTP text surface; retain proof that the accepted core
     # cap itself returns its fixed reply and never reaches an adapter.
     capped = asyncio.run(handle_turn(
         clinic, public_session, "hello", "core-cap-proof", [],
