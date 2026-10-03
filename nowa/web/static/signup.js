@@ -29,6 +29,8 @@
     const judge = document.getElementById("judge-form"); if (judge) judge.hidden = true;
     status("");
   }
+  const judgeToken = sessionStorage.getItem("nowa-judge-signup");
+  if (judgeToken) { sessionStorage.removeItem("nowa-judge-signup"); ready(judgeToken); }
   bind("judge-form", async (_, data) => { ready((await post("/judge/start", data)).signup_token); });
   bind("code-form", async (_, data) => {
     mobile = data.mobile;

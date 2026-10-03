@@ -28,7 +28,9 @@ async function check(script) {
   context.data = data;
   vm.runInContext('show(data)', context);
   vm.runInContext('show(data)', context);
-  const links = controls.children.filter(el => el.tag === 'a');
+  const cta = controls.children.find(el => el.className === 'tg-cta');
+  assert(cta, 'v2 Telegram CTA wrapper');
+  const links = cta.children.filter(el => el.tag === 'a');
   assert.equal(links.length, 1); assert.equal(links[0].href, url);
   assert.equal(links[0].className, 'btn btn-main'); assert.equal(links[0].target, '_blank');
   assert.equal(links[0].rel, 'noopener'); assert.equal(links[0].textContent, 'Open Telegram');

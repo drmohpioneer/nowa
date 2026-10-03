@@ -1,33 +1,73 @@
-<!doctype html><html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ t('brand') }}</title><link rel="stylesheet" href="/static/nowa.css"><script defer src="/static/phone.js"></script><script defer src="/static/signup.js"></script></head>
-<body><main class="page front">
-<div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span><nav><a href="/d/login" class="cur">{{ t('login') }}</a><a class="ltr" href="?lang={{ 'en' if lang == 'ar' else 'ar' }}">{{ 'English' if lang == 'ar' else 'العربية' }}</a></nav></div>
-<div class="hero"><div><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span></div><div><h1>{{ t('headline') }}</h1><p>{{ t('intro') }}</p>
-<div class="paths"><div class="path"><div><b>{{ t('patient_door') }}</b><small>{{ t('patient_telegram') }}</small></div></div>
-<a class="path" href="#code-form"><div><b>{{ t('doctor_door') }}</b><small>{{ t('doctor_start') }}</small></div><span class="arrow">→</span></a></div></div></div>
-<div class="how"><h2>{{ t('how') }}</h2><div class="steps">{% for n in [1,2,3] %}<div class="step"><i>{{ n }}</i><div>{% if n == 1 %}{{ t('step1') }}{% else %}{{ t('step' ~ n ~ '_before') }} <b>{{ t('on_way' if n == 2 else 'leave_now') }}</b> {{ t('step' ~ n ~ '_after') }}{% endif %}</div></div>{% endfor %}</div></div>
-<p class="foot">{{ t('emergency') }}</p>
-<section class="section"><h2>{{ t('signup') }}</h2>
-<p class="pill status" id="signup-message" role="status" aria-live="polite"></p>
-{% if judge_enabled %}<form id="judge-form" class="card"><h2>{{ t('judge') }}</h2><label class="field"><span>{{ t('judge') }}</span><input name="code" type="password" required autocomplete="off"></label><button class="btn btn-main">{{ t('judge_start') }}</button></form>{% endif %}
-<section id="verification" class="card"><form id="code-form"><label class="field"><span>{{ t('mobile') }}</span><input name="mobile" type="tel" required autocomplete="tel"></label><button class="btn btn-main">{{ t('request_code') }}</button></form>
-<form id="verify-form" hidden><label class="field"><span>{{ t('code') }}</span><input name="code" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" required></label><button class="btn btn-main">{{ t('verify') }}</button></form></section>
-{% if demo %}<section id="signup-phone" class="phone card thread" hidden aria-label="{{ t('phone') }}" aria-live="polite"></section>{% endif %}
-<form id="complete-form" class="card" hidden>
-{% for key in ['name_ar','name_en'] %}<label class="field"><span>{{ t(key) }}</span><input name="{{ key }}" minlength="2" maxlength="60" required></label>{% endfor %}
-<label class="field"><span>{{ t('specialty') }}</span><select name="specialty">{% for specialty in specialties %}<option value="{{ specialty }}">{{ t(specialty) }}</option>{% endfor %}</select></label>
-<label class="field"><span>{{ t('address') }}</span><textarea name="address" required maxlength="500"></textarea></label>
-<label class="field"><span>{{ t('pin_kind') }}</span><select name="pin_kind" id="pin-kind"><option value="area">{{ t('area') }}</option><option value="here">{{ t('here') }}</option><option value="link">{{ t('link') }}</option></select></label>
-<div id="pin-area" class="field"><select name="area_id" aria-label="{{ t('area') }}">{% for area in areas %}<option value="{{ area.id }}">{{ area.name_en if lang == 'en' else area.name_ar }}</option>{% endfor %}</select></div>
-<div id="pin-here" hidden><button class="btn btn-ghost" type="button" id="locate">{{ t('locate') }}</button><p id="location-status" role="status"></p></div>
-<div id="pin-link" hidden><label class="field"><span>{{ t('map_link') }}</span><input name="map_link" type="url" maxlength="2000"></label></div>
-<h2>{{ t('hours') }}</h2><div class="hours-grid">{% for day in ['mon','tue','wed','thu','fri','sat','sun'] %}<fieldset class="card" data-weekday="{{ loop.index0 }}"><legend>{{ t(day) }}</legend><label class="field"><input type="checkbox" name="enabled" checked>{{ t('enabled') }}</label><label class="field"><span>{{ t('start') }}</span><input type="time" name="start" value="19:00" required></label><label class="field"><span>{{ t('end') }}</span><input type="time" name="end" value="23:00" required></label></fieldset>{% endfor %}</div>
-<label class="field"><span>{{ t('price') }}</span><input name="price_egp" type="number" min="0" max="100000" step="1" required></label>
-<label class="field"><span>{{ t('clinic_phone') }}</span><input name="clinic_phone" type="tel"></label>
-<label class="field"><span>{{ t('password') }}</span><input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
-<h2>{{ t('agreement') }} {{ agreement.version }}</h2><pre class="agreement">{{ agreement.text }}</pre>
-<input name="agreement_version" type="hidden" value="{{ agreement.version }}"><label class="field"><input name="agree" type="checkbox" required>{{ t('agree') }}</label><button class="btn btn-main">{{ t('complete') }}</button></form>
-<section id="signup-success" class="card" hidden><h2>{{ t('success') }}</h2><p id="success-mobile"></p><a id="chat-url">{{ t('chat') }}</a><br><a id="poster-url">{{ t('poster') }}</a><br><a href="/d">{{ t('dashboard') }}</a></section>
-</section><section class="section card">{% if watch_enabled %}<a class="btn btn-ghost" href="/demo/evening">{{ t('watch') }}</a>{% endif %}<form method="post" action="/demo/book"><button class="btn btn-ghost">{{ t('public_book') }}</button></form></section>
-<div id="signup-translations" hidden>{% for key,value in texts.items() %}<span data-key="{{ key }}">{{ value }}</span>{% endfor %}</div>
+<!doctype html><html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ t("brand") }}</title><link rel="stylesheet" href="/static/nowa.css"></head><body>{% include "icons.html" %}<main class="page front">
+{% include "public-topbar.html" %}
+<div class="hero">
+<div>
+<div class="eyebrow">{{ t('front_nowa_waiting_room_agent') }}</div>
+<h1 style="margin-top:12px">{{ t('front_patients_wait_at_home_not_in_the') }}</h1>
+<p class="lead">{{ t('front_nowa_tells_each_patient_on_telegram_when') }}</p>
+<div class="hero-actions">
+<a class="btn btn-main" href="{{ link('/demo') }}">{{ t('front_see_nowa_working') }} <svg aria-hidden="true" style="transform:scaleX(-1)"><use href="#i-arrow"></use></svg></a>
+<a class="btn btn-ghost" href="{{ link('/start') }}">{{ t('front_i_m_a_doctor') }}</a>
+</div>
+</div>
+<div aria-hidden="true" class="mark">
+<span class="orbit a"></span><span class="orbit b"></span>
+<span class="logo"><span>n</span><i class="o"></i><span>wa</span></span>
+<div class="ticker"><span class="pill"><span class="dot live"></span><span class="num">20:43</span> {{ t('front_mahmoud_number') }} <span class="num">7</span>{{ t('front_got_leave_now') }}</span></div>
+</div>
+</div>
+<section aria-labelledby="film-h" class="film">
+<div class="film-h">
+<div class="eyebrow">{{ t('front_how_it_works') }}</div>
+<h2 id="film-h">{{ t('front_one_evening_three_moments') }}</h2>
+<p>{{ t('front_the_doctor_taps_twice_nowa_does_the') }}</p>
+</div>
+<div class="film-strip">
+<article class="moment">
+<div class="moment-time"><i></i><span>{{ t('front_sunday') }} <span class="num">14:20</span></span></div>
+<div aria-label="{{ t('front_karim_s_telegram') }}" class="device">
+<div class="tg-head"><svg class="back"><use href="#i-back"></use></svg><span class="bav"><i></i></span><div><b>{{ t('front_nowa_dr_hesham_s_clinic') }}</b><small>{{ t('front_bot') }}</small></div></div>
+<div class="tg-body">
+<span class="tg-day">{{ t('front_sun_4_oct') }}</span>
+<div class="tgb">{{ t('front_mahmoud_your_booking_with_dr_hesham_mostafa') }} <b class="num">7</b>{{ t('front_around') }} <span class="num">8:20</span> {{ t('front_and_it_may_move_later_we_ll') }}<br/><span class="tl">{{ t('front_open_booking_link') }}</span><span class="tm">14:20</span></div>
+</div>
+</div>
+<div class="moment-cap"><span class="k">1</span><div><b>{{ t('front_karim_books_his_father_and_gets_number') }}</b><span>{{ t('front_from_the_clinic_link_the_number_and') }}</span></div></div>
+</article>
+<article class="moment">
+<div class="moment-time"><i></i><span>{{ t('front_tuesday') }} <span class="num">19:10</span></span></div>
+<div aria-label="{{ t('front_doctor_s_telegram') }}" class="device">
+<div class="tg-head"><svg class="back"><use href="#i-back"></use></svg><span class="bav"><i></i></span><div><b>{{ t('front_nowa') }}</b><small>{{ t('front_tonight_s_clinic') }}</small></div></div>
+<div class="tg-body">
+<div class="tgb">{{ t('front_dr_hesham_the_clinic_should_start_at') }} <span class="num">7:00</span> {{ t('front_and_you_haven_t_tapped_on_my') }} <b class="num">18</b> {{ t('front_bookings_today_are_you_on_your_way') }}<span class="tm">19:05</span></div>
+<div class="tg-kb"><span class="pressed">{{ t('front_on_my_way') }}</span></div>
+<span class="tg-svc">{{ t('front_drive_about') }} <span class="num">35</span> {{ t('front_min_queue_calculated') }}</span>
+</div>
+</div>
+<div class="moment-cap"><span class="k">2</span><div><b>{{ t('front_the_doctor_taps_on_my_way') }}</b><span>{{ t('front_one_tap_leaving_the_hospital_nowa_times') }}</span></div></div>
+</article>
+<article class="moment">
+<div class="moment-time"><i></i><span>{{ t('front_tuesday_32') }} <span class="num">20:43</span></span></div>
+<div aria-label="{{ t('front_karim_s_telegram_54') }}" class="device">
+<div class="tg-head"><svg class="back"><use href="#i-back"></use></svg><span class="bav"><i></i></span><div><b>{{ t('front_nowa_dr_hesham_s_clinic_33') }}</b><small>{{ t('front_bot_34') }}</small></div></div>
+<div class="tg-body">
+<div class="tgb">{{ t('front_mahmoud_leave_now_for_dr_hesham_mostafa') }} <b class="num">7</b>{{ t('front_when_you_leave_tap_here') }}<br/><span class="tl">{{ t('front_i_m_on_my_way') }}</span><span class="tm">20:43</span></div>
+<div class="tg-kb"><span>{{ t('front_i_m_on_my_way_38') }}</span><span>{{ t('front_details') }}</span></div>
+</div>
+</div>
+<div class="moment-cap"><span class="k">3</span><div><b>{{ t('front_leave_now_at_the_right_minute') }}</b><span>{{ t('front_each_patient_at_their_own_time_by') }}</span></div></div>
+</article>
+</div>
+</section>
+<section class="promises">
+<div class="promise">
+<div class="big num">2</div>
+<div><div class="eyebrow">{{ t('front_for_the_doctor') }}</div><h3>{{ t('front_two_taps_all_evening') }}</h3><p>{{ t('front_on_my_way_when_you_leave_who') }}</p></div>
+</div>
+<div class="promise">
+<div class="big num">21<small>{{ t('front_min') }}</small></div>
+<div><div class="eyebrow">{{ t('front_for_the_patient') }}</div><h3>{{ t('front_wait_at_home_not_in_the_hall') }}</h3><p>{{ t('front_one_telegram_message_tells_you_when_to') }} <span class="num">21</span> {{ t('front_minutes_instead_of_hours_simulated') }}</p></div>
+</div>
+</section>
+<p class="foot">{{ t('front_nowa_does_not_replace_emergency_care_for') }} <span class="num">123</span> {{ t('front_immediately') }}</p>
 </main></body></html>

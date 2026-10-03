@@ -79,15 +79,28 @@ async function refresh() {
     const stat = make("div", "stat", ""); stat.append(make("b", "num", String(count)), make("span", "", t(key))); stats.append(stat);
   }
   const room = data.rows.find(row => row.state === "in_room");
-  document.getElementById("in-room").textContent = room ? room.queue_number + " · " + (room.patient_first_name || t("walk_in")) : "—";
+  document.getElementById("in-room").textContent = room ? room.queue_number + " · " + (room.patient_first_name || t("walk_in")) : t("empty");
   const who = document.getElementById("who");
   who.querySelectorAll("button:not(.walk)").forEach(button => button.remove());
-  for (const row of remaining.slice(0, 4)) {
+  const hero = document.getElementById("next-hero"); hero.hidden = !remaining.length;
+  document.getElementById("next-patient").replaceChildren();
+  document.getElementById("next-action").replaceChildren();
+  for (const [index, row] of remaining.slice(0, 4).entries()) {
     const button = make("button", "", "");
     button.append(make("span", "num", String(row.queue_number)), make("span", "", row.patient_first_name || t("walk_in")));
     if (row.no_show_count > 0) button.append(make("span", "warn", "⚠️" + row.no_show_count));
     bindButton(button, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
-    who.insertBefore(button, who.querySelector(".walk"));
+    if (index === 0) {
+      const name = row.patient_first_name || t("walk_in");
+      const details = make("div"), state = make("span", "state-pill", t(row.state));
+      state.dataset.state = row.state;
+      const sub = make("small"); sub.append(state);
+      if (row.no_show_count > 0) sub.append(make("span", "warn", t("didnt_come") + " ×" + row.no_show_count));
+      details.append(make("b", "", name), sub);
+      document.getElementById("next-patient").append(make("span", "num", String(row.queue_number)), details);
+      button.className = "btn btn-main btn-xl"; button.textContent = t("call_in").replace("{name}", name);
+      document.getElementById("next-action").append(button);
+    } else who.insertBefore(button, who.querySelector(".walk"));
   }
   document.getElementById("pace-count").textContent = seen + " / " + booked;
   document.getElementById("pace-progress").style.width = (booked ? seen / booked * 100 : 0) + "%";
@@ -96,9 +109,11 @@ async function refresh() {
     const name = (row.patient_first_name || t("walk_in")) + (row.no_show_count > 0 ? " ⚠️" + row.no_show_count : "");
     const title = make(row.remaining ? "button" : "span", "name", name);
     if (row.remaining) bindButton(title, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
-    const state = make("span", row.state === "in_room" ? "pill" : "st", [t(row.state === "in_room" ? "in_room" : row.state), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · "));
+    const state = make("span", "state-pill", [t(row.state === "in_room" ? "in_room" : row.state), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · "));
     if (row.state === "in_room") state.prepend(make("span", "dot live", ""));
-    card.append(make("span", "n", String(row.queue_number)), title, state); queue.append(card);
+    state.dataset.state = row.state; card.dataset.state = row.state;
+    const expected = row.expected_shown ? new Date(row.expected_shown).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) : "";
+    card.append(make("span", "n", String(row.queue_number)), title, make("span", "exp", expected), state); queue.append(card);
   }
   const select = document.getElementById("areas");
   const previous = select.value;

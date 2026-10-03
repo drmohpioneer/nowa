@@ -103,6 +103,7 @@ def render(
             signup_t=lambda key: strings.text("signup." + key, lang),
             mode=mode,
             lang=lang,
+            ui_t=lambda key: strings.text("ui." + key, lang),
             t=lambda key: strings.text("doctor." + key, lang),
             translations={key: strings.text("doctor." + key, lang) for key in strings.DOCTOR_TEXTS},
         ),

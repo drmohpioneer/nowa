@@ -18,7 +18,7 @@ from nowa.ai.conversation import _health_record
 from nowa.ai.health import Answered
 from nowa.ai.schema import ChatResponse
 from nowa.clock import CAIRO, Clock, FrozenClock
-from nowa.core import booking, flows, projection, questions, signup, timing, travel
+from nowa.core import booking, flows, projection, questions, report, signup, timing, travel
 from nowa.db import write_tx
 from nowa.demo import evening_script as script
 from nowa.library.answer import RecordedHealthAnswerer
@@ -354,7 +354,23 @@ class EveningRunner:
                 ).scalar_one(),
                 doctor=True,
             )
+            additions: dict[str, Any] = {
+                "clinic": {
+                    "name": clinic["name"],
+                    "specialty": clinic["specialty"],
+                    "area": clinic["address"],
+                },
+                "evening": {"first_minute": 0, "last_minute": 600, "weekday": 1},
+            }
+            if evening and run["step"] == 2:
+                result = report.build_report(conn, self.clock, self.clinic_id, evening["id"])
+                additions["report"] = {
+                    key: getattr(result, key)
+                    for key in ("booked", "came", "no_show_count", "walk_ins", "avg_wait")
+                    if getattr(result, key) is not None
+                }
             return dict(
+                **additions,
                 run_id=run["run_id"],
                 minute=run["minute"],
                 closed=run["step"] == 2,

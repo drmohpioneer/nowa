@@ -42,7 +42,10 @@ def test_fonts_licences_and_modes():
     for family in ("Sora", "IBM Plex Sans Arabic"):
         assert re.search(r"@font-face\s*\{[^}]*font-family:\s*['\"]" + family, css)
     assert "font-display: swap" in css
-    assert "prefers-color-scheme: dark" in css
+    assert "prefers-color-scheme: light" in css
+    default, light = css.split("@media (prefers-color-scheme: light)", 1)
+    assert "--bg:#0B1024" in default and "color-scheme:dark" in default
+    assert "--bg:#F4F1EA" in light and "color-scheme:light" in light
     assert "#0B1024" in css and "#F4F1EA" in css
     assert "prefers-reduced-motion:reduce" in css
     for licence in ("Sora-OFL.txt", "IBM-Plex-Sans-Arabic-OFL.txt"):

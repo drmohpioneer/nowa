@@ -4,8 +4,8 @@
 <body><main class="page patient"><div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span><span class="pill">{{ day }}</span></div>
 <div class="patient-turn">
 {% if message %}<p class="pill status" role="status">{{ t(message) }}</p>{% endif %}
-{% if v.state == 'told_to_leave' %}<div class="now-card"><span>{{ t('leave_number').format(name=v.patient_first_name) }} <span class="num">{{ v.queue_number }}</span></span><h2>{{ t('leave_now') }}</h2>{% if v.travel_min is defined and v.travel_min is not none %}<p class="sub">{{ t('travel').format(minutes=v.travel_min) }}</p>{% endif %}<div class="bar"><i></i></div></div>
-{% else %}<p class="section">{{ t('your_turn').format(name=v.patient_first_name) }}</p><div class="qnum num">{{ v.queue_number }}</div><p class="sms-line">{{ t('expected') }} · <span class="num">{{ expected }}</span></p><p class="pill section"><span class="dot {{ 'live' if v.state == 'on_my_way' else '' }}"></span>{{ t(v.state) }}</p>{% endif %}
+{% if v.state == 'told_to_leave' %}<div class="now-card"><span class="k">{{ t('leave_number').format(name=v.patient_first_name) }} <span class="num">{{ v.queue_number }}</span></span><h2>{{ t('leave_now') }}</h2>{% if v.travel_min is defined and v.travel_min is not none %}<p class="sub">{{ t('travel').format(minutes=v.travel_min) }}</p>{% endif %}<div class="bar"><i></i></div></div>
+{% else %}<div class="turn-hero"><p class="k">{{ t('your_turn').format(name=v.patient_first_name) }}</p><div class="qnum num">{{ v.queue_number }}</div><p class="when">{{ t('expected') }} · <span class="num">{{ expected }}</span></p><p class="pill section"><span class="dot {{ 'live' if v.state == 'on_my_way' else '' }}"></span>{{ t(v.state) }}</p></div>{% if v.state == "booked" %}<p class="tg-note">{{ t('v2_note') }}</p>{% endif %}{% endif %}
 {% macro form_fields() %}<input type="hidden" name="form_token" value="{{ form.value }}"><input type="hidden" name="exp" value="{{ form.exp }}"><label class="field"><span>{{ t('last4') }}</span><input name="last4" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" required autocomplete="off"></label>{% endmacro %}
 {% macro tap_fields() %}<input type="hidden" name="tap_token" value="{{ tap.value }}"><input type="hidden" name="exp" value="{{ tap.exp }}">{% endmacro %}
 {% if mode == 'way' %}
@@ -31,7 +31,7 @@
   {% if telegram %}<form method="post" action="/l/{{ code }}/telegram">{{ form_fields() }}<button class="btn btn-main">{{ t('telegram') }}</button></form>{% endif %}
 
 {% endif %}
-{% if v.state == 'told_to_leave' %}<p class="sms-line">{{ t('tap_help') }}</p>{% endif %}
+{% if v.state == 'told_to_leave' %}<p class="note-line">{{ t('tap_help') }}</p>{% endif %}
 </div><div class="patient-details">
 <div class="rows" id="booking-details">
 <div class="row"><span class="muted">{{ t('doctor') }}</span><span>{{ v.doctor_name }}</span></div>
@@ -39,11 +39,11 @@
 <div class="row"><span class="muted">{{ t('day') }}</span><span>{{ day }}</span></div>
 <div class="row"><span class="muted">{{ t('expected') }}</span><span class="num">{{ expected }}</span></div>
 <div class="row"><span class="muted">{{ t('address') }}</span><span>{{ v.clinic_address }}</span></div>
-<div class="row"><span class="muted">{{ t('phone') }}</span><a class="num" href="tel:{{ v.clinic_phone }}" rel="noopener noreferrer">{{ v.clinic_phone }}</a></div>
+<div class="row"><span class="muted">{{ t('phone') }}</span><a class="num ltr" href="tel:{{ v.clinic_phone }}" rel="noopener noreferrer">{{ v.clinic_phone }}</a></div>
 </div>
 <a class="btn btn-ghost" href="{{ map_url }}" rel="noopener noreferrer">{{ t('map') }}</a>
 {% if mode == 'view' and active %}<a class="btn btn-ghost" href="/l/{{ code }}/change">{{ t('change') }}</a>{% endif %}
-{% if mode == 'view' and active %}<details class="section"><summary class="btn btn-ghost">{{ t('cancel') }}</summary>    <form method="post" action="/l/{{ code }}/cancel">{{ form_fields() }}<button class="btn btn-danger">{{ t('cancel') }}</button></form>
+{% if mode == 'view' and active %}<details class="section"><summary class="quiet-link">{{ t('cancel') }}</summary>    <form method="post" action="/l/{{ code }}/cancel">{{ form_fields() }}<button class="btn btn-danger">{{ t('cancel') }}</button></form>
 </details>{% endif %}
 <div class="emg">{{ t('emergency') }}</div></div>
 </main></body></html>

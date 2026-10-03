@@ -339,9 +339,9 @@ TELEGRAM_TEXTS = {
         "Mafeesh 7ogozat nashta delwa2ty",
     ),
     "booking": (
-        "{patient} — د. {doctor}\n{day}، رقم {number}، المعاد المتوقع {time}",
-        "{patient} — Dr. {doctor}\n{day}, number {number}, expected time {time}",
-        "{patient} — Dr. {doctor}\n{day}, rakm {number}, el ma3ad {time}",
+        "{patient} · د. {doctor}\n{day}، رقم {number}، المعاد المتوقع {time}",
+        "{patient} · Dr. {doctor}\n{day}, number {number}, expected time {time}",
+        "{patient} · Dr. {doctor}\n{day}, rakm {number}, el ma3ad {time}",
     ),
     "details": ("📄 التفاصيل", "📄 Details", "📄 El tafaseel"),
     "patient_omw": ("🚗 أنا في الطريق", "🚗 I'm on my way", "🚗 Ana fel tareek"),
@@ -698,3 +698,356 @@ for _key, _values in {
     "book_text": ("عايز أحجز", "I want to book", "3ayez a7gez"),
 }.items():
     STRINGS["chat." + _key] = dict(zip(("ar", "en", "franco"), _values, strict=True))
+
+# Slice 16: approved v2 story copy, preserving the mockup inline number spans.
+UI_TEXTS = {
+    "front_nowa_waiting_room_agent": ("Nowa · waiting-room agent", "Nowa · waiting-room agent"),
+    "front_patients_wait_at_home_not_in_the": (
+        "المريض يستنى دوره في بيته، مش في العيادة.",
+        "Patients wait at home, not in the waiting room.",
+    ),
+    "front_nowa_tells_each_patient_on_telegram_when": (
+        "نوا بيقول لكل مريض على تليجرام امتى ينزل من البيت، على حسب "
+        "الدكتور فين والطابور ماشي بأي سرعة. يوصل قبل دوره بشوية، مش "
+        "قبله بساعتين.",
+        "Nowa tells each patient on Telegram when to leave home, based "
+        "on where the doctor is and how fast the queue moves. They "
+        "arrive just before their turn, not two hours early.",
+    ),
+    "front_see_nowa_working": ("شوف نوا شغالة", "See Nowa working"),
+    "front_i_m_a_doctor": ("أنا دكتور", "I'm a doctor"),
+    "front_mahmoud_number": ("· محمود، رقم", "· Mahmoud, number"),
+    "front_got_leave_now": ('، وصلته "انزل دلوقتي"', ', got "leave now"'),
+    "front_how_it_works": ("How it works", "How it works"),
+    "front_one_evening_three_moments": ("ليلة واحدة، تلات لحظات", "One evening, three moments"),
+    "front_the_doctor_taps_twice_nowa_does_the": (
+        "الدكتور بيضغط ضغطتين، ونوا بيعمل الباقي.",
+        "The doctor taps twice; Nowa does the rest.",
+    ),
+    "front_sunday": ("الأحد ·", "Sunday ·"),
+    "front_nowa_dr_hesham_s_clinic": ("نوا · عيادة د. هشام", "Nowa · Dr. Hesham's clinic"),
+    "front_bot": ("بوت", "Bot"),
+    "front_sun_4_oct": ("Sun, 4 Oct", "Sun, 4 Oct"),
+    "front_mahmoud_your_booking_with_dr_hesham_mostafa": (
+        "محمود: حجزك مع د. هشام مصطفى يوم الثلاثاء، رقمك",
+        "Mahmoud: your booking with Dr. Hesham Mostafa is on Tuesday, number",
+    ),
+    "front_around": ("، معادك حوالي", ", around"),
+    "front_and_it_may_move_later_we_ll": (
+        "وممكن يتأخر. هنقولك على تليجرام امتى تتحرك.",
+        "and it may move later. We'll tell you on Telegram when to leave.",
+    ),
+    "front_open_booking_link": ("افتح لينك الحجز", "Open booking link"),
+    "front_karim_books_his_father_and_gets_number": (
+        "كريم بيحجز لأبوه، وياخد رقم 7",
+        "Karim books his father and gets number 7",
+    ),
+    "front_from_the_clinic_link_the_number_and": (
+        "من لينك العيادة. الرقم والمعاد التقريبي يوصلوا على تليجرام في ثانية.",
+        "From the clinic link. The number and rough time arrive on Telegram in a second.",
+    ),
+    "front_tuesday": ("الثلاثاء ·", "Tuesday ·"),
+    "front_nowa": ("نوا", "Nowa"),
+    "front_tonight_s_clinic": ("عيادة النهارده", "Tonight's clinic"),
+    "front_dr_hesham_the_clinic_should_start_at": (
+        "د. هشام، العيادة المفروض تبدأ",
+        "Dr. Hesham, the clinic should start at",
+    ),
+    "front_and_you_haven_t_tapped_on_my": (
+        'ولسه ما دوستش "في الطريق". عندك',
+        'and you haven\'t tapped "on my way". You have',
+    ),
+    "front_bookings_today_are_you_on_your_way": (
+        "حجز النهارده. إنت في الطريق؟",
+        "bookings today. Are you on your way?",
+    ),
+    "front_on_my_way": ("🚗 في الطريق", "🚗 On my way"),
+    "front_drive_about": ("الطريق حوالي", "Drive about"),
+    "front_min_queue_calculated": ("دقيقة · الطابور اتحسب", "min · queue calculated"),
+    "front_the_doctor_taps_on_my_way": ('الدكتور بيضغط "في الطريق"', 'The doctor taps "on my way"'),
+    "front_one_tap_leaving_the_hospital_nowa_times": (
+        "ضغطة واحدة وهو خارج من المستشفى. نوا بيحسب الطريق والطابور كله من اللحظة دي.",
+        "One tap leaving the hospital. Nowa times the drive and the whole queue from that moment.",
+    ),
+    "front_tuesday_32": ("الثلاثاء ·", "Tuesday ·"),
+    "front_nowa_dr_hesham_s_clinic_33": ("نوا · عيادة د. هشام", "Nowa · Dr. Hesham's clinic"),
+    "front_bot_34": ("بوت", "Bot"),
+    "front_mahmoud_leave_now_for_dr_hesham_mostafa": (
+        "محمود: اتحرك دلوقتي لعيادة د. هشام مصطفى، دورك قرب (رقم",
+        "Mahmoud: leave now for Dr. Hesham Mostafa's clinic, your turn is close (number",
+    ),
+    "front_when_you_leave_tap_here": ("). لما تتحرك اضغط هنا:", "). When you leave, tap here:"),
+    "front_i_m_on_my_way": ("أنا في الطريق", "I'm on my way"),
+    "front_i_m_on_my_way_38": ("🚗 أنا في الطريق", "🚗 I'm on my way"),
+    "front_details": ("📄 التفاصيل", "📄 Details"),
+    "front_leave_now_at_the_right_minute": (
+        '"انزل دلوقتي" في الدقيقة الصح',
+        '"Leave now" at the right minute',
+    ),
+    "front_each_patient_at_their_own_time_by": (
+        "لكل مريض في وقته هو، على حسب طريقه. يوصل قبل دوره بشوية.",
+        "Each patient at their own time, by their own drive. They arrive just before their turn.",
+    ),
+    "front_for_the_doctor": ("For the doctor", "For the doctor"),
+    "front_two_taps_all_evening": ("ضغطتين بس طول الليلة", "Two taps all evening"),
+    "front_on_my_way_when_you_leave_who": (
+        '"في الطريق" لما تتحرك، و"مين يدخل" بعد كل كشف. مفيش صالة زحمة ولا تليفونات للسكرتيرة.',
+        '"On my way" when you leave, "who comes in" after each visit. '
+        "No packed waiting room, no calls to the secretary.",
+    ),
+    "front_min": ("د", "min"),
+    "front_for_the_patient": ("For the patient", "For the patient"),
+    "front_wait_at_home_not_in_the_hall": (
+        "تستنى في بيتك، مش في الصالة",
+        "Wait at home, not in the hall",
+    ),
+    "front_one_telegram_message_tells_you_when_to": (
+        "رسالة واحدة على تليجرام تقولك انزل امتى. متوسط الانتظار في العيادة حوالي",
+        "One Telegram message tells you when to leave. Average clinic wait about",
+    ),
+    "front_minutes_instead_of_hours_simulated": (
+        "دقيقة بدل ساعات (محاكاة).",
+        "minutes instead of hours (simulated).",
+    ),
+    "front_nowa_does_not_replace_emergency_care_for": (
+        "نوا مش بديل للطوارئ. لو فيه ألم في الصدر أو إغماء اتصل بـ",
+        "Nowa does not replace emergency care. For chest pain or fainting, call",
+    ),
+    "front_immediately": ("فورًا.", "immediately."),
+    "front_karim_s_telegram": ("تليجرام كريم", "Karim's Telegram"),
+    "front_doctor_s_telegram": ("تليجرام الدكتور", "Doctor's Telegram"),
+    "front_karim_s_telegram_54": ("تليجرام كريم", "Karim's Telegram"),
+}
+
+UI_TEXTS.update(
+    {
+        "switch_language": ("English", "Arabic"),
+        "eyebrow": ("نوا · مساعد الانتظار", "Nowa · waiting-room agent"),
+        "demo_eyebrow": ("تجربة", "Demo"),
+        "demo_title": ("جرّب نوا بنفسك", "Try Nowa yourself"),
+        "demo_intro": (
+            "عيادة د. هشام مصطفى، ليلة الثلاثاء، 18 حجز. اختار من فين تبدأ.",
+            "Dr. Hesham Mostafa's clinic, Tuesday evening, 18 bookings. Pick where to start.",
+        ),
+        "door_live": ("شاهد ليلة كاملة", "Watch a full evening"),
+        "door_live_sub": (
+            "الليلة كلها في حوالي 4 دقايق: الدكتور، الطابور، وكل رسالة وهي بتوصل.",
+            "The whole evening in about 4 minutes: the doctor, the "
+            "queue, every message as it lands.",
+        ),
+        "door_booking": ("جرّب الحجز كمريض", "Book as a patient"),
+        "door_booking_sub": (
+            "احجز دور خيالي في شات العيادة، وشوف رسالة الحجز توصل على تليجرام.",
+            "Book a fictional turn in the clinic chat and watch the message reach Telegram.",
+        ),
+        "door_board": ("لوحة الدكتور", "Doctor's board"),
+        "door_board_sub": (
+            "اللي الدكتور بيشوفه ويضغطه الليلة.",
+            "What the doctor sees and taps tonight.",
+        ),
+        "credentials": (
+            "الدخول: {mobile} · كلمة السر: {password}",
+            "Login: {mobile} · password: {password}",
+        ),
+        "door_report": ("تقرير الليلة", "Evening report"),
+        "door_report_sub": (
+            "مين جه، مين ما جاش، والمريض استنى قد إيه فعلًا. التقرير يظهر لما الليلة تخلص.",
+            "Who came, who didn't, and how long patients waited. The "
+            "report appears when the evening closes.",
+        ),
+        "live": ("مباشر", "Live"),
+        "ready": ("جاهز", "Ready"),
+        "after_close": ("بعد ما الليلة تخلص", "After the evening ends"),
+        "demo_note": (
+            "كل حاجة هنا شغالة على محرك نوا الحقيقي، والعيادة والمرضى خياليين.",
+            "Everything here runs on the real Nowa engine; the clinic and patients are fictional.",
+        ),
+        "idle_title": ("ابدأ ليلة الثلاثاء", "Start Tuesday evening"),
+        "idle_sub": (
+            "18 حجز عند د. هشام. الليلة كلها في حوالي 4 دقايق.",
+            "18 bookings with Dr. Hesham. The whole evening in about 4 minutes.",
+        ),
+        "clinic_name": ("عيادة د. هشام مصطفى", "Dr. Hesham Mostafa's clinic"),
+        "clinic_line": (
+            "القلب · مصر الجديدة · عيادة خيالية",
+            "Cardiology · Heliopolis · fictional clinic",
+        ),
+        "clinic_clock": ("ساعة العيادة", "Clinic clock"),
+        "doctor_waiting": ("الدكتور لسه في المستشفى", "Doctor still at the hospital"),
+        "doctor_on_way": ("الدكتور في الطريق · حوالي {m} د", "Doctor on the way · about {m} min"),
+        "doctor_arrived": ("الدكتور وصل · {time}", "Doctor arrived · {time}"),
+        "doctor_closed": ("خلصت الليلة", "Evening done"),
+        "play": ("تشغيل", "Play"),
+        "pause": ("إيقاف مؤقت", "Pause"),
+        "restart": ("ليلة جديدة", "New evening"),
+        "speed": ("السرعة", "Speed"),
+        "dashboard": ("افتح لوحة الدكتور", "Open the doctor's board"),
+        "report_link": ("التقرير الكامل", "Full report"),
+        "queue": ("الطابور", "Queue"),
+        "final_queue": ("الطابور في الآخر", "Final queue"),
+        "feed": ("الرسائل", "Messages"),
+        "feed_sub": ("على تليجرام · الأحدث فوق", "on Telegram · newest first"),
+        "timeline": ("اللي حصل الليلة", "Tonight so far"),
+        "now": ("دلوقتي", "Now"),
+        "room": ("جوه دلوقتي", "In the room"),
+        "empty_room": ("لسه مفيش حد جوه", "No one in the room yet"),
+        "next": ("اللي عليه الدور", "Next up"),
+        "no_next": ("مفيش حد مستني", "No one waiting"),
+        "room_minutes": ("بقاله {m} د", "for {m} min"),
+        "pace": ("الكشف بياخد حوالي", "A visit takes about"),
+        "learned": ("اتعلم من الليلة دي", "learned tonight"),
+        "minutes": ("د", "min"),
+        "booked": ("محجوز", "Booked"),
+        "told_to_leave": ("اتطلب", "Called"),
+        "on_my_way": ("في الطريق", "On the way"),
+        "in_room": ("جوه", "In"),
+        "seen": ("خلص", "Done"),
+        "cancelled": ("اتلغى", "Cancelled"),
+        "didnt_come": ("ما جاش", "Didn't come"),
+        "walkin": ("من غير حجز", "Walk-in"),
+        "doctor": ("الدكتور", "Doctor"),
+        "number": ("رقم {n}", "number {n}"),
+        "link_booking": ("افتح لينك الحجز", "Open booking link"),
+        "link_way": ("أنا في الطريق", "I'm on my way"),
+        "link_rebook": ("احجز يوم تاني", "Book another day"),
+        "failed": ("ما وصلتش · الدكتور اتبلّغ", "Not delivered · doctor alerted"),
+        "report_title": ("ليلة الثلاثاء في أرقام", "Tuesday evening in numbers"),
+        "report_booked": ("الحجوزات", "Bookings"),
+        "report_came": ("جم", "Came"),
+        "report_no_show_count": ("ما جوش", "Didn't come"),
+        "report_walk_ins": ("من غير حجز", "Walk-ins"),
+        "report_avg_wait": ("متوسط الانتظار في العيادة (تقريبًا)", "Avg clinic wait (approx.)"),
+        "with_nowa": ("مع نوا", "With Nowa"),
+        "without_nowa": ("من غير نوا", "Without Nowa"),
+        "baseline": ("229 د (محاكاة)", "229 min (simulated)"),
+        "report_sub": (
+            "الأرقام دي محاكاة على عيادة خيالية.",
+            "Simulated numbers on a fictional clinic.",
+        ),
+        "watch_error": (
+            "تعذر إكمال العرض. جرّب ليلة جديدة.",
+            "Could not continue. Start a new evening.",
+        ),
+        "practice_tools": ("أدوات التجربة", "Practice tools"),
+        "practice_tools_sub": (
+            "ساعة العيادة التجريبية ورسايل التجربة",
+            "Practice clock and practice messages",
+        ),
+        "empty": ("مفيش", "None"),
+        "other_patient": ("أو حد تاني", "Or someone else"),
+        "call_in": ("دخّل {name}", "Call in {name}"),
+        "patient_note": (
+            'الرسالة هتوصلك على تليجرام. خليك في البيت، وأول ما ييجي وقتك هنبعتلك "انزل دلوقتي".',
+            "The message will reach you on Telegram. Stay home; when it"
+            ' is time we will send "leave now".',
+        ),
+        "action_booking_created": (
+            "اتسجل حجز {name} (رقم {n})",
+            "Booking recorded for {name} (number {n})",
+        ),
+        "action_message_enqueue": ("نوا جهّز رسالة على تليجرام", "Nowa prepared a Telegram message"),
+        "action_leave_now": (
+            'رسالة "انزل دلوقتي" لـ{name} (رقم {n})',
+            '"Leave now" sent to {name} (number {n})',
+        ),
+        "action_reminder": (
+            'نوا فكّر الدكتور: العيادة بدأت ولسه ما ضغطش "في الطريق"',
+            'Nowa reminded the doctor: the clinic started and he has not tapped "on my way"',
+        ),
+        "action_doctor_on_my_way": ('الدكتور ضغط "في الطريق"', 'The doctor tapped "on my way"'),
+        "action_who_comes_in": (
+            "الدكتور دخّل المريض اللي عليه الدور",
+            "The doctor called in the next patient",
+        ),
+        "action_patient_on_my_way": (
+            'المريض ضغط "أنا في الطريق"',
+            'A patient tapped "I am on my way"',
+        ),
+        "action_patient_undo_on_my_way": ("المريض قال لسه ما اتحركش", "A patient has not left yet"),
+        "action_booking_cancelled": ("{name} (رقم {n}) لغى حجزه", "{name} (number {n}) cancelled"),
+        "action_message_failure": (
+            "الرسالة ما وصلتش لـ{name} (رقم {n})، الدكتور اتبلّغ",
+            "Message to {name} (number {n}) failed; doctor alerted",
+        ),
+        "action_close_evening": ("الدكتور قفل الليلة", "The doctor closed the evening"),
+        "action_chat_in": ("المريض سأل سؤال صحي", "A patient asked a health question"),
+        "action_chat_out": ("نوا جاوب من مكتبة الصحة", "Nowa answered from the health library"),
+        "action_message_result": ("اتحدّثت حالة الرسالة", "Message status updated"),
+        "action_question_logged": ("اتسجل سؤال للدكتور", "A question was recorded for the doctor"),
+        "action_patient_named_way": (
+            '{name} (رقم {n}) ضغط "أنا في الطريق"',
+            '{name} (number {n}) tapped "I am on my way"',
+        ),
+        "action_patient_named_undo": (
+            "{name} (رقم {n}) قال لسه ما اتحركش",
+            "{name} (number {n}) has not left yet",
+        ),
+        "action_named_who": (
+            "الدكتور دخّل {name} (رقم {n})",
+            "The doctor called in {name} (number {n})",
+        ),
+    }
+)
+
+UI_TEXTS.update(
+    {
+        "action_demo_copy_created": (
+            "اتجهزت العيادة الخيالية",
+            "The fictional clinic was prepared",
+        ),
+        "action_doctor_login": ("لوحة الدكتور جاهزة", "The doctor's board is ready"),
+        "action_message_delivery": ("الرسالة وصلت", "The message was delivered"),
+        "action_send_attempt": ("نوا حاول يبعت الرسالة", "Nowa attempted to send the message"),
+    }
+)
+
+# All observed replay kinds have bilingual sentences. Noise is deliberately hidden
+# on the stage, but mapped so a new replay kind cannot silently enter the UI.
+ACTION_SENTENCES = {
+    "demo_copy_created": "action_demo_copy_created",
+    "doctor_login": "action_doctor_login",
+    "message_delivery": "action_message_delivery",
+    "send_attempt": "action_send_attempt",
+    "booking_created": "action_booking_created",
+    "message_enqueue": "action_message_enqueue",
+    "message_result": "action_message_result",
+    "doctor_on_my_way": "action_doctor_on_my_way",
+    "who_comes_in": "action_who_comes_in",
+    "patient_on_my_way": "action_patient_on_my_way",
+    "patient_undo_on_my_way": "action_patient_undo_on_my_way",
+    "booking_cancelled": "action_booking_cancelled",
+    "message_failure": "action_message_failure",
+    "close_evening": "action_close_evening",
+    "chat_in": "action_chat_in",
+    "chat_out:normal": "action_chat_out",
+    "question_logged": "action_question_logged",
+}
+UI_TEXTS.update({"kind_" + kind: UI_TEXTS[key] for kind, key in ACTION_SENTENCES.items()})
+for _key, (_ar, _en) in UI_TEXTS.items():
+    STRINGS["ui." + _key] = {"ar": _ar, "en": _en}
+# Existing drawn phone titles, now the same Telegram component on every surface.
+for _namespace, _key in (("signup", "phone"), ("demo", "patient_phone")):
+    (SIGNUP_TEXTS if _namespace == "signup" else DEMO_TEXTS)[_key] = (
+        "تليجرام (تجربة)",
+        "Telegram (demo)",
+    )
+    STRINGS[_namespace + "." + _key] = {"ar": "تليجرام (تجربة)", "en": "Telegram (demo)"}
+
+for _key in ("empty", "call_in"):
+    DOCTOR_TEXTS[_key] = UI_TEXTS[_key]
+    STRINGS["doctor." + _key] = STRINGS["ui." + _key]
+
+STRINGS["patient.v2_note"] = {
+    "ar": UI_TEXTS["patient_note"][0],
+    "en": UI_TEXTS["patient_note"][1],
+    "franco": "El resala hatewsalak 3ala Telegram. Khalik fel beit; "
+    "lama yeegy waktak haneb3atlak enzel delwa2ty.",
+}
+
+STRINGS["chat.telegram_note"] = {
+    "ar": 'هتوصلك هناك رسالة الحجز، و"انزل دلوقتي" لما ييجي وقتك، ولينك فيه دورك.',
+    "en": 'You\'ll get the booking message there, "leave now" when it is time, '
+    "and a link with your turn.",
+    "franco": "Hayewsalak henak resalet el 7agz, w enzel delwa2ty lama yeegy waktak, "
+    "w link feeh dorak.",
+}

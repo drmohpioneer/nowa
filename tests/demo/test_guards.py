@@ -86,7 +86,8 @@ def test_cli_startup_network_guard_in_process(tmp_path, monkeypatch, caplog):
         called.append(target)
         with TestClient(app.create_demo_app()) as client:
             assert client.get("/health").json()["ok"]
-            assert "/demo/evening" in client.get("/").text
+            assert "/demo" in client.get("/").text
+            assert "/demo/evening" in client.get("/demo").text
             headers = {"Origin": "http://127.0.0.1:8000"}
             run = client.post(
                 "/demo/evening/start",

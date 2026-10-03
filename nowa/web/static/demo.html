@@ -1,0 +1,11 @@
+<!doctype html><html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ t('brand') }}</title><link rel="stylesheet" href="/static/nowa.css"></head><body>{% include "icons.html" %}<main class="page wide">{% include "public-topbar.html" %}
+<div class="demo-h"><div class="eyebrow">{{ t('demo_eyebrow') }}</div><h1>{{ t('demo_title') }}</h1><p>{{ t('demo_intro') }}</p></div>
+<div class="doors">
+{% for kind, icon, badge in [('live','stage','live'),('booking','chat','ready'),('board','board','ready'),('report','report','after_close')] %}
+{% if kind == 'booking' %}<form class="door-form" action="{{ link('/demo/book') }}" method="post"><button class="door" type="submit">{% else %}<a class="door{{ ' lead' if kind == 'live' else '' }}" href="{{ link('/d/login' if kind == 'board' else '/demo/evening') }}">{% endif %}
+<div class="door-top"><span class="door-ic"><svg aria-hidden="true"><use href="#i-{{ icon }}"/></svg></span><span class="pill" data-live="{{ 'on' if kind == 'live' else 'wait' if kind == 'report' else 'ready' }}"><span class="dot"></span>{{ t(badge) }}</span></div>
+<b>{{ t('door_' ~ kind) }}</b><small>{{ t('door_' ~ kind ~ '_sub') }}</small>
+{% if kind == 'board' %}<small class="ltr">{{ t('credentials').format(mobile=mobile, password=password) }}</small>{% endif %}
+<svg class="go" aria-hidden="true"><use href="#i-arrow"/></svg>
+{% if kind == 'booking' %}</button></form>{% else %}</a>{% endif %}
+{% endfor %}</div><p class="demo-note"><span class="dot live"></span>{{ t('demo_note') }}</p><p class="foot">{{ t('emergency') }}</p></main></body></html>

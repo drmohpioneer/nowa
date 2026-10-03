@@ -1,20 +1,34 @@
 "use strict";
 const phoneCards = new WeakMap();
+const phoneLabels = Object.fromEntries([...document.querySelectorAll("#phone-translations [data-key]")].map(el => [el.dataset.key, el.textContent]));
 window.NowaPhoneCards = function (element, messages) {
   let cards = phoneCards.get(element);
   if (!cards) { cards = new Map(); phoneCards.set(element, cards); }
   for (const msg of messages) {
-    let card = cards.get(msg.outbox_id);
-    if (!card) { card = document.createElement("article"); card.className = "bubble"; cards.set(msg.outbox_id, card); element.append(card); }
-    const title = document.createElement("strong"); title.textContent = msg.recipient;
-    const body = document.createElement("p"); body.textContent = msg.body;
-    const status = document.createElement("small"); status.textContent = msg.created_at + " · " + msg.status;
-    card.replaceChildren(title, body, status);
-    for (const match of msg.body.matchAll(/\/([lwr])\/([A-Za-z0-9_-]{22})(?![A-Za-z0-9_-])/g)) {
+    let card = cards.get(msg.outbox_id), fresh = !card;
+    if (!card) { card = document.createElement("article"); card.className = element.classList.contains("tg-body") ? "tgb" : "tg-msg"; cards.set(msg.outbox_id, card); element.append(card); }
+    const title = document.createElement("strong"); title.textContent = msg.recipient_name || msg.recipient;
+    const body = document.createElement("p");
+    const pattern = /(?:https?:\/\/[^\s]+)?\/([lwr])\/([A-Za-z0-9_-]{22})(?![A-Za-z0-9_-])/g;
+    let at = 0;
+    for (const match of msg.body.matchAll(pattern)) {
+      const text = document.createElement("span"); text.textContent = msg.body.slice(at, match.index); body.append(text);
       const link = document.createElement("a"); link.href = "/" + match[1] + "/" + match[2];
-      link.textContent = match[0]; link.target = "_blank";
-      link.rel = "noopener noreferrer"; card.append(link);
+      link.textContent = phoneLabels[{l: "link_booking", w: "link_way", r: "link_rebook"}[match[1]]];
+      link.className = "link-chip"; link.target = "_blank"; link.rel = "noopener noreferrer"; body.append(link); at = match.index + match[0].length;
     }
+    const tail = document.createElement("span"); tail.textContent = msg.body.slice(at); body.append(tail);
+    const status = document.createElement("small"); status.className = "tg-meta";
+    status.textContent = new Date(msg.created_at).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) + " · " + (msg.status === "failed" ? phoneLabels.failed : msg.status === "delivered" ? "✓✓" : "✓");
+    if (element.classList.contains("tg-body")) { card.replaceChildren(title, body, status); }
+    else {
+      const avatar = document.createElement("span"); avatar.className = "tg-av";
+      avatar.textContent = (msg.recipient_name || msg.recipient || "").slice(0, 1);
+      const content = document.createElement("div"), who = document.createElement("div"); who.className = "tg-who"; who.append(title);
+      const bubble = document.createElement("div"); bubble.className = "tg-bubble"; bubble.append(body, status);
+      content.append(who, bubble); card.replaceChildren(avatar, content);
+    }
+    if (fresh) { card.classList.add("is-new"); setTimeout(() => card.classList.remove("is-new"), 300); }
   }
 };
 window.NowaPhone = function (element, url, onError) {

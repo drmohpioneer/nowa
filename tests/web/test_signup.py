@@ -218,19 +218,18 @@ def test_front_page_bilingual_agreement_judge_and_hidden_watch(signup_web, engin
     ar = signup_web.get("/").text
     en = signup_web.get("/?lang=en").text
     assert 'dir="rtl"' in ar and 'dir="ltr"' in en
-    assert 'id="judge-form"' in ar
-    assert "/demo/evening" in ar
-    # Preserve the accepted absence check when the optional watch route is absent.
-    watch = next(route for route in signup_web.app.routes
-                 if getattr(route, "path", "") == "/demo/evening")
-    signup_web.app.routes.remove(watch)
-    assert "/demo/evening" not in signup_web.get("/").text
-    signup_web.app.routes.append(watch)
-    assert "/d/login" in ar and 'id="code-form"' in ar
-    assert "dermatology" not in ar
-    assert "0.1" in ar and "[COMPANY_NAME]" in ar
+    assert "<form" not in ar
+    assert "/demo" in ar and "/start" in ar and "/d/login" in ar
+    assert 'id="judge-form"' in signup_web.get("/judge").text
+    start = signup_web.get("/start").text
+    assert 'id="code-form"' in start
+    assert "dermatology" not in start
+    assert "0.1" in start and "[COMPANY_NAME]" in start
+    # The stage entrance now belongs to the hub, not the front page.
+    assert "/demo/evening" in signup_web.get("/demo").text
     monkeypatch.setenv("JUDGE_CODES", "")
     get_settings.cache_clear()
+    assert signup_web.get("/judge").status_code == 404
     assert 'id="judge-form"' not in signup_web.get("/").text
     assert send(signup_web, "/judge/start", {"code": ""}).status_code == 400
     assert signup_web.get("/c/_nowa").status_code == 404

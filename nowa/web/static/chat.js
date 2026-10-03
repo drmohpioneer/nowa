@@ -51,7 +51,10 @@ function show(data) {
     lang = data.lang; labels(); line(data.reply); controls.replaceChildren();
     if (data.telegram_url) {
         const a = document.createElement("a"); a.href = data.telegram_url; a.textContent = config.open_telegram[lang];
-        a.className = "btn btn-main"; a.target = "_blank"; a.rel = "noopener"; controls.append(a);
+        a.className = "btn btn-main"; a.target = "_blank"; a.rel = "noopener";
+        const cta = document.createElement("div"); cta.className = "tg-cta";
+        const note = document.createElement("p"); note.textContent = config.strings[data.lang].telegram_note || "";
+        cta.append(a, note); controls.append(cta);
     }
     if (data.booking_confirmed && document.getElementById("chat-phone")) {
         document.getElementById("chat-phone").hidden = false;

@@ -2,7 +2,6 @@
 
 import secrets
 from dataclasses import asdict
-from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -25,8 +24,7 @@ from nowa.web.chat import clinic_for
 from nowa.web.doctor_auth import start_session
 from nowa.web.logging import PRIVATE_HEADERS
 from nowa.web.request import client_ip
-from nowa.web.strings import DEMO_TEXTS, STRINGS
-from nowa.web.templates import environment
+from nowa.web.strings import STRINGS
 from nowa.web.tokens import check_origin
 
 router = APIRouter()
@@ -49,13 +47,31 @@ def busy() -> HTMLResponse:
     return HTMLResponse("busy, try again later", status_code=429, headers=PRIVATE_HEADERS)
 
 
-def page() -> HTMLResponse:
-    source = Path(__file__).parent / "static/evening.html"
-    return HTMLResponse(
-        environment.from_string(source.read_text()).render(
-            texts={k: v[0] for k, v in DEMO_TEXTS.items()}
-        ),
-        headers=PRIVATE_HEADERS,
+def page(request: Request) -> HTMLResponse:
+    from nowa.web.front import public_page
+    from nowa.web.request import page_language
+    from nowa.web.strings import UI_TEXTS
+
+    lang = page_language(request)
+    return public_page(
+        request,
+        "evening.html",
+        stage_texts={key: value[0 if lang == "ar" else 1] for key, value in UI_TEXTS.items()},
+    )
+
+
+@router.get("/demo", response_class=HTMLResponse)
+def hub(request: Request) -> HTMLResponse:
+    from nowa.demo.template import CLINIC
+    from nowa.web.front import public_page
+
+    if not get_settings().demo_mode:
+        raise HTTPException(404)
+    return public_page(
+        request,
+        "demo.html",
+        mobile=CLINIC["doctor"]["mobile_e164"],
+        password=get_settings().demo_doctor_password,
     )
 
 
@@ -203,26 +219,10 @@ def state(
 
 
 @router.get("/demo/book", response_class=HTMLResponse)
-def book_page() -> HTMLResponse:
-    return HTMLResponse(
-        environment.from_string(
-            '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8">'
-            '<meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<link rel="stylesheet" href="/static/nowa.css"><main class="page chat">'
-            '<div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span>'
-            '<i class="o" aria-hidden="true"></i><span>wa</span></span></div>'
-            '<section class="card section">'
-            "<h1>{{ title }}</h1><p>{{ banner }}</p>"
-            '<form action="/demo/book" method="post">'
-            '<button class="btn btn-main">{{ start }}</button></form></section>'
-            "</main></html>"
-        ).render(
-            title=STRINGS["demo.public_book"]["ar"],
-            banner=STRINGS["demo.banner"]["ar"],
-            start=STRINGS["demo.start_booking"]["ar"],
-        ),
-        headers=PRIVATE_HEADERS,
-    )
+def book_page(request: Request) -> HTMLResponse:
+    from nowa.web.front import public_page
+
+    return public_page(request, "book.html")
 
 
 @router.post("/demo/book", response_model=None)
