@@ -144,9 +144,13 @@ DOCTOR_TEXTS = {
     ),
     "confirm_reset": ("غيّر كلمة السر", "Reset password"),
     "reset_sent": (
-        "لو الرقم مسجل، هيوصلك كود في رسالة",
-        "If the number is registered, a code will arrive by message",
+        "لو الرقم مسجل، الكود في شات الدكتور على تليجرام. "
+        "لو ظهر زر فتح تليجرام، محتاجه أول مرة بس.",
+        "If the number is registered, the code is in the doctor’s Telegram chat. "
+        "If an Open Telegram button appears, it is only needed the first time.",
     ),
+    "on_way_since": ("في الطريق من {time}", "On the way since {time}"),
+    "arrived_since": ("وصل {time}", "Arrived {time}"),
     "tonight": ("عيادة النهارده", "Tonight's clinic"),
     "board_title": ("{day} · د. {name}", "{day} · Dr. {name}"),
     "report": ("تقرير العيادة", "Clinic report"),
@@ -998,6 +1002,61 @@ UI_TEXTS.update(
         "action_doctor_login": ("لوحة الدكتور جاهزة", "The doctor's board is ready"),
         "action_message_delivery": ("الرسالة وصلت", "The message was delivered"),
         "action_send_attempt": ("نوا حاول يبعت الرسالة", "Nowa attempted to send the message"),
+    }
+)
+
+# Presentation labels only: template bodies and outbox delivery stay unchanged.
+MESSAGE_LABELS = {
+    "1": "message_booking",
+    "2": "message_leave",
+    "3": "message_cancelled",
+    "4": "message_clinic_cancelled",
+    "5": "message_doctor_reminder",
+    "6": "message_report",
+    "op:question_card": "message_question",
+    "op:question_card_count": "message_question",
+    "op:doctor_alert_unreachable": "message_delivery_alert",
+    "op:doctor_alert_brake": "message_delivery_alert",
+    "op:reset_code": "message_code",
+    "op:signup_code": "message_code",
+    "op:secretary_link": "message_link",
+    "op:secretary_linked": "message_linked",
+    "op:secretary_unlinked": "message_unlinked",
+    "op:doctor_linked": "message_linked",
+    "op:patient_linked": "message_linked",
+    "op:patient_unlinked": "message_unlinked",
+    "op:bookings_header": "message_bookings",
+    "op:bookings_line": "message_bookings",
+    "op:bookings_empty": "message_bookings",
+    "op:just_filled": "message_capacity",
+    "op:triage_urgent": "message_triage",
+    "op:triage_unclear": "message_triage",
+    "op:health_no_answer": "message_question",
+    "op:out_of_specialty": "message_specialty",
+    "op:phone_cap": "message_capacity",
+}
+UI_TEXTS.update(
+    {
+        "message_booking": ("تأكيد الحجز", "Booking confirmed"),
+        "message_leave": ("انزل دلوقتي", "Leave now"),
+        "message_cancelled": ("الحجز اتلغى", "Booking cancelled"),
+        "message_clinic_cancelled": ("العيادة اتلغت", "Clinic cancelled"),
+        "message_doctor_reminder": ("تذكير للدكتور", "Doctor reminder"),
+        "message_report": ("تقرير الليلة", "Evening report"),
+        "message_question": ("سؤال للدكتور", "Question for the doctor"),
+        "message_delivery_alert": ("تنبيه إرسال", "Delivery alert"),
+        "message_code": ("كود", "Code"),
+        "message_link": ("لينك تليجرام", "Telegram link"),
+        "message_linked": ("تليجرام اتفعل", "Telegram linked"),
+        "message_unlinked": ("تليجرام اتوقف", "Telegram unlinked"),
+        "message_bookings": ("قائمة الحجوزات", "Bookings list"),
+        "message_capacity": ("حد الحجوزات", "Booking limit"),
+        "message_triage": ("توجيه صحي", "Health guidance"),
+        "message_specialty": ("خارج التخصص", "Outside specialty"),
+        "action_walk_in": (
+            "{name} (رقم {n}) دخل للكشف من غير حجز",
+            "{name} (number {n}) entered for a walk-in visit",
+        ),
     }
 )
 

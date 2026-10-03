@@ -109,9 +109,13 @@ def test_full_replay_report_and_action_coverage(demo_client, engine, demo_clock)
     initial = demo_client.get(url + "/state", params={"token": run["token"]}).json()
     assert "report" not in initial
     assert set(initial["clinic"]) == {"name", "specialty", "area"}
-    assert initial["evening"] == {"first_minute": 0, "last_minute": 600, "weekday": 1}
+    assert {key: initial["evening"][key] for key in ("first_minute", "last_minute", "weekday")} == {
+        "first_minute": 0,
+        "last_minute": 600,
+        "weekday": 1,
+    }
     stages = {"initial": initial}
-    for label, minute in (("on_way", 190), ("active", 235)):
+    for label, minute in (("on_way", 190), ("active", 235), ("walk", 360)):
         stages[label] = demo_client.post(
             url + "/advance", json={"token": run["token"], "to_minute": minute}, headers=HEADERS
         ).json()

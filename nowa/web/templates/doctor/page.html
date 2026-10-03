@@ -15,7 +15,7 @@
 {% elif mode == 'tonight' %}
 <div class="grid"><div class="side">
 <div class="board-head"><div><div class="eyebrow">Tonight</div><h1>{{ t('board_title').format(day=doctor_day, name=doctor_name) }}</h1></div><span class="pill"><span id="evening-dot" class="dot{{ ' live' if evening_id else '' }}"></span>{{ t('tonight') }}</span></div>
-<div class="onway"><button id="on-way" class="btn btn-main btn-xl">{{ t('on_way') }}</button></div>
+<div id="onway" class="onway"><button id="on-way" class="btn btn-main btn-xl">{{ t('on_way') }}</button><p id="onway-state" class="onway-done" hidden></p></div>
 <form id="area-form" hidden><label class="field"><span>{{ t('area') }}</span><select id="areas" required></select></label><button class="btn btn-main">{{ t('send') }}</button></form>
 <div id="stats" class="stat-grid"></div><div class="inroom"><div><span class="muted">{{ t('in_room') }}</span><div id="in-room" class="v">{{ ui_t("empty") }}</div></div></div>
 <section class="next-hero" id="next-hero" hidden><div class="k">{{ t("who_next") }}</div><div class="who-n" id="next-patient"></div><div id="next-action"></div></section><p class="who-k">{{ ui_t("other_patient") }}</p><div id="who" class="who"><button class="walk" data-command="who-comes-in" data-walk-in="true">{{ t('walk_in') }}</button></div>

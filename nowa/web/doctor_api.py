@@ -18,6 +18,7 @@ from nowa.core.clinic_settings import Input
 from nowa.core.travel import LatLng
 from nowa.db import write_tx
 from nowa.web.doctor_auth import CommandSession, Session
+from nowa.web.evening_view import tap_state
 
 router = APIRouter(prefix="/d/api")
 
@@ -131,6 +132,7 @@ def tonight(request: Request, session: Session) -> dict[str, Any]:
             ).mappings()
         ]
         return {
+            **tap_state(conn, session.clinic_id, eid),
             "latest_report_id": conn.execute(
                 select(s.evenings.c.id)
                 .where(

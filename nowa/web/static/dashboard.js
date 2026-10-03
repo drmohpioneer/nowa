@@ -78,8 +78,18 @@ async function refresh() {
   for (const [count, key] of [[booked, "booked_count"], [seen, "seen_count"], [remaining.length, "remaining_count"]]) {
     const stat = make("div", "stat", ""); stat.append(make("b", "num", String(count)), make("span", "", t(key))); stats.append(stat);
   }
-  const room = data.rows.find(row => row.state === "in_room");
-  document.getElementById("in-room").textContent = room ? room.queue_number + " · " + (room.patient_first_name || t("walk_in")) : t("empty");
+  const room = data.in_room;
+  const doctor = data.doctor;
+  const onWay = document.getElementById("on-way"), onWayState = document.getElementById("onway-state");
+  onWay.hidden = Boolean(doctor.on_way_at || doctor.arrived_at);
+  onWayState.hidden = !onWay.hidden;
+  if (onWay.hidden) {
+    document.getElementById("area-form").hidden = true;
+    const at = doctor.arrived_at || doctor.on_way_at;
+    const time = new Date(at).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"});
+    onWayState.textContent = t(doctor.arrived_at ? "arrived_since" : "on_way_since").replace("{time}", time);
+  }
+  document.getElementById("in-room").textContent = room ? room.queue_number + " · " + (room.first_name || t("walk_in")) : t("empty");
   const who = document.getElementById("who");
   who.querySelectorAll("button:not(.walk)").forEach(button => button.remove());
   const hero = document.getElementById("next-hero"); hero.hidden = !remaining.length;
@@ -104,10 +114,11 @@ async function refresh() {
   }
   document.getElementById("pace-count").textContent = seen + " / " + booked;
   document.getElementById("pace-progress").style.width = (booked ? seen / booked * 100 : 0) + "%";
-  for (const row of data.rows) {
+  for (const stored of data.rows) {
+    const row = {...stored, state: stored.booking_id === room?.booking_id ? "in_room" : stored.state};
     const card = make("div", "qrow" + (["seen", "didnt_come", "cancelled"].includes(row.state) ? " done" : ""), "");
     const name = (row.patient_first_name || t("walk_in")) + (row.no_show_count > 0 ? " ⚠️" + row.no_show_count : "");
-    const title = make(row.remaining ? "button" : "span", "name", name);
+    const title = make(row.remaining ? "button" : "span", "name", name); title.setAttribute("dir", "auto");
     if (row.remaining) bindButton(title, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
     const state = make("span", "state-pill", [t(row.state === "in_room" ? "in_room" : row.state), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · "));
     if (row.state === "in_room") state.prepend(make("span", "dot live", ""));

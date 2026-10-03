@@ -147,9 +147,23 @@ def main():
                             shot("evening-idle", "/demo/evening?lang=ar")
                             # Start through the real big play control, pause and retain its
                             # sessionStorage credential. Every later frame reuses this copy.
+                            assert page.locator("#clock").inner_text() == "18:20"
+                            advances = []
+                            page.on(
+                                "request",
+                                lambda request: (
+                                    advances.append(request.post_data_json["to_minute"])
+                                    if request.url.endswith("/advance") and request.method == "POST"
+                                    else None
+                                ),
+                            )
                             page.locator("#start-play").click()
                             page.wait_for_function("Boolean(sessionStorage.getItem('nowa-watch'))")
+                            page.wait_for_function(
+                                "document.querySelector('#stage').dataset.run === 'playing'"
+                            )
                             page.locator("#pause").click()
+                            assert advances[0] == 140 and advances.count(140) == 1
                             run = page.evaluate("JSON.parse(sessionStorage.getItem('nowa-watch'))")
 
                             def advance_to(minute):
@@ -175,9 +189,9 @@ def main():
                                     animations="disabled",
                                 )
 
-                            # Requested minute 120 is still before the on-my-way action
-                            # (minute 190); preserve it and also capture the active queue.
-                            advance_to(120)
+                            # FIX 1 starts at 140 (first event minus ten), still before
+                            # the doctor's on-my-way action at 190.
+                            advance_to(140)
                             stage_shot("evening-mid")
                             if width == 1280:
                                 shot("front-en", "/?lang=en")
@@ -185,6 +199,41 @@ def main():
                                 stage_shot("evening-mid-en", "en")
                             state = advance_to(235)
                             stage_shot("evening-active")
+                            assert page.locator('#queue [data-state="in_room"]').count() == 1
+                            assert (
+                                state["in_room"]["first_name"]
+                                in page.locator("#now-band").inner_text()
+                            )
+                            assert page.evaluate("""() =>
+                              [...document.querySelectorAll('.tile .t-name')]
+                                .filter(n => getComputedStyle(n).display !== 'none').every(n => {
+                                  const name = n.getBoundingClientRect();
+                                  const tile = n.parentElement.getBoundingClientRect();
+                                  return n.dir === 'auto' && n.scrollWidth <= n.clientWidth &&
+                                    name.left >= tile.left && name.right <= tile.right;
+                                })""")
+
+                            def rail_order(direction):
+                                assert page.evaluate(
+                                    """direction => {
+                                  const ticks = [...document.querySelectorAll('#rail .tick')];
+                                  const start = ticks[0].getBoundingClientRect().left;
+                                  const end = ticks[1].getBoundingClientRect().left;
+                                  return ticks[0].textContent === '18:20' &&
+                                    ticks[1].textContent === '02:00' &&
+                                    (direction === 'rtl' ? start > end : start < end);
+                                }""",
+                                    direction,
+                                )
+
+                            rail_order("rtl")
+                            if width == 1280:
+                                stage_shot("evening-active-en", "en")
+                                rail_order("ltr")
+                                assert page.locator("#feed .tg-kind").count() == len(
+                                    state["phones"]
+                                )
+                                assert "Leave now" in page.locator("#feed").inner_text()
                             # The start endpoint already establishes the doctor session.
                             shot("doctor", "/d")
                             assert (
@@ -193,6 +242,9 @@ def main():
                                 <= 4
                             )
                             assert page.locator("#queue .qrow").count() == len(state["queue"])
+                            assert page.locator("#on-way").is_hidden()
+                            assert page.locator("#onway-state").is_visible()
+                            assert page.locator('#queue [data-state="in_room"]').count() == 1
                             leave = next(
                                 row for row in state["queue"] if row["state"] == "told_to_leave"
                             )
@@ -210,6 +262,19 @@ def main():
                             assert closed["closed"] and closed["report"]
                             stage_shot("evening-closed")
                             assert page.locator("#report").get_attribute("href")
+                            assert (
+                                page.locator("#rail .fill").evaluate("n => n.style.width") == "100%"
+                            )
+                            assert page.locator("#report-card .report-sub").count() == 1
+                            assert page.locator("#report-card .eyebrow").count() == 0
+                            assert page.evaluate("""() => {
+                                const nums = [...document.querySelectorAll('#queue .t-n')]
+                                  .map(n => n.textContent);
+                                const avg = document.querySelector('[data-stat="avg_wait"]');
+                                const gridWidth = avg.parentElement.getBoundingClientRect().width;
+                                return nums[nums.indexOf('+') - 1] === '9' &&
+                                  Math.abs(avg.getBoundingClientRect().width - gridWidth) < 1;
+                            }""")
                             assert not errors, errors
                             assert not external, external
                             context.close()

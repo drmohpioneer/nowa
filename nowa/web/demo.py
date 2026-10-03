@@ -18,13 +18,13 @@ from nowa.core.clinic_settings import Input
 from nowa.db import write_tx
 from nowa.demo.copy import Busy, create_demo_copy, create_demo_copy_in_tx
 from nowa.demo.evening_script import KARIM
-from nowa.demo.runner import EveningRunner
+from nowa.demo.runner import EveningRunner, stage_start_minute
 from nowa.messaging.outbox import screen_messages
 from nowa.web.chat import clinic_for
 from nowa.web.doctor_auth import start_session
 from nowa.web.logging import PRIVATE_HEADERS
-from nowa.web.request import client_ip
-from nowa.web.strings import STRINGS
+from nowa.web.request import client_ip, page_language
+from nowa.web.strings import MESSAGE_LABELS, STRINGS
 from nowa.web.tokens import check_origin
 
 router = APIRouter()
@@ -49,7 +49,6 @@ def busy() -> HTMLResponse:
 
 def page(request: Request) -> HTMLResponse:
     from nowa.web.front import public_page
-    from nowa.web.request import page_language
     from nowa.web.strings import UI_TEXTS
 
     lang = page_language(request)
@@ -57,6 +56,7 @@ def page(request: Request) -> HTMLResponse:
         request,
         "evening.html",
         stage_texts={key: value[0 if lang == "ar" else 1] for key, value in UI_TEXTS.items()},
+        start_time=f"{16 + stage_start_minute() // 60:02}:{stage_start_minute() % 60:02}",
     )
 
 
@@ -189,6 +189,7 @@ def phones(request: Request, cid: int, contact_id: int | None = None) -> list[di
                     recipient_name=name,
                     channel="telegram",
                     queue_number=number,
+                    label=MESSAGE_LABELS.get(msg.template_id),
                 )
             )
         return sorted(

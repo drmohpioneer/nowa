@@ -723,3 +723,10 @@ form.card h2{margin-bottom:16px}
 @media (max-width:599px){.panel-h{flex-wrap:wrap}.tiles{grid-template-columns:repeat(6,minmax(0,1fr))}.tile{padding-inline:4px}.tile .t-st{font-size:9px}.qrow{grid-template-columns:26px minmax(0,1fr) auto;gap:6px;padding-inline:10px}.qrow .exp{display:none}.qrow .state-pill{white-space:normal;max-width:120px}.topbar nav{gap:10px}.chat-head .pill{white-space:normal}}
 @media print{.poster{--ink:#16202A;--muted:#6B7280;--bg:white;--surface:white;--line:#E2DDD2;color:#16202A}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* FIX 1: names retain their beginning in their own direction. */
+.tile .t-name{font-size:11px;white-space:normal;overflow:visible;overflow-wrap:anywhere;text-overflow:clip}
+.tile[data-source="walk_in"] .t-name{display:block}
+#report-stats .big-stat.hl{grid-column:1 / -1}
+.tg-kind{display:inline-flex;font-size:11px;line-height:1.5;color:var(--muted);background:var(--chip);border-radius:var(--r-sm);padding:2px 7px;margin-bottom:5px}
+:dir(ltr) .rail .mk{transform:translateX(-50%)}

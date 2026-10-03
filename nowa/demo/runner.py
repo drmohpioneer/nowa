@@ -22,10 +22,15 @@ from nowa.core import booking, flows, projection, questions, report, signup, tim
 from nowa.db import write_tx
 from nowa.demo import evening_script as script
 from nowa.library.answer import RecordedHealthAnswerer
+from nowa.web.evening_view import tap_state, timeline
 
 logger = logging.getLogger(__name__)
 # One web instance per database (Decision 044). Locks serialize requests, not run state.
 _LOCKS = tuple(threading.RLock() for _ in range(64))
+
+
+def stage_start_minute() -> int:
+    return min(script.CANCEL_MINUTE, script.ON_WAY_MINUTE) - 10
 
 
 class EveningRunner:
@@ -360,7 +365,17 @@ class EveningRunner:
                     "specialty": clinic["specialty"],
                     "area": clinic["address"],
                 },
-                "evening": {"first_minute": 0, "last_minute": 600, "weekday": 1},
+                "evening": {
+                    "first_minute": 0,
+                    "last_minute": 600,
+                    "weekday": 1,
+                    "start_minute": stage_start_minute(),
+                    "start_at": self._zero(conn) + timedelta(minutes=stage_start_minute()),
+                    "end_at": self._zero(conn) + timedelta(minutes=600),
+                },
+                "in_room": tap_state(conn, self.clinic_id, evening["id"] if evening else None)[
+                    "in_room"
+                ],
             }
             if evening and run["step"] == 2:
                 result = report.build_report(conn, self.clock, self.clinic_id, evening["id"])
@@ -382,19 +397,7 @@ class EveningRunner:
                 ]
                 if evening
                 else [],
-                timeline=[
-                    dict(r)
-                    for r in conn.execute(
-                        select(
-                            s.action_record.c.id,
-                            s.action_record.c.at,
-                            s.action_record.c.kind,
-                            s.action_record.c.booking_id,
-                        )
-                        .where(s.action_record.c.clinic_id == self.clinic_id)
-                        .order_by(s.action_record.c.id)
-                    ).mappings()
-                ],
+                timeline=timeline(conn, self.clinic_id),
                 chat_url="/c/" + clinic["slug"],
                 report_url=f"/d/report/{evening['id']}" if evening and run["step"] == 2 else None,
             )
