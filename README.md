@@ -81,6 +81,18 @@ mypy nowa
 
 CI: the GitHub Actions workflow (lint, types, offline tests, Postgres tests) is kept at [docs/ci/github-workflow.yml](docs/ci/github-workflow.yml). Copy it to `.github/workflows/ci.yml` to enable it. It has not run on this repository yet, so the Postgres-only tests (27, skipped locally) are unverified for the last two slices.
 
+## What is next
+
+Nowa is a prototype today. This is the path to a product clinics can use, in order:
+
+1. **A first pilot with three doctors.** Measure the real wait, whether doctors tap, and whether patients tap "I'm on my way". The simulator says that tap rate matters more than any tuning. Test the proposed price of 1,500 EGP per clinic per month.
+2. **SMS for patients without Telegram.** Telegram is the only channel in this build. SMS is the planned second channel. It needs a carrier contract and a field test first, and Nowa does not ship a channel that has not been field-tested. WhatsApp follows if the pilot shows it is needed.
+3. **Permission to hold real patient data.** Egypt's data protection law (151/2020) requires licences for health data and for a database hosted abroad, written consent and fixed retention periods. The design already keeps names and phones in separate identity tables. The licences come before the first real patient.
+4. **More specialties.** Cardiology triage rules are approved; rules for other specialties are drafted and wait for a specialist's review.
+5. **Later.** A voice assistant that answers the clinic phone, and patient follow-up built on the visit history.
+
+The full list, including what was rejected and why, is in [docs/backlog.md](docs/backlog.md).
+
 ## How it was built
 
 Nowa was designed and built by Dr Mohamed Mostafa, cardiologist, Cairo.
