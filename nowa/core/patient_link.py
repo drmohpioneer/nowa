@@ -1,9 +1,6 @@
-import base64
-import hashlib
 import re
-import secrets
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date
 from typing import Literal
 
 from sqlalchemy import select
@@ -12,8 +9,8 @@ from sqlalchemy.engine import Engine
 from nowa import record
 from nowa import schema as s
 from nowa.clock import Clock
-from nowa.config import get_settings
 from nowa.core import booking, flows, timing
+from nowa.core.telegram_tokens import mint
 from nowa.db import write_tx
 
 
@@ -106,18 +103,9 @@ def create_telegram_token(
             )
             .values(expires_at=now)
         )
-        token = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
-        token_id: int = conn.execute(
-            s.link_tokens.insert()
-            .values(
-                clinic_id=row.clinic_id,
-                kind="patient_telegram",
-                subject_id=row.contact_id,
-                token_hash=hashlib.sha256(token.encode()).hexdigest(),
-                expires_at=now + timedelta(minutes=15),
-            )
-            .returning(s.link_tokens.c.id)
-        ).scalar_one()
+        token_id, url = mint(
+            conn, clock, row.clinic_id, "patient_telegram", row.contact_id, contact_proof=False
+        )
         conn.execute(
             s.idempotency_keys.insert().values(
                 clinic_id=row.clinic_id,
@@ -130,4 +118,4 @@ def create_telegram_token(
         record.write_action(
             conn, row.clinic_id, "patient", "patient_telegram_token", verified.booking_id
         )
-        return TokenResult(f"https://t.me/{get_settings().telegram_bot_username}?start=p_{token}")
+        return TokenResult(url)

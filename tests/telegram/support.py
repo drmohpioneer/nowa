@@ -1,5 +1,6 @@
 import hashlib
 from datetime import timedelta
+from urllib.parse import parse_qs, urlsplit
 
 from sqlalchemy import select
 
@@ -101,3 +102,19 @@ def other_doctor(engine, clock, cid):
             .returning(s.evenings.c.id)
         ).scalar_one()
     return other, did, eid
+
+
+def payload(url):
+    return parse_qs(urlsplit(url).query)["start"][0]
+
+
+def contact(update, chat, phone, user=None, sender=None):
+    return {
+        "update_id": update,
+        "message": {
+            "message_id": 8,
+            "chat": {"id": chat, "type": "private"},
+            "from": {"id": chat if sender is None else sender},
+            "contact": {"phone_number": phone, "user_id": chat if user is None else user},
+        },
+    }

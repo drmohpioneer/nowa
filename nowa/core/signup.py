@@ -19,7 +19,7 @@ from nowa import record
 from nowa import schema as s
 from nowa.clock import Clock
 from nowa.config import get_settings
-from nowa.core import auth, booking, ratelimit
+from nowa.core import auth, booking, ratelimit, telegram_tokens
 from nowa.core.clinic_settings import Hours
 from nowa.core.timers import schedule_timer
 from nowa.db import write_tx
@@ -58,7 +58,9 @@ def system_id(conn: Connection) -> int:
 def real_ready(agreement: Agreement) -> None:
     settings = get_settings()
     if not settings.demo_mode and (
-        settings.sms_adapter != "mac_relay" or re.search(r"\[[A-Z][A-Z0-9_]*\]", agreement.text)
+        not settings.telegram_bot_token
+        or not settings.telegram_bot_username
+        or re.search(r"\[[A-Z][A-Z0-9_]*\]", agreement.text)
     ):
         raise Refused("not open yet", 503)
 
@@ -86,6 +88,7 @@ def unsign(token: str, prefix: str, now_s: float) -> list[str]:
 class CodeResult:
     allowed: bool
     cookie: str | None = field(default=None, repr=False)
+    telegram_url: str | None = field(default=None, repr=False)
 
 
 def request_code(
@@ -101,6 +104,8 @@ def request_code(
         phone_key = auth.keyed_hash(phone)
         if not ratelimit.hit(conn, clock, "signup_code_phone", phone_key, 3600, 3):
             return CodeResult(False)
+        if conn.execute(select(s.doctors.c.id).where(s.doctors.c.mobile_e164 == phone)).first():
+            return CodeResult(True, telegram_url=unavailable_url())
         cid = system_id(conn)
         now = clock.now(cid, conn=conn)
         expires = now + timedelta(minutes=40)
@@ -121,7 +126,8 @@ def request_code(
             )
             .values(used_at=now)
         )
-        code = f"{secrets.randbelow(1000000):06d}"
+        deferred = bool(get_settings().telegram_bot_username)
+        code = secrets.token_urlsafe(32) if deferred else f"{secrets.randbelow(1000000):06d}"
         aid = int(
             conn.execute(
                 s.auth_codes.insert()
@@ -137,19 +143,22 @@ def request_code(
                 .returning(s.auth_codes.c.id)
             ).scalar_one()
         )
-        enqueue_message(
-            conn,
-            clock,
-            cid,
-            "op:signup_code",
-            lang,
-            "doctor",
-            None,
-            {"code": code},
-            f"signup_code:{aid}:{secrets.token_hex(16)}",
-            channel="sms",
-            pending_signup_id=pid,
-        )
+        url = None
+        if deferred:
+            _, url = telegram_tokens.mint(conn, clock, None, "signup_telegram", pid, lang=lang)
+        else:
+            enqueue_message(
+                conn,
+                clock,
+                cid,
+                "op:signup_code",
+                lang,
+                "doctor",
+                None,
+                {"code": code},
+                f"signup_code:{aid}:{secrets.token_hex(16)}",
+                pending_signup_id=pid,
+            )
         schedule_timer(
             conn,
             cid,
@@ -159,7 +168,13 @@ def request_code(
             f"pending_signup_purge:{pid}:{int(now.timestamp())}",
         )
         cookie = sign(f"signup_phone|{pid}|{nonce}|{int(expires.timestamp())}")
-        return CodeResult(True, cookie if get_settings().demo_mode else None)
+        return CodeResult(True, cookie if get_settings().demo_mode and not deferred else None, url)
+
+
+def unavailable_url() -> str | None:
+    # Same browser shape for a registered number, but no usable credential or identity row.
+    username = get_settings().telegram_bot_username
+    return f"https://t.me/{username}?start=s_{secrets.token_urlsafe(32)}" if username else None
 
 
 def verify_code(engine: Engine, clock: Clock, mobile: str, code: str) -> str | None:
@@ -522,7 +537,10 @@ def complete(
             )
         )
         record.write_action(
-            conn, cid, "doctor", "signup_complete",
+            conn,
+            cid,
+            "doctor",
+            "signup_complete",
             text="pin:area" if body.pin_kind == "area" else "pin:exact",
         )
         conn.execute(
@@ -565,6 +583,7 @@ def complete(
         data = result_for(conn, cid)
     if pid is not None:
         with write_tx(engine) as conn:
+            telegram_tokens.delete_signup_tokens(conn, pid)
             conn.execute(s.pending_signups.delete().where(s.pending_signups.c.id == pid))
     return Completion(data, auth.create_session(engine, clock, cid, did))
 

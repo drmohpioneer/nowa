@@ -57,7 +57,9 @@ def code(request: Request, body: Code, origin: Origin) -> JSONResponse:
     except signup.Refused as exc:
         return refusal(exc)
     response = JSONResponse(
-        {"ok": True}, status_code=200 if result.allowed else 429, headers=PRIVATE_HEADERS
+        {"ok": True, "telegram_url": result.telegram_url},
+        status_code=200 if result.allowed else 429,
+        headers=PRIVATE_HEADERS,
     )
     if result.cookie is not None:
         response.set_cookie(

@@ -438,13 +438,29 @@ link_tokens = Table(
     "link_tokens",
     metadata,
     id_column(),
-    clinic_column(),
+    Column("clinic_id", Integer, ForeignKey("clinics.id"), nullable=True, index=True),
     Column("kind", String, nullable=False),
     Column("subject_id", Integer, nullable=False),
     Column("token_hash", Text, nullable=False),
     stamp("expires_at", nullable=False),
     stamp("used_at"),
-    enum_check("kind", "doctor_telegram patient_telegram"),
+    enum_check("kind", "doctor_telegram patient_telegram signup_telegram reset_telegram"),
+    CheckConstraint(
+        "clinic_id IS NOT NULL OR kind IN ('signup_telegram', 'reset_telegram')",
+        name="clinic_scope",
+    ),
+)
+# Public claims are created before /start. NULL chat keeps attempt counts on detached claims.
+telegram_pending = Table(
+    "telegram_pending",
+    metadata,
+    Column("token_hash", Text, primary_key=True),
+    Column("chat_id", Text, nullable=True, unique=True),
+    Column("attempts", Integer, nullable=False, server_default="0"),
+    stamp("created_at", nullable=False),
+    Column("lang", Text, nullable=False, server_default="ar"),
+    CheckConstraint("attempts BETWEEN 0 AND 2", name="attempts_range"),
+    enum_check("lang", "ar en franco"),
 )
 rate_counters = Table(
     "rate_counters",

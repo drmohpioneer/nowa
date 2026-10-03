@@ -83,7 +83,7 @@ def test_doctor_reminder_routing(engine, monkeypatch, sandbox, demo):
     move(clock, 0)
     drain(engine, clock, worker.build_registry())
     reminders = messages(engine, "5")
-    assert len(reminders) == 1 and reminders[0]["channel"] == "sms"
+    assert len(reminders) == 1 and reminders[0]["channel"] == "telegram"
     assert reminders[0]["lang"] == "ar"
     if sandbox or demo:
         assert reminders[0]["adapter"] == "screen_phone"

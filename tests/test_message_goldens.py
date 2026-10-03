@@ -8,18 +8,18 @@ from nowa.messaging.templates import DoctorNames, render, render_emergency
 GOLDENS = {
     ("1", "ar"): (
         "كريم محمود: حجزك مع د. هشام مصطفى الثلاثاء 6/10، رقمك 7، معادك حوالي 8:20 "
-        "وممكن يتأخر. هنبعتلك امتى تتحرك. التفاصيل والعنوان: "
+        "وممكن يتأخر. هنقولك على تليجرام امتى تتحرك. التفاصيل والعنوان: "
         "http://127.0.0.1:8000/l/x تليفون العيادة 01000000000"
     ),
     ("1", "en"): (
         "كريم محمود: your booking with Dr. Hesham Mostafa on Tue 6/10 is confirmed. "
         "Your number is 7, your time is around 8:20 and may move later. "
-        "We'll text you when to leave. Details & address: "
+        "We'll tell you on Telegram when to leave. Details & address: "
         "http://127.0.0.1:8000/l/x Clinic: 01000000000"
     ),
     ("1", "franco"): (
         "كريم محمود: 7agzak ma3 Dr. Hesham Mostafa Tue 6/10, rakmak 7, "
-        "ma3adak 7awaly 8:20 w momken yet2akhar. Hanb3atlak emta tet7arrak. "
+        "ma3adak 7awaly 8:20 w momken yet2akhar. Han2ollak 3ala Telegram emta tet7arrak. "
         "El tafaseel wel 3enwan: http://127.0.0.1:8000/l/x "
         "Telephone el 3eyada 01000000000"
     ),

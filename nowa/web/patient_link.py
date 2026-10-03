@@ -234,7 +234,7 @@ def action_result(request: Request, code: str, result: Any, mode: str) -> HTMLRe
         code,
         view,
         mode="readonly",
-        message="cancelled_done" if isinstance(result, booking.CancelResult) else "new_sms",
+        message="cancelled_done" if isinstance(result, booking.CancelResult) else "new_link",
     )
 
 

@@ -57,7 +57,6 @@ def main():
             DATABASE_URL=f"sqlite:///{directory}/demo.db",
             DEMO_MODE="1",
             DEMO_NO_NETWORK="1",
-            SMS_ADAPTER="screen_phone",
             WORKER_IN_PROCESS="1",
             PUBLIC_BASE_URL=origin,
             PORT=str(port),

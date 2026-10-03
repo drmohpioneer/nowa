@@ -129,6 +129,10 @@ def test_deterministic(engine, monkeypatch, name, start, pace, cushion):
                 .where(s.outbox.c.template_id == "2")
             )
         )
+    with engine.connect() as conn:
+        assert set(conn.execute(select(s.outbox.c.channel, s.outbox.c.adapter)).all()) == {
+            ("telegram", "screen_phone")
+        }
     assert actual == told, {"fixture": name, "sim": told, "engine": actual, "calls": calls}
 
 

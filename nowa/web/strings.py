@@ -19,6 +19,12 @@ _add("map", "افتح الخريطة", "Open map", "Efta7 el khareeta")
 _add("cancel", "إلغاء الحجز", "Cancel booking", "Elgha el 7agz")
 _add("change", "غيّر اليوم", "Change day", "Ghayyar el yom")
 _add("rebook", "احجز يوم تاني", "Book another day", "E7gez yom tany")
+_add(
+    "open_telegram",
+    "افتح تليجرام عشان توصلك الرسائل",
+    "Open Telegram to get your messages",
+    "Efta7 Telegram 3ashan tewsalak el rasayel",
+)
 _add("telegram", "اربط تليجرام", "Link my Telegram", "Erbot Telegram")
 _add(
     "last4",
@@ -30,10 +36,10 @@ _add("tap", "أنا في الطريق", "I'm on my way", "Ana fel tareek")
 _add("undo", "لسه ما اتحركتش", "I haven't left yet", "Lessa ma et7arraktesh")
 _add("done", "تمام، سجلنا إنك في الطريق", "Done, you're on your way", "Tamam, enta fel tareek")
 _add(
-    "new_sms",
-    "تمام، لينك حجزك الجديد في رسالة SMS",
-    "Done, your new link is in an SMS",
-    "Tamam, link 7agzak el gedeed fe SMS",
+    "new_link",
+    "تمام، لينك حجزك الجديد هيوصلك على تليجرام",
+    "Done, your new link will reach you on Telegram",
+    "Tamam, link 7agzak el gedeed haywsalak 3ala Telegram",
 )
 _add(
     "cancelled_done",
@@ -43,9 +49,9 @@ _add(
 )
 _add(
     "wait",
-    "هنبعتلك رسالة لما ييجي وقت تتحرك",
-    "We'll text you when to leave",
-    "Hanb3atlak emta tet7arrak",
+    "هنقولك على تليجرام امتى تتحرك",
+    "We'll tell you on Telegram when to leave",
+    "Han2ollak 3ala Telegram emta tet7arrak",
 )
 _add(
     "readonly",
@@ -92,9 +98,9 @@ _add(
 )
 _add(
     "forbidden",
-    "الطلب مش صالح. افتح لينك الرسالة تاني",
-    "This request is invalid. Open your SMS link again",
-    "Efta7 link el SMS tany",
+    "الطلب مش صالح. افتح اللينك من رسالة تليجرام تاني",
+    "This request is invalid. Open the link in your Telegram message again",
+    "Efta7 link el Telegram tany",
 )
 _add(
     "server_error",
@@ -235,6 +241,26 @@ for _key, (_ar, _en) in DOCTOR_TEXTS.items():
 
 # APPROVED under Decision 048 and the contracts README UI-strings rule.
 TELEGRAM_TEXTS = {
+    "share_contact": (
+        "شارك رقمك عشان نتأكد إنه رقمك",
+        "Share your number so we can confirm it is yours",
+        "Share your number so we can confirm it is yours",
+    ),
+    "contact_mismatch": (
+        "الرقم ده مش هو رقم الحجز/التسجيل",
+        "That number does not match the booking or registration",
+        "El ra2m da mesh ra2m el 7agz aw el tasgeel",
+    ),
+    "start_first": (
+        "ابعت /start من اللينك الأول",
+        "Open /start from your link first",
+        "Efta7 /start men el link el awel",
+    ),
+    "code_sent": (
+        "الكود هيوصلك هنا على تليجرام",
+        "Your code will arrive here on Telegram",
+        "El code haywsalak hena 3ala Telegram",
+    ),
     "q_answer": ("✍️ جاوب", "✍️ Answer", "✍️ Answer"),
     "q_save": ("💾 احفظ للكل", "💾 Save for everyone", "💾 Save for everyone"),
     "q_later": ("⏰ بعدين", "⏰ Later", "⏰ Later"),
@@ -268,14 +294,14 @@ TELEGRAM_TEXTS = {
         "Review and save your answer",
     ),
     "how_to": (
-        "افتح لينك تليجرام من رسالة SMS أو من لوحة الدكتور",
-        "Open the Telegram link from your SMS or doctor dashboard",
-        "Efta7 link Telegram men SMS aw lo7et el doctor",
+        "افتح لينك تليجرام من رسالة تليجرام أو من لوحة الدكتور",
+        "Open the Telegram link from your Telegram message or doctor dashboard",
+        "Efta7 link Telegram men Telegram aw lo7et el doctor",
     ),
     "bad_link": (
-        "افتح اللينك من رسالة SMS تاني",
-        "Open the link from your SMS again",
-        "Efta7 link el SMS tany",
+        "افتح اللينك من رسالة تليجرام تاني",
+        "Open the link from your Telegram message again",
+        "Efta7 link el Telegram tany",
     ),
     "wrong_kind": (
         "اللينك ده مش للدور المطلوب. افتح اللينك الصحيح تاني",
@@ -486,14 +512,17 @@ for _key, (_ar, _en, _franco) in CHAT_TEXTS.items():
 # APPROVED under Decisions 048 and 050.
 SIGNUP_TEXTS = {
     "patient_door": ("عندي حجز", "I have a booking"),
-    "patient_sms": ("افتح لينك رسالة الـ SMS اللي وصلتك", "Open the link in the SMS you received"),
+    "patient_telegram": (
+        "افتح لينك حجزك من رسالة تليجرام اللي وصلتك",
+        "Open your booking link in the Telegram message you received",
+    ),
     "doctor_door": ("أنا دكتور", "I am a doctor"),
     "doctor_start": ("افتح عيادتك على نوا في ٥ دقايق", "Open your clinic on Nowa in 5 minutes"),
     "how": ("إزاي بيشتغل", "How it works"),
     "step1": (
         "المريض بيحجز من لينك العيادة، وبياخد رقم دوره ومعاد تقريبي في رسالة.",
         "The patient books through the clinic link and receives a queue number "
-        "and expected time by SMS.",
+        "and expected time by Telegram.",
     ),
     "step2_before": ("الدكتور بيضغط", "The doctor taps"),
     "on_way": ("أنا في الطريق", "I'm on my way"),
@@ -513,7 +542,8 @@ SIGNUP_TEXTS = {
     "intro": (
         "نوا بيبعت لكل مريض رسالة لما ييجي وقت نزوله، على حسب حركة الطابور الحقيقية "
         "في العيادة. مفيش انتظار بالساعات.",
-        "Nowa texts each patient when it is time to leave, based on the real clinic queue. "
+        "Nowa messages each patient on Telegram when it is time to leave, "
+        "based on the real clinic queue. "
         "No waiting for hours.",
     ),
     "signup": ("اعمل عيادتك", "Create your clinic"),
@@ -522,7 +552,7 @@ SIGNUP_TEXTS = {
     "judge_start": ("ابدأ عيادة تجريبية", "Start a practice clinic"),
     "watch": ("اتفرج على ليلة", "Watch an evening"),
     "mobile": ("موبايل الدكتور", "Doctor mobile"),
-    "request_code": ("ابعت كود SMS", "Send SMS code"),
+    "request_code": ("استلم الكود على تليجرام", "Get the code on Telegram"),
     "code": ("كود التأكيد", "Verification code"),
     "verify": ("أكد الموبايل", "Verify mobile"),
     "name_ar": ("اسم الدكتور بالعربي", "Doctor name in Arabic"),

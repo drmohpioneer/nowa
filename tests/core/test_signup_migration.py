@@ -72,7 +72,7 @@ def test_populated_head09_upgrade_preserves_rows_and_foreign_keys(tmp_path):
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "12"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "15"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
@@ -107,7 +107,7 @@ def test_dangling_foreign_key_upgrade_rolls_back_and_restores_enforcement(tmp_pa
         (scripts / "versions" / "11_broken.py").write_text("""from alembic import op
 import sqlalchemy as sa
 revision = "11_broken"
-down_revision = "12"
+down_revision = "15"
 branch_labels = None
 depends_on = None
 
@@ -176,7 +176,7 @@ def test_populated_head10_evening_upgrade_through_runner(tmp_path):
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "12"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "15"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []

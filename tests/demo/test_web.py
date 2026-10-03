@@ -64,7 +64,10 @@ def test_advance_validation(demo_client, minute):
     assert response.status_code == 422
 
 
-def test_gets_create_nothing_and_public_booking(demo_client, engine, demo_clock, monkeypatch):
+@pytest.mark.parametrize("bot_username", ["", "fictional_bot"])
+def test_gets_create_nothing_and_public_booking(
+    demo_client, engine, demo_clock, monkeypatch, bot_username
+):
     class NoAI:
         calls = 0
 
@@ -75,6 +78,7 @@ def test_gets_create_nothing_and_public_booking(demo_client, engine, demo_clock,
     monkeypatch.setenv("GEMINI_API_KEY", "offline-spy")
     monkeypatch.setenv("OPENROUTER_API_KEY", "offline-spy")
     get_settings.cache_clear()
+    get_settings().telegram_bot_username = bot_username
     ai_spy = NoAI()
     demo_client.app.state.ai_chain = [ai_spy]
     for path in ("/", "/demo/evening", "/demo/book"):
@@ -110,12 +114,16 @@ def test_gets_create_nothing_and_public_booking(demo_client, engine, demo_clock,
             conn.execute(select(func.count()).select_from(s.action_record)).scalar_one() == before
         )
     draft = tap("none", {"identity": 0}, "identity").json()
+    assert draft["telegram_url"] is None
     day = next(b for b in draft["buttons"] if b["action"]["kind"] == "book_day")
     payload = day["action"]["payload"]
     payload["area_id"] = 1
     booked = tap("book_day", payload, "book")
     assert booked.status_code == 200 and "/l/" not in booked.json()["reply"]
+    assert bool(booked.json()["telegram_url"]) == bool(bot_username)
     assert tap("book_day", payload, "book").json() == booked.json()
+    with engine.connect() as conn:
+        assert len(conn.execute(select(s.link_tokens)).all()) == int(bool(bot_username))
     with engine.connect() as conn:
         cid = conn.execute(
             select(s.clinics.c.id).where(s.clinics.c.slug == chat.split("/")[-1])
@@ -123,6 +131,30 @@ def test_gets_create_nothing_and_public_booking(demo_client, engine, demo_clock,
     worker.drain(engine, demo_clock, worker.build_registry(), only_clinic_id=cid)
     phone = demo_client.get(chat + "/demo/phone", params={"session": session}).json()
     assert len(phone) == 1 and phone[0]["status"] == "delivered" and "/l/" in phone[0]["body"]
+    assert phone[0]["recipient_name"] == "ahmed" and phone[0]["channel"] == "telegram"
+    if bot_username:
+        from nowa.core import timing
+        from nowa.db import write_tx
+        from nowa.messaging.outbox import enqueue_message
+        from nowa.telegram.router import Router
+        from tests.telegram.conftest import FakeTelegramAPI
+        from tests.telegram.support import contact, message
+        from tests.telegram.support import payload as claim_payload
+
+        router = Router(engine, demo_clock, FakeTelegramAPI())
+        claim = claim_payload(booked.json()["telegram_url"])
+        router.handle_update(message(900, 901, "/start " + claim))
+        with engine.connect() as conn:
+            assert not conn.execute(select(s.telegram_links)).first()
+        router.handle_update(contact(901, 901, phone[0]["recipient"]))
+        with write_tx(engine) as conn:
+            bid = conn.execute(
+                select(s.bookings.c.id).where(s.bookings.c.clinic_id == cid)
+            ).scalar_one()
+            oid = enqueue_message(conn, demo_clock, cid, "2", "ar", "patient", bid,
+                                  timing.patient_blanks(conn, bid, "2"), "public-linked-leave")
+            sent = conn.execute(select(s.outbox).where(s.outbox.c.id == oid)).mappings().one()
+            assert sent["channel"] == sent["adapter"] == "telegram"
     second_session = demo_client.post(chat + "/session").json()["session"]
     assert demo_client.get(chat + "/demo/phone", params={"session": second_session}).json() == []
     seed(engine)

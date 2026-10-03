@@ -7,6 +7,7 @@ from sqlalchemy import select
 
 from nowa import schema as s
 from nowa.app import create_app
+from nowa.config import get_settings
 from nowa.core import auth, clinic_settings, timing
 from nowa.db import write_tx
 from nowa.demo.template import CLINIC
@@ -106,6 +107,7 @@ def test_cancel_request_replay_and_confirm(web, engine, monkeypatch):
 
 def test_reset_web_screen_and_session_revoke(web, engine):
     client, cid, _, clock, _ = web
+    get_settings().telegram_bot_username = ""  # Explicit no-bot demo path.
     response = client.post("/d/reset/request", json={"mobile": "01000000001"}, headers=ORIGIN)
     assert response.status_code == 200
     message = [r for r in rows(engine, s.outbox) if r["template_id"] == "op:reset_code"][-1]
@@ -419,6 +421,7 @@ def test_sensitive_data_scan_after_reset(web, engine, caplog):
     result = post(client, "telegram-link").json()
     tokens.append(result["url"].split("d_", 1)[1])
     post(client, "on-my-way", {"lat": 30.123456789, "lng": 31.987654321})
+    get_settings().telegram_bot_username = ""  # Explicit no-bot demo path.
     client.post("/d/reset/request", json={"mobile": "01000000001"}, headers=ORIGIN)
     message = [r for r in rows(engine, s.outbox) if r["template_id"] == "op:reset_code"][-1]
     code = re.search(r"\b[0-9]{6}\b", message["body"]).group()
@@ -457,7 +460,6 @@ def test_cookie_secure_outside_loopback(monkeypatch):
 
     from fastapi.responses import Response
 
-    from nowa.config import get_settings
     from nowa.web.doctor_auth import start_session
 
     monkeypatch.setenv("PUBLIC_BASE_URL", "https://nowa.example")

@@ -272,11 +272,17 @@ def test_http_completion_rejects_tampering_without_partial_creation(
 def test_signup_code_generic_response_ip_limit_and_cookie_isolation(signup_web, engine):
     registered = finish(signup_web, ordinary_token(signup_web))
     assert registered.status_code == 200
-    a = send(signup_web, "/signup/code", {"mobile": "+201000000005"})
+    refused = send(signup_web, "/signup/code", {"mobile": "+201000000005"})
+    assert refused.status_code == 200 and refused.json() == {"ok": True, "telegram_url": None}
+    with engine.connect() as conn:
+        assert not conn.execute(select(s.pending_signups)).first()
+    assert signup_web.get("/signup/phone").status_code == 403
+    a = send(signup_web, "/signup/code", {"mobile": "+201000000007"})
     cookie_a = signup_web.cookies.get("nowa_signup")
     msgs_a = signup_web.get("/signup/phone").json()
     b = send(signup_web, "/signup/code", {"mobile": "+201000000006"})
-    assert a.json() == b.json() == {"ok": True} and a.status_code == b.status_code == 200
+    assert a.json() == b.json() == {"ok": True, "telegram_url": None}
+    assert a.status_code == b.status_code == 200
     msgs_b = signup_web.get("/signup/phone").json()
     assert {m["outbox_id"] for m in msgs_a}.isdisjoint(m["outbox_id"] for m in msgs_b)
     signup_web.cookies.set("nowa_signup", cookie_a, path="/signup")
@@ -285,7 +291,7 @@ def test_signup_code_generic_response_ip_limit_and_cookie_isolation(signup_web, 
     assert signup_web.get("/signup/phone").status_code == 403
     signup_web.cookies.clear()
     assert signup_web.get("/signup/phone").status_code == 403
-    for index in range(7):
+    for index in range(6):
         assert (
             send(signup_web, "/signup/code", {"mobile": f"+201000003{index:03d}"}).status_code
             == 200
@@ -457,7 +463,7 @@ def test_judge_golden_path_seed_advance_leave_phone_expire_and_tombstones(
     assert signup_web.get("/d/api/tonight").status_code == 401
 
 
-def test_sandbox_isolation_macrelay_override_and_telegram_cleanup_on_mobile_reuse(
+def test_sandbox_isolation_and_telegram_cleanup_on_mobile_reuse(
     signup_web, engine, offset_clock, frozen_clock, monkeypatch
 ):
     from nowa.core import timing
@@ -467,8 +473,6 @@ def test_sandbox_isolation_macrelay_override_and_telegram_cleanup_on_mobile_reus
     from tests.telegram.conftest import FakeTelegramAPI
     from tests.telegram.support import message, tap
 
-    monkeypatch.setenv("SMS_ADAPTER", "mac_relay")
-    monkeypatch.setenv("MAC_RELAY_ALLOWLIST", "+201000002000")
     monkeypatch.setenv("TELEGRAM_BOT_USERNAME", "fictional_bot")
     get_settings.cache_clear()
     first = finish(signup_web, judge_token(signup_web)).json()
@@ -614,7 +618,7 @@ def test_sandbox_isolation_macrelay_override_and_telegram_cleanup_on_mobile_reus
             "fictional-replacement-doctor",
         )
         row = conn.execute(select(s.outbox).where(s.outbox.c.id == mid)).mappings().one()
-        assert row["channel"] == "sms" and row["adapter"] == "screen_phone"
+        assert row["channel"] == "telegram" and row["adapter"] == "screen_phone"
 
 
 @pytest.mark.parametrize("pin_kind, mark", [("area", "pin:area"), ("here", "pin:exact")])

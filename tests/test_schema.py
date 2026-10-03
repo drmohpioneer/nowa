@@ -24,7 +24,7 @@ def check_migration(engine):
             )
             == []
         )
-        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "12"
+        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "15"
         assert len(conn.execute(select(s.areas)).all()) == 12
         assert list(conn.execute(select(s.clinics.c.slug)).scalars()) == ["_nowa"]
         assert not conn.execute(select(s.clinic_hours)).all()
@@ -53,6 +53,7 @@ def test_postgres_migration(postgres_engine):
 
 def test_clinic_ownership_and_identity_columns():
     exempt = {
+        "telegram_pending",
         "clinics",
         "telegram_links",
         "pending_signups",
@@ -79,7 +80,7 @@ def test_clinic_ownership_and_identity_columns():
     for table in metadata.tables.values():
         if table.name not in exempt:
             col = table.c.clinic_id
-            assert not col.nullable
+            assert col.nullable == (table.name == "link_tokens")
             assert any(fk.target_fullname == "clinics.id" for fk in col.foreign_keys)
             assert any(list(index.columns)[0] is col for index in table.indexes)
         for col in table.columns:
@@ -308,6 +309,7 @@ def test_migration_postgres_ddl_portability():
                     str(column.server_default.arg.compile(dialect=postgresql.dialect())) == "false"
                 )
     assert set(captured.tables) == set(metadata.tables) - {
+        "telegram_pending",
         "evening_taps",
         "report_questions",
         "demo_runs",
@@ -420,6 +422,13 @@ def test_migration_postgres_ddl_portability():
     demo_spec.loader.exec_module(demo_module)
     demo_module.op = CaptureMigration
     demo_module.upgrade()
+    telegram_spec = importlib.util.spec_from_file_location(
+        "telegram_migration", ROOT / "migrations/versions/15_telegram_only.py"
+    )
+    telegram_module = importlib.util.module_from_spec(telegram_spec)
+    telegram_spec.loader.exec_module(telegram_module)
+    telegram_module.op = CaptureTravel
+    telegram_module.upgrade()
     assert set(captured.tables) == set(metadata.tables)
     for table in captured.sorted_tables:
         assert str(CreateTable(table).compile(dialect=postgresql.dialect()))

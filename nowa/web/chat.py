@@ -12,6 +12,7 @@ from nowa.ai.cards import faq, ui
 from nowa.ai.conversation import handle_turn
 from nowa.ai.schema import ChatResponse, HistoryTurn, StrictModel
 from nowa.ai.sessions import create_session, load_clinic
+from nowa.config import get_settings
 from nowa.demo.public import buttons_only, identity
 from nowa.web.logging import PRIVATE_HEADERS
 from nowa.web.request import client_ip
@@ -72,11 +73,13 @@ def page(request: Request, slug: str) -> HTMLResponse:
     return HTMLResponse(
         environment.from_string(source).render(
             buttons_only=buttons_only(clinic),
+            drawn_phone=bool(get_settings().demo_mode or clinic["is_sandbox"]),
             demo_strings={k: v[0] for k, v in DEMO_TEXTS.items()},
             greeting=ui("greeting", "ar", name=doctor),
             doctor_name=doctor,
             config={
                 "slug": slug,
+                "open_telegram": STRINGS["patient.open_telegram"],
                 "demo_strings": {k: v[0] for k, v in DEMO_TEXTS.items()},
                 "strings": {
                     lang: {

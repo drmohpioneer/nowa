@@ -28,11 +28,22 @@ class Location(BaseModel):
     longitude: float = Field(ge=-180, le=180, allow_inf_nan=False)
 
 
+class Sender(BaseModel):
+    id: int = Field(strict=True)
+
+
+class Contact(BaseModel):
+    phone_number: str = Field(max_length=100)
+    user_id: int | None = Field(default=None, strict=True)
+
+
 class Message(BaseModel):
     message_id: int = Field(strict=True, gt=0)
     chat: Chat
     text: str | None = None
     location: Location | None = None
+    sender: Sender | None = Field(default=None, alias="from")
+    contact: Contact | None = None
     voice: dict[str, Any] | None = None
     photo: list[dict[str, Any]] | None = None
     document: dict[str, Any] | None = None
@@ -186,6 +197,29 @@ class Router:
 
     @staticmethod
     def _message(ctx: Context, links: linking.Identity, message: Message) -> None:
+        if message.contact is not None:
+            ctx.lang = linking.claim_lang(ctx.engine, ctx.chat_id)
+            outcome = linking.prove_contact(
+                ctx.engine,
+                ctx.clock,
+                ctx.chat_id,
+                message.sender.id if message.sender else None,
+                message.contact.user_id,
+                message.contact.phone_number,
+                ctx.key,
+            )
+            if outcome == "duplicate":
+                return
+            ctx.send(
+                outcome,
+                {"remove_keyboard": True}
+                if outcome in {"linked", "code_sent", "bad_link"}
+                else None,
+            )
+            if outcome == "linked":
+                ctx.refresh()
+                patient.menu(ctx)
+            return
         value = message.text
         if value == "/start" or (value is not None and value.startswith("/start ")):
             if value == "/start":
@@ -193,7 +227,22 @@ class Router:
                 return
             assert value is not None
             outcome = linking.consume(ctx.engine, ctx.clock, ctx.chat_id, value[7:], ctx.key)
+            if outcome == "duplicate":
+                return
             ctx.refresh()
+            if outcome == "share_contact":
+                ctx.lang = linking.claim_lang(ctx.engine, ctx.chat_id)
+                ctx.send(
+                    outcome,
+                    {
+                        "keyboard": [
+                            [{"text": text("tg.share_contact", ctx.lang), "request_contact": True}]
+                        ],
+                        "resize_keyboard": True,
+                        "one_time_keyboard": True,
+                    },
+                )
+                return
             ctx.send(outcome)
             if outcome == "linked":
                 if ctx.doctor is not None:

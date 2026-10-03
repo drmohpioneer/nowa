@@ -4,19 +4,17 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
 from nowa import record
 from nowa import schema as s
-from nowa.app import create_app
 from nowa.clock import CAIRO, FrozenClock
 from nowa.config import get_settings
 from nowa.core.timers import TimerContext
 from nowa.db import write_tx
 from nowa.messaging import texts
-from nowa.messaging.adapters import ADAPTERS, SendResult, TelegramAdapter, sms_parts
-from nowa.messaging.outbox import enqueue_backup_copy, enqueue_message, recipient, screen_messages
+from nowa.messaging.adapters import ADAPTERS, SendResult, TelegramAdapter
+from nowa.messaging.outbox import enqueue_message, recipient, screen_messages
 from nowa.messaging.pipeline import delivery_timeout, on_delivery_report, on_send_result, send_retry
 from nowa.messaging.templates import (
     EMERGENCY,
@@ -189,7 +187,7 @@ def test_render_boundaries():
     text = render("1", "ar", BLANKS)
     assert text == (
         "كريم محمود: حجزك مع د. هشام مصطفى الثلاثاء 6/10، رقمك 7، معادك حوالي 8:20 "
-        "وممكن يتأخر. هنبعتلك امتى تتحرك. التفاصيل والعنوان: "
+        "وممكن يتأخر. هنقولك على تليجرام امتى تتحرك. التفاصيل والعنوان: "
         "http://127.0.0.1:8000/l/fictional تليفون العيادة 01000000000"
     )
     for bad in [
@@ -241,22 +239,21 @@ def test_golden(prepared):
         assert screen_messages(conn, p.cid, oid) == []
         assert not conn.execute(select(s.usage)).all()
         notes = conn.execute(select(s.action_record.c.text)).scalars().all()
-        assert notes == [None, "sms", "accepted", None]
+        assert notes == [None, "telegram", "accepted", None]
 
 
 @pytest.mark.parametrize(
     "sandbox,demo,linked,expected",
     [
         (False, False, True, ("telegram", "telegram", "doctor")),
-        (True, False, False, ("sms", "screen_phone", "screen")),
-        (False, True, False, ("sms", "screen_phone", "screen")),
-        (False, False, False, ("sms", "mac_relay", "doctor")),
+        (True, False, False, ("telegram", "screen_phone", "screen")),
+        (False, True, False, ("telegram", "screen_phone", "screen")),
+        (False, False, False, ("telegram", "telegram", "doctor")),
     ],
 )
 def test_doctor_channels(prepared, sandbox, demo, linked, expected):
     p = prepared
     get_settings().demo_mode = demo
-    get_settings().sms_adapter = "mac_relay"
     with write_tx(p.engine) as conn:
         conn.execute(s.clinics.update().where(s.clinics.c.id == p.cid).values(is_sandbox=sandbox))
     if linked:
@@ -273,20 +270,15 @@ def test_doctor_channels(prepared, sandbox, demo, linked, expected):
         assert recipient(conn, r)[0] == "+201000000001"
 
 
-def test_explicit_doctor_sms_and_attribution(prepared):
-    p = prepared
-    get_settings().sms_adapter = "mac_relay"
-    oid = enqueue(
-        p, audience="doctor", channel="sms", template_id="op:reset_code", blanks={"code": "123456"}
-    )
-    assert row(p, oid)["recipient_kind"] == "doctor"
-    assert row(p, oid)["adapter"] == "mac_relay"
-    with p.engine.connect() as conn:
-        assert recipient(conn, row(p, oid))[0] == "+201000000001"
+def test_explicit_sms_refused_and_secretary_requires_link(prepared):
     with pytest.raises(ValueError):
-        enqueue(p, key="unlinked", audience="doctor", channel="telegram")
+        enqueue(prepared, channel="sms")
+    oid = enqueue(prepared)
     with pytest.raises(ValueError):
-        enqueue(p, key="secretary", audience="secretary")
+        enqueue(prepared, channel="sms")  # Invalid channel is rejected even on replay.
+    assert row(prepared, oid)["channel"] == "telegram"
+    with pytest.raises(ValueError):
+        enqueue(prepared, key="secretary", audience="secretary")
 
 
 def test_invalid_enqueue_atomic(prepared):
@@ -327,7 +319,7 @@ def test_pending_signup(prepared, monkeypatch):
     params = dict(
         audience="doctor",
         booking_id=None,
-        channel="sms",
+        channel="telegram",
         pending_signup_id=sid,
         template_id="op:signup_code",
         blanks={"code": "123456"},
@@ -339,8 +331,7 @@ def test_pending_signup(prepared, monkeypatch):
         [
             dict(booking_id=p.bid),
             dict(audience="patient"),
-            dict(channel="telegram"),
-            dict(channel=None),
+            dict(channel="sms"),
             dict(pending_signup_id=999),
             dict(pending_signup_id=signup(p, expires_at=NOW)),
             dict(pending_signup_id=signup(p, completed_at=NOW)),
@@ -367,8 +358,6 @@ def test_pending_signup(prepared, monkeypatch):
 @pytest.mark.parametrize(
     "sandbox,demo,adapter",
     [
-        (False, False, "screen_phone"),
-        (False, False, "mac_relay"),
         (False, False, "telegram"),
         (True, False, "screen_phone"),
         (False, True, "screen_phone"),
@@ -377,22 +366,23 @@ def test_pending_signup(prepared, monkeypatch):
 def test_pending_gate(prepared, monkeypatch, sandbox, demo, adapter):
     p = prepared
     get_settings().demo_mode = demo
-    get_settings().sms_adapter = "mac_relay" if adapter == "mac_relay" else "screen_phone"
     with write_tx(p.engine) as conn:
         conn.execute(s.clinics.update().where(s.clinics.c.id == p.cid).values(is_sandbox=sandbox))
     if adapter == "telegram":
         link(p, "doctor", "+201000000001")
     entry = dict(OPERATIONAL["doctor_alert_brake"], status="PENDING")
     monkeypatch.setitem(OPERATIONAL, "doctor_alert_brake", entry)
-    rendered = render_operational("doctor_alert_brake", "ar", {"channel_label": "SMS", "count": 30})
+    rendered = render_operational(
+        "doctor_alert_brake", "ar", {"channel_label": "Telegram", "count": 30}
+    )
     assert not rendered.approved
     oid = enqueue(
         p,
         audience="doctor",
         booking_id=None,
         template_id="op:doctor_alert_brake",
-        blanks={"channel_label": "SMS", "count": 30},
-        channel="telegram" if adapter == "telegram" else "sms",
+        blanks={"channel_label": "Telegram", "count": 30},
+        channel="telegram",
     )
     handle(p, send_retry, oid)
     assert row(p, oid)["status"] == ("delivered" if sandbox or demo else "blocked_unapproved")
@@ -406,7 +396,7 @@ def test_failure_chains(prepared, monkeypatch, mode):
         "unknown" if mode == "unknown" else "refused" if mode == "refused" else "accepted",
         reports=mode == "report_timeout",
     )
-    monkeypatch.setitem(ADAPTERS, "screen_phone", fake)
+    monkeypatch.setitem(ADAPTERS, "telegram", fake)
     oid = enqueue(p)
     if mode == "refused":
         for n in (1, 2, 3):
@@ -428,14 +418,10 @@ def test_failure_chains(prepared, monkeypatch, mode):
     assert row(p, oid)["status"] == "failed"
     with p.engine.connect() as conn:
         rows = conn.execute(select(s.outbox).order_by(s.outbox.c.id)).mappings().all()
-        assert len(rows) == 3
-        assert rows[1]["body"] == rows[0]["body"]
-        assert rows[1]["idempotency_key"] == rows[0]["idempotency_key"] + ":tg"
-        assert rows[2]["template_id"] == "op:doctor_alert_unreachable"
+        assert len(rows) == 2
+        assert rows[1]["template_id"] == "op:doctor_alert_unreachable"
     before = all_state(p)
     handle(p, delivery_timeout, oid)
-    with write_tx(p.engine) as conn:
-        assert enqueue_backup_copy(conn, p.clock, oid) == rows[1]["id"]
     assert all_state(p) == before
 
 
@@ -448,7 +434,7 @@ def all_state(p):
 
 
 @pytest.mark.parametrize("kind", [None, "doctor"])
-def test_no_patient_link_no_backup(prepared, monkeypatch, kind):
+def test_screen_failure_alerts_once(prepared, monkeypatch, kind):
     p = prepared
     if kind:
         link(p, kind)
@@ -464,19 +450,16 @@ def test_no_patient_link_no_backup(prepared, monkeypatch, kind):
 def test_reporting_and_usage(prepared, monkeypatch):
     p = prepared
     fake = FakeAdapter(reports=True)
-    monkeypatch.setitem(ADAPTERS, "we_business", fake)
+    link(p)
+    monkeypatch.setitem(ADAPTERS, "telegram", fake)
     oid = enqueue(p)
-    with write_tx(p.engine) as conn:
-        conn.execute(s.outbox.update().where(s.outbox.c.id == oid).values(adapter="we_business"))
     handle(p, send_retry, oid)
     assert row(p, oid)["status"] == "sent"
     with p.engine.connect() as conn:
         usage = conn.execute(select(s.usage)).mappings().one()
-        assert usage["service"] == "sms"
-        assert usage["units"] == sms_parts(row(p, oid)["body"])
-        assert usage["est_cost_usd"] == pytest.approx(
-            usage["units"] * get_settings().sms_part_cost_usd
-        )
+        assert usage["service"] == "telegram"
+        assert usage["units"] == 1
+        assert usage["est_cost_usd"] == 0
     p.clock.advance(minutes=5)
     handle(p, delivery_timeout, oid)
     before = all_state(p)
@@ -525,30 +508,6 @@ def test_telegram_retry_after(prepared, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "body,parts",
-    [
-        ("a" * 160, 1),
-        ("a" * 161, 2),
-        ("^" * 80, 1),
-        ("^" * 81, 2),
-        ("ع" * 70, 1),
-        ("ع" * 71, 2),
-        ("😀" * 35, 1),
-        ("😀" * 36, 2),
-        ("a" * 306, 2),
-        ("a" * 307, 3),
-        ("\n" * 160, 1),
-        ("\\" * 80, 1),
-        ("€" * 80, 1),
-        ("`" * 71, 2),
-        ("f" * 160, 1),
-    ],
-)
-def test_sms_parts(body, parts):
-    assert sms_parts(body) == parts
-
-
-@pytest.mark.parametrize(
     "status,data,outcome,delay",
     [
         (200, {"ok": True, "result": {"message_id": 42}}, "accepted", None),
@@ -586,93 +545,7 @@ def test_telegram_timeout():
         assert adapter.send({"body": "x"}).error == "no_telegram_link"
 
 
-def relay_settings(monkeypatch):
-    monkeypatch.setenv("MAC_RELAY_TOKEN", "fictional-relay-token-" * 2)
-    get_settings().mac_relay_token = "fictional-relay-token-" * 2
-    get_settings().mac_relay_allowlist = "+201000000007"
-    get_settings().sms_adapter = "mac_relay"
-    return {"X-Relay-Token": get_settings().mac_relay_token}
-
-
-def test_relay(prepared, monkeypatch):
-    p = prepared
-    headers = relay_settings(monkeypatch)
-    oid = enqueue(p)
-    with TestClient(create_app(p.engine)) as client:
-        client.app.state.clock = p.clock
-        assert client.get("/relay/outbox", headers=headers).json() == {"messages": []}
-        handle(p, send_retry, oid)
-        before = all_state(p)
-        for url, h in [
-            ("/relay/outbox", {}),
-            ("/relay/outbox", {"X-Relay-Token": "wrong"}),
-            ("/relay/outbox?token=x", headers),
-            ("/relay/outbox?token=x", {}),
-        ]:
-            assert client.get(url, headers=h).status_code == 401
-        assert all_state(p) == before
-        data = client.get("/relay/outbox", headers=headers).json()
-        assert data["messages"] == [
-            dict(id=oid, attempt=1, to="+201000000007", text=row(p, oid)["body"])
-        ]
-        assert client.get("/relay/outbox", headers=headers).json() == {"messages": []}
-        ack = dict(id=oid, attempt=1, ok=True, error=None)
-        assert client.post("/relay/ack", headers=headers, json=ack).json() == {"ok": True}
-        assert row(p, oid)["status"] == "delivered"
-        before = all_state(p)
-        assert client.post("/relay/ack", headers=headers, json=ack).status_code == 200
-        assert client.post("/relay/ack", headers=headers, json=ack | {"id": 999}).status_code == 200
-        assert all_state(p) == before
-    with p.engine.connect() as conn:
-        assert conn.execute(select(s.usage.c.service)).scalar_one() == "sms"
-
-
-@pytest.mark.parametrize("token", [None, "short"])
-def test_relay_disabled(prepared, monkeypatch, token):
-    p = prepared
-    if token is None:
-        monkeypatch.delenv("MAC_RELAY_TOKEN", raising=False)
-    else:
-        monkeypatch.setenv("MAC_RELAY_TOKEN", token)
-    get_settings().sms_adapter = "mac_relay"
-    get_settings().mac_relay_allowlist = "+201000000007"
-    oid = enqueue(p)
-    handle(p, send_retry, oid)
-    before = all_state(p)
-    with TestClient(create_app(p.engine)) as client:
-        client.app.state.clock = p.clock
-        assert client.get("/relay/outbox", headers={"X-Relay-Token": ""}).status_code == 404
-        assert (
-            client.post(
-                "/relay/ack",
-                headers={"X-Relay-Token": ""},
-                json={"id": oid, "attempt": 1, "ok": True, "error": None},
-            ).status_code
-            == 404
-        )
-    assert all_state(p) == before
-
-
-def test_relay_sandbox_and_allowlist(prepared, monkeypatch):
-    p = prepared
-    headers = relay_settings(monkeypatch)
-    get_settings().mac_relay_allowlist = ""
-    oid = enqueue(p)
-    handle(p, send_retry, oid)
-    assert row(p, oid)["status"] == "failed"
-    with write_tx(p.engine) as conn:
-        conn.execute(s.clinics.update().where(s.clinics.c.id == p.cid).values(is_sandbox=True))
-    screen = enqueue(p, key="screen")
-    handle(p, send_retry, screen)
-    with TestClient(create_app(p.engine)) as client:
-        client.app.state.clock = p.clock
-        assert client.get("/relay/outbox", headers=headers).json() == {"messages": []}
-    with p.engine.connect() as conn:
-        assert conn.execute(select(func.count()).select_from(s.outbox)).scalar_one() == 2
-        assert not conn.execute(select(s.usage)).all()
-
-
-def test_brakes_separate(prepared, monkeypatch):
+def test_telegram_brake(prepared, monkeypatch):
     p = prepared
     link(p)
     with write_tx(p.engine) as conn:
@@ -680,7 +553,7 @@ def test_brakes_separate(prepared, monkeypatch):
         del values["id"]
         conn.execute(s.bookings.insert().values(**(values | dict(queue_number=8, order_key=8))))
     monkeypatch.setitem(ADAPTERS, "telegram", FakeAdapter())
-    for channel in ("sms", "telegram"):
+    for channel in ("telegram",):
         for n in range(32):
             oid = enqueue(p, key=f"{channel}:{n}", channel=channel)
             handle(p, send_retry, oid)
@@ -697,7 +570,7 @@ def test_brakes_separate(prepared, monkeypatch):
             select(s.outbox).where(s.outbox.c.template_id == "op:doctor_alert_brake")
         )
         ids = [r["id"] for r in alerts.mappings()]
-        assert len(ids) == 2
+        assert len(ids) == 1
     for oid in ids:
         handle(p, send_retry, oid)
         assert row(p, oid)["status"] == "delivered"
@@ -732,7 +605,7 @@ def test_postgres_enqueue_serialization(postgres_engine):
                     audience="doctor",
                     template_id="op:reset_code",
                     blanks={"code": "123456"},
-                    channel="sms",
+                    channel="telegram",
                 ),
                 range(4),
             )
@@ -797,7 +670,7 @@ def test_secretary_alerts(prepared, monkeypatch):
     assert fake.rows[0]["chat_id"] == "secretary-fixture"
 
 
-def test_telegram_failure_has_no_chain(prepared, monkeypatch):
+def test_telegram_failure_alerts_once(prepared, monkeypatch):
     p = prepared
     link(p)
     fake = FakeAdapter("refused")
@@ -807,7 +680,7 @@ def test_telegram_failure_has_no_chain(prepared, monkeypatch):
         handle(p, send_retry, oid, attempt)
     assert row(p, oid)["status"] == "failed"
     with p.engine.connect() as conn:
-        assert conn.execute(select(func.count()).select_from(s.outbox)).scalar_one() == 1
+        assert conn.execute(select(func.count()).select_from(s.outbox)).scalar_one() == 2
         assert not conn.execute(select(s.usage)).all()
 
 
@@ -837,7 +710,7 @@ def test_brake_scales_with_non_cancelled_bookings(prepared):
 
 
 @pytest.mark.postgres
-def test_postgres_brake_and_poll_concurrency(postgres_engine, monkeypatch):
+def test_postgres_brake_concurrency(postgres_engine, monkeypatch):
     seed(postgres_engine)
     clock = FrozenClock(NOW)
     record.configure(clock)
@@ -846,8 +719,6 @@ def test_postgres_brake_and_poll_concurrency(postgres_engine, monkeypatch):
             select(s.clinics.c.id).where(s.clinics.c.slug == "dr-hesham")
         ).scalar_one()
     p = SimpleNamespace(engine=postgres_engine, clock=clock, cid=cid, bid=None)
-    headers = relay_settings(monkeypatch)
-    get_settings().mac_relay_allowlist = "+201000000001"
     ids = [
         enqueue(
             p,
@@ -855,7 +726,7 @@ def test_postgres_brake_and_poll_concurrency(postgres_engine, monkeypatch):
             audience="doctor",
             template_id="op:reset_code",
             blanks={"code": "123456"},
-            channel="sms",
+            channel="telegram",
         )
         for n in range(32)
     ]
@@ -878,19 +749,6 @@ def test_postgres_brake_and_poll_concurrency(postgres_engine, monkeypatch):
             ).scalar_one()
             == 2
         )
-    with TestClient(create_app(postgres_engine)) as client:
-        client.app.state.clock = clock
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            polls = list(
-                pool.map(
-                    lambda _: client.get("/relay/outbox?limit=50", headers=headers).json()[
-                        "messages"
-                    ],
-                    range(2),
-                )
-            )
-        returned = [message["id"] for poll in polls for message in poll]
-        assert len(returned) == len(set(returned)) == 30
 
 
 def test_duplicate_failed_delivery_report(prepared, monkeypatch):
@@ -902,4 +760,63 @@ def test_duplicate_failed_delivery_report(prepared, monkeypatch):
     assert row(p, oid)["status"] == "failed"
     before = all_state(p)
     on_delivery_report(p.engine, p.clock, "fixture:1", "failed")
+    assert all_state(p) == before
+
+
+@pytest.mark.parametrize(
+    "sandbox,demo,linked",
+    [(False, False, True), (True, False, False), (False, True, False), (False, False, False)],
+)
+def test_patient_channel_resolution_and_no_channel_alert_once(prepared, sandbox, demo, linked):
+    p = prepared
+    get_settings().demo_mode = demo
+    with write_tx(p.engine) as conn:
+        conn.execute(s.clinics.update().where(s.clinics.c.id == p.cid).values(is_sandbox=sandbox))
+    if linked:
+        link(p)
+    oid = enqueue(p)
+    first = row(p, oid)
+    assert first["channel"] == "telegram"
+    assert first["adapter"] == ("telegram" if linked or not (sandbox or demo) else "screen_phone")
+    no_channel = not (linked or sandbox or demo)
+    assert first["status"] == ("failed" if no_channel else "queued")
+    before = all_state(p)
+    assert enqueue(p) == oid
+    assert all_state(p) == before
+    with p.engine.connect() as conn:
+        messages = conn.execute(select(s.outbox)).mappings().all()
+        failures = (
+            conn.execute(
+                select(s.action_record.c.text).where(s.action_record.c.kind == "message_failure")
+            )
+            .scalars()
+            .all()
+        )
+        assert len(messages) == (2 if no_channel else 1)
+        if no_channel:
+            assert failures == ["no_channel", "no_channel"]
+            assert messages[1]["template_id"] == "op:doctor_alert_unreachable"
+            assert messages[1]["status"] == "failed"
+            assert not conn.execute(select(s.timers)).first()
+
+
+@pytest.mark.parametrize("adapter", ["screen_phone", "mac_relay", "we_business"])
+def test_legacy_queued_rows_fail_without_dispatch_or_rewriting_history(prepared, adapter):
+    p = prepared
+    oid = enqueue(p)
+    # Simulate a queued pre-slice-15 row; the upgrade keeps historical columns intact.
+    with write_tx(p.engine) as conn:
+        conn.execute(s.outbox.update().where(s.outbox.c.id == oid).values(
+            channel="sms", adapter=adapter
+        ))
+    assert not handle(p, send_retry, oid).after_commit
+    failed = row(p, oid)
+    assert failed["status"] == "failed" and failed["channel"] == "sms"
+    with p.engine.connect() as conn:
+        alert = conn.execute(select(s.outbox).where(s.outbox.c.id != oid)).mappings().one()
+        assert alert["template_id"] == "op:doctor_alert_unreachable"
+        assert alert["channel"] == "telegram"
+        assert not conn.execute(select(s.usage)).first()
+    before = all_state(p)
+    handle(p, send_retry, oid)
     assert all_state(p) == before

@@ -32,10 +32,17 @@
   bind("judge-form", async (_, data) => { ready((await post("/judge/start", data)).signup_token); });
   bind("code-form", async (_, data) => {
     mobile = data.mobile;
-    await post("/signup/code", {...data, lang: document.documentElement.lang});
+    const result = await post("/signup/code", {...data, lang: document.documentElement.lang});
+    document.getElementById("signup-telegram")?.remove();
+    document.getElementById("code-form").hidden = Boolean(result.telegram_url);
+    if (result.telegram_url) {
+      const a = document.createElement("a"); a.id = "signup-telegram"; a.href = result.telegram_url;
+      a.textContent = t("request_code"); a.className = "btn btn-main"; a.target = "_blank"; a.rel = "noopener";
+      document.getElementById("verify-form").before(a);
+    }
     document.getElementById("verify-form").hidden = false; status(t("sent"));
     const phone = document.getElementById("signup-phone");
-    if (phone) { if (stopPhone) stopPhone(); phone.replaceChildren(); phone.hidden = false; stopPhone = window.NowaPhone(phone, "/signup/phone", () => status(t("error"))); }
+    if (phone && !result.telegram_url) { if (stopPhone) stopPhone(); phone.replaceChildren(); phone.hidden = false; stopPhone = window.NowaPhone(phone, "/signup/phone", () => status(t("error"))); }
   });
   bind("verify-form", async (_, data) => { ready((await post("/signup/verify", {...data, mobile})).signup_token); });
   const pinKind = document.getElementById("pin-kind");

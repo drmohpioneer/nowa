@@ -12,7 +12,7 @@ from nowa.config import get_settings
 from nowa.core import booking, timing
 from nowa.core import patient_link as private_link
 from nowa.db import write_tx
-from nowa.messaging.adapters import ADAPTERS, SendResult
+from nowa.messaging.adapters import ADAPTERS
 from nowa.messaging.outbox import enqueue_message
 from nowa.telegram import keyboards
 from nowa.web.strings import text
@@ -26,7 +26,7 @@ def headers(client):
     return ORIGIN | {"X-CSRF-Token": client.cookies.get("nowa_csrf")}
 
 
-def test_real_06_and_05_tokens_sms_backup_and_unlink(bot, engine, monkeypatch):
+def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypatch):
     router, cid, eid, _, clock, ids, fake = bot
     get_settings().telegram_bot_username = "fictional_bot"
     monkeypatch.setitem(ADAPTERS, "telegram", fake)
@@ -72,14 +72,6 @@ def test_real_06_and_05_tokens_sms_backup_and_unlink(bot, engine, monkeypatch):
     router.handle_update(message(4, location={"latitude": 30.111, "longitude": 31.222}))
     assert row(engine, s.evenings, eid)["state"] == "doctor_on_way"
 
-    class RefusedSMS:
-        delivery_reports = False
-
-        def send(self, row):
-            return SendResult("refused", error="fixture_failure")
-
-    # Existing 02 failure path creates the sole Telegram copy; direct replies never do.
-    monkeypatch.setitem(ADAPTERS, "screen_phone", RefusedSMS())
     with write_tx(engine) as conn:
         conn.execute(
             s.bookings.update().where(s.bookings.c.id == ids[0]).values(state="told_to_leave")
@@ -93,15 +85,14 @@ def test_real_06_and_05_tokens_sms_backup_and_unlink(bot, engine, monkeypatch):
             "patient",
             ids[0],
             timing.patient_blanks(conn, ids[0], "2"),
-            "scenario-sms",
+            "scenario-telegram",
         )
     for delay in (0, 1, 2):
         clock.advance(minutes=delay)
         drain(engine, clock, registry)
-    sms = row(engine, s.outbox, oid)
-    assert sms["status"] == "failed"
-    backup = next(r for r in rows(engine, s.outbox) if r["idempotency_key"] == "scenario-sms:tg")
-    assert backup["status"] == "delivered" and backup["body"] == sms["body"]
+    delivered = row(engine, s.outbox, oid)
+    assert delivered["status"] == "delivered" and delivered["channel"] == "telegram"
+    assert not any(r["idempotency_key"] == "scenario-telegram:tg" for r in rows(engine, s.outbox))
     assert f"omw:-:{ids[0]}:-" in inline_data(fake)
     tap(router, 5, "omw", bid=ids[0], chat=201)
     assert row(engine, s.bookings, ids[0])["state"] == "on_my_way"
@@ -110,6 +101,7 @@ def test_real_06_and_05_tokens_sms_backup_and_unlink(bot, engine, monkeypatch):
     tap(router, 7, "unlink", chat=201)
     tap(router, 8, "unlinkok", chat=201)
     assert {r["kind"] for r in rows(engine, s.telegram_links)} == {"doctor"}
+    get_settings().demo_mode = False
     with write_tx(engine) as conn:
         enqueue_message(
             conn,

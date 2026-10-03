@@ -630,24 +630,21 @@ def test_seed_fallback_when_original_hours_fit_no_patient(engine, offset_clock, 
         )
 
 
-def test_hosted_readiness_requires_both_real_adapter_and_filled_agreement(
-    engine, offset_clock, monkeypatch
-):
+def test_hosted_readiness_requires_bot_and_filled_agreement(engine, offset_clock, monkeypatch):
     settings = get_settings()
-    current = settings.model_copy(update={"demo_mode": False, "sms_adapter": "mac_relay"})
-    monkeypatch.setattr(signup, "get_settings", lambda: current)
+    settings.demo_mode = False
+    settings.telegram_bot_token = "fixture-token"
+    settings.telegram_bot_username = "fixture_bot"
     with pytest.raises(signup.Refused, match="not open yet"):
         signup.real_ready(signup.load_agreement())
     filled = signup.Agreement("Fictional filled agreement", "0.1", "fictional-hash")
-    current = current.model_copy(update={"sms_adapter": "screen_phone"})
+    settings.telegram_bot_username = ""
     with pytest.raises(signup.Refused, match="not open yet"):
         signup.real_ready(filled)
-    current = current.model_copy(update={"sms_adapter": "mac_relay"})
-    monkeypatch.setenv("SMS_ADAPTER", "mac_relay")
-    get_settings.cache_clear()
+    settings.telegram_bot_username = "fixture_bot"
     record.configure(offset_clock)
     result = signup.request_code(engine, offset_clock, filled, PHONE, "fictional-ip", "ar")
-    assert result.allowed and result.cookie is None
+    assert result.allowed and result.cookie is None and result.telegram_url
     with engine.connect() as conn:
-        message = conn.execute(select(s.outbox)).mappings().one()
-        assert message["status"] == "queued" and message["adapter"] == "mac_relay"
+        assert not conn.execute(select(s.outbox)).first()
+        assert conn.execute(select(s.link_tokens.c.kind)).scalar_one() == "signup_telegram"

@@ -1,6 +1,6 @@
 # Nowa — know when to leave home
 
-Proof recordings (owner to supply): **booking → SMS: pending** · **full evening → nearest day: pending** · **chest pain → 123 and booking stopped: pending**.
+Proof recordings (owner to supply): **booking → Telegram message: pending** · **full evening → nearest day: pending** · **chest pain → 123 and booking stopped: pending**.
 
 Nowa tells each patient when to leave home for a private clinic in Egypt.
 The doctor's “on my way” tap and visit taps drive the queue, timing and messages.
@@ -22,7 +22,7 @@ loads the shipped health library, seeds the fictional clinic, starts the worker 
 and opens the front page at **http://127.0.0.1:8000** after `/health` succeeds.
 No API key is needed. With `python -m nowa demo --no-browser`, open
 **http://127.0.0.1:8000** yourself; use this exact host because the Origin check refuses other hosts.
-Stop with Ctrl+C. If port 8000 is busy, stop the other server first.
+Stop with Ctrl+C. Port defaults to 8000; set PORT and PUBLIC_BASE_URL together to use another local port.
 
 ## What to click
 
@@ -30,7 +30,7 @@ Stop with Ctrl+C. If port 8000 is busy, stop the other server first.
   The doctor leaves at 19:10; a cancellation, silent patient, no-show, walk-in and long visits
   run through the real engine. Open the evening report at the end or the copy's doctor dashboard.
 - **Book without AI:** choose one of three fictional patients, a day and an area, then confirm.
-  Read the SMS on the drawn phone and open its private link. The last four phone digits shown
+  Read the Telegram message on the drawn phone and open its private link. The last four phone digits shown
   on that phone verify cancellation or a change of day. The emergency banner stays visible.
 - **Judge code (hosted instance):** use the private code supplied in the submission to create
   a practice clinic through the real sign-up. To show the judge box locally, set `JUDGE_CODES`
@@ -42,10 +42,10 @@ Stop with Ctrl+C. If port 8000 is busy, stop the other server first.
 Bookings, queue order, timing rules, persistent timers, fixed message templates, verification,
 copy isolation, doctor sessions and the evening report use the real application code.
 The evening's people, doctor taps, visits and patient reactions are scripted.
-Travel is fixed per Cairo area; messages appear on drawn phones, with no SMS sent.
+Travel is fixed per Cairo area; messages appear on drawn phones, with no Telegram message sent.
 The health answer is a shipped, source-checked recording, labelled “recorded”.
 
-`nowa demo` defaults `DEMO_NO_NETWORK` to 1: Telegram, Mapbox and the Mac relay are disabled.
+`nowa demo` defaults `DEMO_NO_NETWORK` to 1: Telegram and Mapbox are disabled.
 Explicitly setting `DEMO_NO_NETWORK=0` enables configured real adapters for the owner's
 clinic; with `MAPBOX_TOKEN`, that clinic uses live traffic. Demo copies always use fixed travel.
 AI keys do not enable AI in watch or public booking mode.

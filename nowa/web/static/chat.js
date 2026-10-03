@@ -1,6 +1,7 @@
 "use strict";
 const config = JSON.parse(document.getElementById("chat-config").textContent);
 const base = "/c/" + encodeURIComponent(config.slug);
+let phoneStarted = false;
 let session, lang = "ar", history = [], areaId = null;
 const chat = document.getElementById("chat"), controls = document.getElementById("controls");
 const error = document.getElementById("error"), send = document.getElementById("send");
@@ -48,6 +49,18 @@ function lookupForm() {
 }
 function show(data) {
     lang = data.lang; labels(); line(data.reply); controls.replaceChildren();
+    if (data.telegram_url) {
+        const a = document.createElement("a"); a.href = data.telegram_url; a.textContent = config.open_telegram[lang];
+        a.className = "btn btn-main"; a.target = "_blank"; a.rel = "noopener"; controls.append(a);
+    }
+    if (data.booking_confirmed && document.getElementById("chat-phone")) {
+        document.getElementById("chat-phone").hidden = false;
+        if (!phoneStarted) {
+            phoneStarted = true;
+            window.NowaPhone(document.getElementById("phone"), base + "/demo/phone?session=" + encodeURIComponent(session),
+                () => { error.textContent = config.demo_strings.phone_error; });
+        }
+    }
     areaId = data.buttons.find(b => b.action.kind === "book_day")?.action.payload.area_id ?? null;
     const days = [], needsConsent = data.buttons.some(b => b.action.kind === "consent");
     const draft = data.buttons.find(b => b.action.kind === "book_day")?.action.payload.draft;

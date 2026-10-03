@@ -74,6 +74,8 @@ class Button(StrictModel):
 
 
 class ChatResponse(StrictModel):
+    telegram_url: str | None = None
+    booking_confirmed: bool = False
     reply: str
     buttons: list[Button] = Field(default_factory=list)
     state: Literal["open", "locked_emergency"] = "open"
