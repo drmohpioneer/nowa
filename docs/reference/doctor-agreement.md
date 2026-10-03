@@ -5,7 +5,7 @@ Version: 0.1
 **v0.1, draft.** This text has not been reviewed by a lawyer yet. It is shown in the demo so the sign-up flow is complete, and it is not offered to a real clinic before legal review.
 
 
-Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_REGISTER_NUMBER], [PRIVACY_EMAIL], [DPO_NAME], [SMS_PROVIDER_NAME], [RENDER_REGION], [BACKUP_WINDOW_DAYS], [PILOT_END_DATE], [LIABILITY_CAP_EGP], [NOTICE_DAYS].
+Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_REGISTER_NUMBER], [PRIVACY_EMAIL], [DPO_NAME], [RENDER_REGION], [BACKUP_WINDOW_DAYS], [PILOT_END_DATE], [LIABILITY_CAP_EGP], [NOTICE_DAYS].
 
 ---
 
@@ -30,7 +30,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 (أ) [COMPANY_NAME]، ومقرها [COMPANY_ADDRESS]، سجل تجاري رقم [COMMERCIAL_REGISTER_NUMBER]، ويُشار إليها في هذه الاتفاقية باسم "نوا"؛
 (ب) الطبيب الذي أنشأ حسابًا على نوا ووافق على هذه الاتفاقية، ويُشار إليه باسم "الطبيب".
 
-1.2 تُبرم هذه الاتفاقية إلكترونيًا عند ضغط الطبيب على زر الموافقة أثناء التسجيل، بعد تأكيد رقم هاتفه المحمول برمز يصله في رسالة نصية. وتحفظ نوا رقم نسخة الاتفاقية ووقت الموافقة ورقم الهاتف الذي تم تأكيده.
+1.2 تُبرم هذه الاتفاقية إلكترونيًا عند ضغط الطبيب على زر الموافقة أثناء التسجيل، بعد تأكيد رقم هاتفه المحمول برمز يصله على تليجرام. وتحفظ نوا رقم نسخة الاتفاقية ووقت الموافقة ورقم الهاتف الذي تم تأكيده.
 
 1.3 التعريفات:
 - **المريض:** كل شخص يُحجز له موعد في عيادة الطبيب عن طريق نوا، سواء حجز بنفسه أو حجز له قريب أو سكرتيرة العيادة.
@@ -53,7 +53,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 ### 3. ما تقدمه نوا وما لا تقدمه
 
-3.1 **ما تقدمه نوا:** محادثة حجز لعيادة الطبيب، ورقم دور ثابت وموعد متوقع، ورسائل نصية للمريض في لحظات محددة (تأكيد الحجز، ورسالة "اتحرك دلوقتي"، وإلغاء المريض أو تغييره للحجز، وإلغاء الطبيب لليوم)، ولوحة تحكم وبوت تليجرام للطبيب، وتقرير مسائي.
+3.1 **ما تقدمه نوا:** محادثة حجز لعيادة الطبيب، ورقم دور ثابت وموعد متوقع، ورسائل تليجرام للمريض في لحظات محددة (تأكيد الحجز، ورسالة "اتحرك دلوقتي"، وإلغاء المريض أو تغييره للحجز، وإلغاء الطبيب لليوم)، ولوحة تحكم وبوت تليجرام للطبيب، وتقرير مسائي.
 
 3.2 **الذكاء الاصطناعي يتكلم فقط.** يفهم رسالة المريض ويصوغ الرد. أما الحجز والدور والمواعيد والرسائل والإلغاء فتتم كلها بكود ثابت. الذكاء الاصطناعي لا يحجز ولا يلغي ولا يرسل أي رسالة.
 
@@ -63,9 +63,9 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 3.5 **الفرز (triage) شبكة أمان، وليس نصيحة طبية.** هو محاولة لالتقاط الحالات الخطيرة، ولا يضمن التقاط كل حالة، ولا يعني أن الحالة التي لم تُلتقط حالة آمنة. ولا يتاح تخصص على نوا إلا بعد نجاح قواعده في اختبار ثابت واعتماده.
 
-3.6 **المواعيد تقديرية.** الموعد المتوقع ولحظة "اتحرك دلوقتي" تُحسبان من ضغطات الطبيب، ومن متوسطات تتعلمها نوا، ومن تقدير زمن الطريق. قد يتأخر الموعد الفعلي أو يتقدم. وتسليم الرسائل النصية يعتمد على شركات الاتصالات.
+3.6 **المواعيد تقديرية.** الموعد المتوقع ولحظة "اتحرك دلوقتي" تُحسبان من ضغطات الطبيب، ومن متوسطات تتعلمها نوا، ومن تقدير زمن الطريق. قد يتأخر الموعد الفعلي أو يتقدم. وتسليم الرسائل يعتمد على تليجرام.
 
-3.7 **حدود الإرسال:** لكل عيادة حد يومي للرسائل النصية وحد آخر لرسائل تليجرام، لحماية المرضى من رسائل متكررة بسبب خطأ. إذا بلغت العيادة الحد تتوقف الرسائل على هذه القناة في ذلك اليوم، ويصل للطبيب تنبيه.
+3.7 **حدود الإرسال:** لكل عيادة حد يومي لرسائل تليجرام، لحماية المرضى من رسائل متكررة بسبب خطأ. إذا بلغت العيادة الحد تتوقف الرسائل على هذه القناة في ذلك اليوم، ويصل للطبيب تنبيه.
 
 ### 4. التزامات الطبيب
 
@@ -113,7 +113,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 | البيانات | من المتحكم | المدة | عند انتهاء المدة |
 |---|---|---|---|
-| نص المحادثة والرسائل (SMS وتليجرام) | الطبيب | 30 يومًا من تاريخ كل رسالة | تُحذف نهائيًا |
+| نص المحادثة ورسائل تليجرام | الطبيب | 30 يومًا من تاريخ كل رسالة | تُحذف نهائيًا |
 | سجل السلامة (ما قالته نوا عن الصحة ورسالة المريض التي أدت إليه)، بدون اسم، مرتبط برمز مشفر لرقم الهاتف | نوا | 3 سنوات من وقت الرد | يُحذف. ويرى الطبيب الأسئلة بدون أسماء في تقريره المسائي |
 | الأحداث التشغيلية (حجز، تغيير، إلغاء، ضغطات الطبيب، إرسال رسالة) بدون اسم أو رقم أو نص | الطبيب | 90 يومًا | تُحذف، ويبقى المجموع اليومي فقط |
 | ملف المريض (الاسم، والرقم، والمنطقة، وسجل الزيارات، وعدد مرات عدم الحضور، وسجل الموافقة) | الطبيب | طوال نشاط المريض، ثم 3 سنوات بعد آخر زيارة، أو حتى يترك الطبيب نوا، أيهما أقرب | يُحذف بعد 3 سنوات من آخر زيارة. وإذا ترك الطبيب نوا يُصدَّر له ثم يُحذف |
@@ -144,8 +144,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 |---|---|---|---|
 | استضافة التطبيق | Render | كل ما يمر عبر الخادم أثناء التشغيل | [RENDER_REGION] |
 | قاعدة البيانات | Supabase | كل البيانات المحفوظة | فرانكفورت، ألمانيا |
-| الرسائل النصية | [SMS_PROVIDER_NAME] (المخطط: WE Business SMS، غير موصول حتى هذه النسخة) | رقم المريض ونص الرسالة | مصر |
-| قناة احتياطية ورسائل الطبيب | Telegram | رقم تليجرام ونص الرسالة، للمرضى الذين فعلوا الربط وللطبيب | خارج مصر |
+| توصيل رسائل المرضى والطبيب | Telegram | رقم تليجرام ونص الرسالة، للمرضى الذين فعلوا الربط وللطبيب | خارج مصر |
 | الذكاء الاصطناعي (الأساسي) | Google (نموذج Gemini) | نص المحادثة كما كتبه المريض، وقد يتضمن اسمًا أو سؤالًا صحيًا | خارج مصر |
 | الذكاء الاصطناعي (احتياطي عند تعطل الأساسي فقط) | OpenRouter، ومن خلاله نموذج Claude من Anthropic | نص المحادثة | خارج مصر |
 | الخرائط وزمن الطريق | Mapbox | إحداثيات لحساب طريق واحد، بدون اسم | خارج مصر |
@@ -182,7 +181,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 12.1 إذا علمت نوا باختراق يخص بيانات مرضى الطبيب، تبلغ الطبيب خلال 24 ساعة من علمها، بما تعرفه وقتها: طبيعة الاختراق، والبيانات المتأثرة وعددها التقريبي، والإجراءات المتخذة.
 
-12.2 تبلغ نوا المركز خلال 72 ساعة من علمها، وتنسق ذلك مع الطبيب. ويُبلغ المرضى المتأثرون خلال 3 أيام عمل من تاريخ إبلاغ المركز. وترسل نوا هذا الإبلاغ برسالة نصية إلا إذا اتفق الطرفان على غير ذلك.
+12.2 تبلغ نوا المركز خلال 72 ساعة من علمها، وتنسق ذلك مع الطبيب. ويُبلغ المرضى المتأثرون خلال 3 أيام عمل من تاريخ إبلاغ المركز. وترسل نوا هذا الإبلاغ على تليجرام إلا إذا اتفق الطرفان على غير ذلك.
 
 12.3 تسجل نوا كل اختراق والإجراءات التي اتخذتها لمواجهته.
 
@@ -218,7 +217,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 15.3 **كل طرف يتحمل التزاماته القانونية.** كل طرف مسؤول عن التزاماته بموجب القانون. والغرامات والعقوبات التي يقضي بها القانون على أحد الطرفين لا يتحملها الطرف الآخر عنه.
 
-15.4 **ما لا تضمنه نوا:** دقة الموعد المتوقع بالدقيقة، أو وصول كل رسالة نصية، أو أن يلتقط الفرز كل حالة خطيرة، أو أن تعمل الخدمة دائمًا بلا انقطاع. ولا تُسأل نوا عن تأخير أو انقطاع سببه قوة قاهرة، أو عطل لدى شركة اتصالات أو مقدم خدمة لم يكن بوسع نوا تفاديه، أو بيانات خاطئة أدخلها الطبيب.
+15.4 **ما لا تضمنه نوا:** دقة الموعد المتوقع بالدقيقة، أو وصول كل رسالة تليجرام، أو أن يلتقط الفرز كل حالة خطيرة، أو أن تعمل الخدمة دائمًا بلا انقطاع. ولا تُسأل نوا عن تأخير أو انقطاع سببه قوة قاهرة، أو عطل لدى تليجرام أو مقدم خدمة لم يكن بوسع نوا تفاديه، أو بيانات خاطئة أدخلها الطبيب.
 
 15.5 **حد التعويض:** في غير حالات الغش أو الخطأ الجسيم، لا يتجاوز مجموع ما تلتزم به نوا للطبيب من تعويض عن الإخلال بهذه الاتفاقية أكبر المبلغين التاليين: ما دفعه الطبيب لنوا في الاثني عشر شهرًا السابقة على الواقعة، أو [LIABILITY_CAP_EGP] جنيه. ولا يشمل التعويض الربح الفائت أو الأضرار غير المباشرة. وينطبق الحد نفسه على مسؤولية الطبيب تجاه نوا.
 
@@ -259,7 +258,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 (a) [COMPANY_NAME], of [COMPANY_ADDRESS], commercial register number [COMMERCIAL_REGISTER_NUMBER] ("Nowa"); and
 (b) the doctor who created an account on Nowa and accepted this agreement (the "Doctor").
 
-1.2 The agreement is made electronically when the Doctor taps the accept button during sign-up. Before that, his mobile number is confirmed by a code sent by SMS. Nowa stores the agreement version number, the time of acceptance and the confirmed mobile number.
+1.2 The agreement is made electronically when the Doctor taps the accept button during sign-up. Before that, his mobile number is confirmed by a code sent through Telegram. Nowa stores the agreement version number, the time of acceptance and the confirmed mobile number.
 
 1.3 Definitions:
 - **Patient:** anyone booked into the Doctor's clinic through Nowa, whether they booked themselves or a relative or the clinic's secretary booked for them.
@@ -282,7 +281,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 ### 3. What Nowa does and does not do
 
-3.1 **What Nowa does:** it runs a booking chat for the Doctor's clinic. It gives each patient a fixed queue number and an expected time. It sends SMS messages to patients at fixed moments: the booking confirmation, the "leave now" message, a cancellation or change made by the patient, and a cancellation of the evening by the Doctor. It also gives the Doctor a dashboard, a Telegram bot and an evening report.
+3.1 **What Nowa does:** it runs a booking chat for the Doctor's clinic. It gives each patient a fixed queue number and an expected time. It sends Telegram messages to patients at fixed moments: the booking confirmation, the "leave now" message, a cancellation or change made by the patient, and a cancellation of the evening by the Doctor. It also gives the Doctor a dashboard, a Telegram bot and an evening report.
 
 3.2 **The AI only talks.** It understands the patient's message and words the reply. Booking, the queue, times, messages and cancellations are all done by fixed code. The AI does not book, does not cancel, and does not send any message.
 
@@ -292,9 +291,9 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 3.5 **Triage is a safety net, not medical advice.** It tries to catch serious cases. It does not promise to catch every case, and a case it did not flag is not thereby safe. A specialty becomes available on Nowa only after its rules pass a fixed test set and are approved.
 
-3.6 **Times are estimates.** The expected time and the "leave now" moment are calculated from the Doctor's taps, from averages Nowa learns, and from a travel-time estimate. The real time can be later or earlier. SMS delivery depends on the telecom carriers.
+3.6 **Times are estimates.** The expected time and the "leave now" moment are calculated from the Doctor's taps, from averages Nowa learns, and from a travel-time estimate. The real time can be later or earlier. Message delivery depends on Telegram.
 
-3.7 **Sending limits:** each clinic has a daily limit for SMS and a separate one for Telegram. The limits protect patients from repeated messages caused by a fault. When a clinic hits a limit, messages on that channel stop for the day and the Doctor gets an alert.
+3.7 **Sending limits:** each clinic has a daily limit for Telegram messages. The limit protects patients from repeated messages caused by a fault. When a clinic hits a limit, messages on that channel stop for the day and the Doctor gets an alert.
 
 ### 4. The Doctor's duties
 
@@ -342,7 +341,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 | Data | Controller | Kept for | At the end |
 |---|---|---|---|
-| Chat and message text (SMS and Telegram) | Doctor | 30 days from each message | Permanently deleted |
+| Chat and Telegram message text | Doctor | 30 days from each message | Permanently deleted |
 | Safety record (what Nowa said about health and the patient message that led to it), no name, linked to a keyed hash of the phone number | Nowa | 3 years from the reply | Deleted. The Doctor sees the questions, without names, in his evening report |
 | Operational events (booking, change, cancellation, Doctor taps, message sends), with no name, number or text | Doctor | 90 days | Deleted. Only the daily totals remain |
 | Patient file (name, number, area, visit history, no-show count, consent record) | Doctor | While the patient is active, then 3 years after the last visit, or until the Doctor leaves Nowa, whichever comes first | Deleted 3 years after the last visit. If the Doctor leaves, exported to him and then deleted |
@@ -373,8 +372,7 @@ Database backups are kept only for a short rolling window of [BACKUP_WINDOW_DAYS
 |---|---|---|---|
 | Application hosting | Render | Everything that passes through the server while it runs | [RENDER_REGION] |
 | Database | Supabase | All stored data | Frankfurt, Germany |
-| SMS | [SMS_PROVIDER_NAME] (planned: WE Business SMS, not connected as of this version) | The patient's number and the message text | Egypt |
-| Backup channel and Doctor messages | Telegram | The Telegram chat id and the message text, for patients who linked Telegram and for the Doctor | Outside Egypt |
+| Patient and Doctor message delivery | Telegram | The Telegram chat id and the message text, for patients who linked Telegram and for the Doctor | Outside Egypt |
 | AI (primary) | Google (Gemini model) | The chat text as the patient typed it, which may contain a name or a health question | Outside Egypt |
 | AI (fallback, only when the primary is down) | OpenRouter, reaching Anthropic's Claude model | The chat text | Outside Egypt |
 | Maps and travel time | Mapbox | Coordinates for one route calculation, with no name | Outside Egypt |
@@ -411,7 +409,7 @@ Database backups are kept only for a short rolling window of [BACKUP_WINDOW_DAYS
 
 12.1 If Nowa learns of a breach affecting the Doctor's patient data, it tells the Doctor within 24 hours of learning of it. It shares what it knows at that time: the nature of the breach, the data affected and roughly how much, and the steps taken.
 
-12.2 Nowa reports the breach to the Center within 72 hours of learning of it, in coordination with the Doctor. Affected patients are told within 3 working days of the report to the Center. Nowa sends that notice by SMS unless both parties agree otherwise.
+12.2 Nowa reports the breach to the Center within 72 hours of learning of it, in coordination with the Doctor. Affected patients are told within 3 working days of the report to the Center. Nowa sends that notice through Telegram unless both parties agree otherwise.
 
 12.3 Nowa records every breach and the steps taken in response.
 
@@ -447,7 +445,7 @@ Database backups are kept only for a short rolling window of [BACKUP_WINDOW_DAYS
 
 15.3 **Each party carries its own legal duties.** Each party is responsible for its own obligations under the Law. A fine or penalty the Law imposes on one party is not borne by the other.
 
-15.4 **What Nowa does not promise:** that the expected time is accurate to the minute, that every SMS arrives, that triage catches every serious case, or that the service is never interrupted. Nowa is not liable for a delay or outage caused by force majeure, by a failure at a telecom carrier or provider that Nowa could not have avoided, or by wrong data the Doctor entered.
+15.4 **What Nowa does not promise:** that the expected time is accurate to the minute, that every Telegram message arrives, that triage catches every serious case, or that the service is never interrupted. Nowa is not liable for a delay or outage caused by force majeure, by a failure at Telegram or another provider that Nowa could not have avoided, or by wrong data the Doctor entered.
 
 15.5 **Cap:** except in cases of fraud or gross fault, Nowa's total liability to the Doctor for breaching this agreement is limited to the greater of (a) what the Doctor paid Nowa in the 12 months before the event and (b) EGP [LIABILITY_CAP_EGP]. It does not cover lost profit or indirect loss. The same cap applies to the Doctor's liability to Nowa.
 

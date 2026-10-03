@@ -83,15 +83,17 @@ def test_preview_and_normal_gets_do_not_write(engine, page, monkeypatch, ua, met
     assert before == [rows(engine, t) for t in tables]
 
 
-def test_sms_tap_undo_retap_and_silent_golden(engine, page, monkeypatch):
+def test_telegram_tap_undo_retap_and_silent_golden(engine, page, monkeypatch):
     leave(engine, page, monkeypatch)
     client, cid, eid, clock, ids, code = page
-    sms = next(m for m in messages(engine, "2") if m["booking_id"] == ids[0])
-    assert f"/w/{code}" in sms["body"]
+    telegram_message = next(m for m in messages(engine, "2") if m["booking_id"] == ids[0])
+    assert f"/w/{code}" in telegram_message["body"]
     # The static script calls requestSubmit on the real POST form, including hidden fields.
     script = (ROOT / "nowa/web/static/omw.js").read_text()
     assert 'getElementById("omw")' in script and "requestSubmit" in script
-    opened = client.get(urlsplit(next(word for word in sms["body"].split() if "/w/" in word)).path)
+    opened = client.get(
+        urlsplit(next(word for word in telegram_message["body"].split() if "/w/" in word)).path
+    )
     assert 'id="omw" method="post"' in opened.text and "<noscript>" in opened.text
     data = fields(opened, "/tap")
     assert set(data) == {"tap_token", "exp"}

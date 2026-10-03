@@ -4,17 +4,20 @@ import hashlib
 import re
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from nowa import schema as s
+from nowa.app import create_app
 from nowa.config import get_settings
-from nowa.core import auth, signup, telegram_tokens, timing
+from nowa.core import auth, ratelimit, signup, telegram_tokens, timing
 from nowa.db import write_tx
 from nowa.messaging.outbox import enqueue_message
 from nowa.telegram import linking
 from nowa.telegram.router import Router
+from nowa.web.strings import text
 from tests.telegram.support import contact, message, payload
-from tests.web.support import rows
+from tests.web.support import ORIGIN, rows
 
 
 def patient_claim(bot, engine):
@@ -240,3 +243,62 @@ def test_new_reset_invalidates_old_claim_and_rate_limits_survive(bot, engine):
     router.handle_update(message(512, 701, "/start " + payload(requests[-1].telegram_url)))
     router.handle_update(contact(513, 701, phone))
     assert len(rows(engine, s.telegram_links)) == 1
+
+
+@pytest.mark.parametrize("case", ["unknown", "linked", "unlinked", "phone_cap", "ip_cap"])
+def test_reset_http_urls_hide_registration_and_only_real_claim_is_accepted(bot, engine, case):
+    router, cid, _, did, clock, _, fake = bot
+    get_settings().telegram_bot_username = "fictional_bot"
+    phone = next(r for r in rows(engine, s.doctors) if r["id"] == did)["mobile_e164"]
+    if case == "unknown":
+        phone = "+201000000777"
+    if case == "linked":
+        with write_tx(engine) as conn:
+            conn.execute(
+                s.telegram_links.insert().values(
+                    phone_e164=phone,
+                    kind="doctor",
+                    telegram_chat_id="701",
+                    linked_at=clock.now(cid),
+                )
+            )
+    if case == "phone_cap":
+        for _ in range(3):
+            assert auth.request_reset(engine, clock, phone, "preparation-ip").allowed
+    if case == "ip_cap":
+        with write_tx(engine) as conn:
+            for _ in range(20):
+                assert ratelimit.hit(conn, clock, "doctor_reset_ip", "testclient", 900, 20)
+    before = {table.name: rows(engine, table) for table in (s.link_tokens, s.telegram_pending)}
+    with TestClient(create_app(engine, clock=clock), base_url="http://127.0.0.1:8000") as client:
+        response = client.post("/d/reset/request", json={"mobile": phone}, headers=ORIGIN)
+    assert response.status_code == (429 if case == "ip_cap" else 200)
+    data = response.json()
+    assert set(data) == {"ok", "telegram_url"} and data["ok"] is True
+    url = data["telegram_url"]
+    assert isinstance(url, str)
+    assert re.fullmatch(r"https://t\.me/fictional_bot\?start=r_[A-Za-z0-9_-]{43}", url)
+    real_claim = case == "unlinked"
+    if not real_claim:
+        assert before == {
+            table.name: rows(engine, table) for table in (s.link_tokens, s.telegram_pending)
+        }
+    links_before = rows(engine, s.telegram_links)
+    codes_before = rows(engine, s.auth_codes)
+    messages_before = rows(engine, s.outbox)
+    # Probe from a fresh chat, so an existing doctor's role cannot mask a bad link.
+    router.handle_update(message(600, 702, "/start " + payload(url)))
+    assert rows(engine, s.telegram_links) == links_before
+    if real_claim:
+        assert fake.calls[-1][1]["reply_markup"]["keyboard"][0][0]["request_contact"] is True
+    else:
+        assert fake.calls[-1][1]["text"] == text("tg.bad_link", "ar")
+    router.handle_update(contact(601, 702, phone))
+    if real_claim:
+        assert rows(engine, s.telegram_links)[0]["telegram_chat_id"] == "702"
+        assert rows(engine, s.link_tokens)[0]["used_at"] is not None
+        assert any(r["template_id"] == "op:reset_code" for r in rows(engine, s.outbox))
+    else:
+        assert rows(engine, s.telegram_links) == links_before
+        assert rows(engine, s.auth_codes) == codes_before
+        assert rows(engine, s.outbox) == messages_before
