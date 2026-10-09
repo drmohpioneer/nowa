@@ -4,9 +4,9 @@
 
 Nowa is a waiting-room agent for private clinics in Egypt. A patient books a day and gets a queue number. The doctor taps **on my way** once, and **who comes in** after each visit. Nowa tells every patient, on Telegram, the minute to leave home.
 
-[![Watch the film (2:10)](docs/img/film.jpg)](https://youtu.be/rMhVKCo48XA)
+[![Watch the film (1:52)](docs/img/film.jpg)](https://youtu.be/BlQTaAZSkW8)
 
-**Watch the film (2:10):** https://youtu.be/rMhVKCo48XA
+**Watch the film (1:52):** https://youtu.be/BlQTaAZSkW8
 **Impact slides:** [docs/submission/nowa-impact-slides.pdf](docs/submission/nowa-impact-slides.pdf)
 
 ## The problem
