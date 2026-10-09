@@ -83,7 +83,8 @@ def accept(engine, clock, req):
 
 
 @pytest.mark.parametrize(
-    "raw", ["01000000005", "+201000000005", "00201000000005", "010 0000 0005", "010-0000-0005"]
+    "raw", ["01000000005", "+201000000005", "00201000000005", "010 0000 0005", "010-0000-0005",
+            "٠١٠٠٠٠٠٠٠٠٥"]
 )
 def test_phone_normalization(raw):
     assert normalize_phone(raw) == "+201000000005"
@@ -91,7 +92,7 @@ def test_phone_normalization(raw):
 
 @pytest.mark.parametrize(
     "raw",
-    ["0212345678", "0101", "+201300000005", "0100000000x", "٠١٠٠٠٠٠٠٠٠٥", "010/00000005", None],
+    ["0212345678", "0101", "+201300000005", "0100000000x", "٠١٠٠٠٠٠٠٠٥", "010/00000005", None],
 )
 def test_bad_phone(raw):
     assert normalize_phone(raw) is None
@@ -133,18 +134,18 @@ def test_normalized_identity():
 
 def test_time_limit_cancel_and_queue_number(engine, booked_clinic):
     clinic, clock = booked_clinic
-    accepted = [accept(engine, clock, request(clinic, i)) for i in range(1, 18)]
-    assert [r.queue_number for r in accepted] == list(range(1, 18))
+    accepted = [accept(engine, clock, request(clinic, i)) for i in range(1, 19)]
+    assert [r.queue_number for r in accepted] == list(range(1, 19))
     assert [r.expected_shown.astimezone(CAIRO).strftime("%H:%M") for r in accepted] == [
-        f"{19 + (i * 15) // 60:02d}:{(i * 15) % 60:02d}" for i in range(17)
+        f"{19 + (i * 15) // 60:02d}:{(i * 15) % 60:02d}" for i in range(18)
     ]
-    assert book(engine, clock, request(clinic, 18)) == BookingRefused("full", THURSDAY)
+    assert book(engine, clock, request(clinic, 19)) == BookingRefused("full", THURSDAY)
     assert isinstance(
         cancel(engine, clock, accepted[0].link_code, "0001", "cancel-1"), CancelResult
     )
     fresh = accept(engine, clock, request(clinic, 1, idempotency_key="rebook"))
-    assert fresh.queue_number == 18
-    assert fresh.expected_shown.astimezone(CAIRO).hour == 23
+    assert fresh.queue_number == 19
+    assert fresh.expected_shown.astimezone(CAIRO).strftime("%H:%M") == "23:15"
 
 
 def test_maximum_and_cutoff(engine):
@@ -282,8 +283,8 @@ def test_idempotency_codes_and_privacy(engine, booked_clinic):
         cancel(engine, clock, first.link_code, "0001", req.idempotency_key)
     other = accept(engine, clock, request(clinic, 2, patient_name="Private Name", lang="en"))
     view = booking_view(engine, first.link_code)
-    assert view.patient_first_name == "احمد"
-    assert view.doctor_name == "هشام مصطفى"
+    assert view.patient_first_name == "أحمد علي"
+    assert view.doctor_name == "د. هشام مصطفى"
     assert set(asdict(view)) == {
         "booking_id",
         "clinic_id",
@@ -303,7 +304,7 @@ def test_idempotency_codes_and_privacy(engine, booked_clinic):
         "clinic_lng",
     }
     assert "Private" not in str(asdict(view))
-    assert booking_view(engine, other.link_code).doctor_name == "Hesham Mostafa"
+    assert booking_view(engine, other.link_code).doctor_name == "Dr. Hesham Mostafa"
     assert booking_view(engine, "unknown") is None
 
 
@@ -512,7 +513,7 @@ def test_running_evening_and_walkin_waiting_only(engine, booked_clinic):
 
 def concurrent_last_place(engine, limit):
     clinic, clock = setup(engine, maximum=2 if limit == "max" else None)
-    fill = 1 if limit == "max" else 16
+    fill = 1 if limit == "max" else 17
     for i in range(1, fill + 1):
         accept(engine, clock, request(clinic, i))
     barrier = Barrier(2)
@@ -629,3 +630,30 @@ def test_replay_preserves_original_result_after_time_changes(engine, booked_clin
             .values(expected_shown=datetime(2026, 10, 6, 21, tzinfo=CAIRO))
         )
     assert accept(engine, clock, req) == replace(original, link_code=None, repeated=True)
+
+
+@pytest.mark.parametrize(
+    "raw,shown",
+    [
+        ("  mohamed   mostafa ", "Mohamed Mostafa"),
+        ("kARIM mAHMOUD", "Karim Mahmoud"),
+        ("فاطمة مصطفى", "فاطمة مصطفى"),
+        ("أَميرة  محمود", "أَميرة محمود"),
+    ],
+)
+def test_display_name(raw, shown):
+    from nowa.core.booking import display_name
+
+    assert display_name(raw) == shown
+
+
+def test_stored_display_name_and_normalized_matching(engine, booked_clinic):
+    cid, clock = booked_clinic
+    accept(engine, clock, request(cid, patient_name="mohamed mostafa"))
+    accept(
+        engine,
+        clock,
+        request(cid, patient_name="MOHAMED MOSTAFA", date=THURSDAY, idempotency_key="second-date"),
+    )
+    with engine.connect() as conn:
+        assert conn.execute(select(s.patients.c.name)).scalars().all() == ["Mohamed Mostafa"]

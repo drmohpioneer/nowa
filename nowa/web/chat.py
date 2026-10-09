@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse
-from pydantic import Field, ValidationError
+from pydantic import Field, ValidationError, field_validator
 from sqlalchemy import select
 
 from nowa import schema as s
@@ -13,10 +13,13 @@ from nowa.ai.conversation import handle_turn
 from nowa.ai.schema import ChatResponse, HistoryTurn, StrictModel
 from nowa.ai.sessions import create_session, load_clinic
 from nowa.config import get_settings
+from nowa.core.display import patient_display_name
+from nowa.core.text_norm import western_digits
+from nowa.demo.evening_script import PATIENTS
 from nowa.demo.public import buttons_only, identity
 from nowa.web.logging import PRIVATE_HEADERS
-from nowa.web.request import client_ip
-from nowa.web.strings import DEMO_TEXTS, STRINGS
+from nowa.web.request import client_ip, page_language
+from nowa.web.strings import DEMO_TEXTS, STRINGS, doctor_label
 from nowa.web.templates import environment
 
 router = APIRouter(prefix="/c/{slug}")
@@ -33,7 +36,7 @@ class TurnRequest(SessionRequest):
 
 
 class TapRequest(SessionRequest):
-    action: Literal["book_day", "consent", "area", "lookup", "none"]
+    action: Literal["confirm", "set_area", "set_for", "more_days", "book", "lookup", "none"]
     payload: dict[str, Any]
 
 
@@ -44,6 +47,11 @@ class ConsentRequest(SessionRequest):
 class LookupRequest(SessionRequest):
     name: str = Field(min_length=1, max_length=60)
     last4: str = Field(pattern=r"^[0-9]{4}$")
+
+    @field_validator("last4", mode="before")
+    @classmethod
+    def normalize_last4(cls, value: Any) -> Any:
+        return western_digits(value) if isinstance(value, str) else value
 
 
 def clinic_for(request: Request, slug: str) -> dict[str, Any]:
@@ -63,24 +71,43 @@ def clinic_for(request: Request, slug: str) -> dict[str, Any]:
 @router.get("", response_class=HTMLResponse)
 def page(request: Request, slug: str) -> HTMLResponse:
     clinic = clinic_for(request, slug)
+    lang = page_language(request)
     with request.app.state.engine.connect() as conn:
-        doctor = conn.execute(
-            select(s.doctors.c.name_ar).where(s.doctors.c.clinic_id == clinic["id"])
-        ).scalar_one()
+        doctor = (
+            conn.execute(select(s.doctors).where(s.doctors.c.clinic_id == clinic["id"]))
+            .mappings()
+            .one()
+        )
         buttons = faq(conn, clinic["id"])
-        areas = [dict(r) for r in conn.execute(select(s.areas)).mappings()]
+        areas = [
+            dict(r)
+            for r in conn.execute(
+                select(s.areas.c.id, s.areas.c.lat, s.areas.c.lng).order_by(s.areas.c.id)
+            ).mappings()
+        ]
     source = (Path(__file__).parent / "static/chat.html").read_text()
     return HTMLResponse(
         environment.from_string(source).render(
             buttons_only=buttons_only(clinic),
             drawn_phone=bool(get_settings().demo_mode or clinic["is_sandbox"]),
-            demo_strings={k: v[0] for k, v in DEMO_TEXTS.items()},
-            greeting=ui("greeting", "ar", name=doctor),
-            doctor_name=doctor,
+            lang=lang,
+            from_demo=request.query_params.get("from") == "demo",
+            demo_strings={k: v[0 if lang == "ar" else 1] for k, v in DEMO_TEXTS.items()},
+            greeting=ui("greeting", lang, name=doctor_label(doctor["name_" + lang], lang)),
+            doctor_name=doctor_label(doctor["name_" + lang], lang),
             config={
+                "fictional_names": [
+                    patient_display_name({"name": patient.name, "name_en": patient.name_en}, lang)
+                    for patient in PATIENTS[:3]
+                ],
                 "slug": slug,
+                "lang": lang,
+                "names": {
+                    key: doctor_label(doctor["name_ar" if key == "ar" else "name_en"], key)
+                    for key in ("ar", "en", "franco")
+                },
                 "open_telegram": STRINGS["patient.open_telegram"],
-                "demo_strings": {k: v[0] for k, v in DEMO_TEXTS.items()},
+                "demo_strings": {k: v[0 if lang == "ar" else 1] for k, v in DEMO_TEXTS.items()},
                 "strings": {
                     lang: {
                         key[5:]: texts[lang]
@@ -89,7 +116,10 @@ def page(request: Request, slug: str) -> HTMLResponse:
                     }
                     for lang in ("ar", "en", "franco")
                 },
-                "faq": [b.model_dump() for b in buttons],
+                "faq": [
+                    dict(b.model_dump(), label=ui("faq_" + b.action.payload["faq"], lang))
+                    for b in buttons
+                ],
                 "areas": areas,
             },
         ),
@@ -98,11 +128,27 @@ def page(request: Request, slug: str) -> HTMLResponse:
 
 
 @router.post("/session")
-def new_session(request: Request, slug: str) -> dict[str, str]:
+def new_session(request: Request, response: Response, slug: str) -> dict[str, str]:
     clinic = clinic_for(request, slug)
-    return {
-        "session": create_session(request.app.state.engine, request.app.state.clock, clinic["id"])
-    }
+    cookie = "nowa_chat_" + str(clinic["id"])
+    key = create_session(
+        request.app.state.engine,
+        request.app.state.clock,
+        clinic["id"],
+        previous_key=request.cookies.get(cookie),
+        lang="en" if page_language(request) == "en" else "ar",
+    )
+    # Used solely to clear the old draft on refresh, never to restore identity.
+    response.set_cookie(
+        cookie,
+        key,
+        httponly=True,
+        samesite="strict",
+        secure=request.url.scheme == "https",
+        path=f"/c/{slug}",
+        max_age=86400,
+    )
+    return {"session": key}
 
 
 @router.post("/turn")
@@ -150,14 +196,7 @@ def tap(request: Request, slug: str, body: TapRequest) -> ChatResponse:
 
 @router.post("/consent")
 def consent(request: Request, slug: str, body: ConsentRequest) -> ChatResponse:
-    clinic = clinic_for(request, slug)
-    return actions.consent(
-        clinic["id"],
-        body.session,
-        body.idempotency_key,
-        engine=request.app.state.engine,
-        clock=request.app.state.clock,
-    )
+    raise HTTPException(410)
 
 
 @router.post("/lookup")

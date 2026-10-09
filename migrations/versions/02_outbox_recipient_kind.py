@@ -1,4 +1,4 @@
-"""Persist resolved outbox recipient kind."""
+"""Persist resolved outbox recipient kind ."""
 
 from alembic import op
 from sqlalchemy import Column, String, text

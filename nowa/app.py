@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select
+from sqlalchemy import inspect, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
@@ -16,8 +16,9 @@ from starlette.exceptions import HTTPException
 from nowa import record, worker
 from nowa.clock import ClinicOffsetClock, Clock, SystemClock
 from nowa.config import get_settings
+from nowa.core.sessions_cleanup import purge_stale_drafts
 from nowa.core.signup import load_agreement
-from nowa.db import create_db_engine
+from nowa.db import create_db_engine, write_tx
 from nowa.schema import clinics
 from nowa.telegram import poller
 from nowa.telegram.api import BotAPI
@@ -38,6 +39,7 @@ from nowa.web.patient_link import (
     validation_error,
 )
 from nowa.web.patient_link import router as patient_router
+from nowa.web.privacy import router as privacy_router
 from nowa.web.signup import router as signup_router
 from nowa.web.telegram_webhook import router as telegram_webhook_router
 
@@ -59,6 +61,11 @@ def create_app(
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.clock = app_clock
         record.configure(app.state.clock)
+        if settings.demo_mode:
+            with write_tx(db_engine) as conn:
+                # An unmigrated demo must still start so /health can report 503.
+                if inspect(conn).has_table("chat_sessions"):
+                    purge_stale_drafts(conn, app_clock)
         app.state.telegram_router = configure_telegram(db_engine, app_clock)
         if not settings.ai_rates_json:
             logging.getLogger(__name__).warning("AI_RATES_JSON is empty; AI estimated cost is 0")
@@ -102,6 +109,7 @@ def create_app(
     app.state.engine = db_engine
     app.state.agreement = load_agreement()
     app.include_router(front_router)
+    app.include_router(privacy_router)
     # The accepted front page discovers the watch entry among direct route paths.
     app.add_api_route("/demo/evening", demo_page, methods=["GET"])
     app.include_router(demo_router)

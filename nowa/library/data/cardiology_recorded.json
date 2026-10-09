@@ -4,11 +4,10 @@
     "lang": "ar",
     "must_end_with": null,
     "must_contain": null,
-    "answer": "بشكل عام، لو كنت محتاج أدوية لخفض ضغط الدم، فالأرجح أنك ستحتاج لتناولها طوال حياتك، وتحديد مدة العلاج الخاصة بك يرجع لطبيبك. توضح المصادر: \"If you need blood pressure-lowering medicines, you'll probably need to take them for the rest of your life.\" وحتى لو نجح الدواء في خفض الضغط، الأفضل الاستمرار فيه لأن وقفه قد يرفعه مجددًا. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+    "answer": "أدوية الضغط غالبًا بتتاخد لفترة طويلة، وممكن طول العمر. مدة علاجك أنت يحددها دكتورك حسب حالتك، وما توقفش الدوا من نفسك.",
     "source_url": "https://www.nhs.uk/medicines/ramipril/common-questions-about-ramipril/",
     "source_title": "Common questions about ramipril - NHS > Common questions about ramipril - Brand name: Tritace",
-    "supporting_sentence": "If you need blood pressure-lowering medicines, you'll probably need to take them for the rest of your life.",
-    "why": "Provides general NHS information about how long blood pressure-lowering medicines are usually needed.",
+    "why": "المصدر بيوضح إن أدوية الضغط غالبًا بتستمر طول العمر.",
     "model": "gemini-3.8-flash",
     "library_version": "80dd119d5e94853d989456e159a6aaa4f58f60b94149af6f4f2c805f108afc6d",
     "passage_keys": [
@@ -26,18 +25,18 @@
       "5de7598635a7ee5ea18374d76fde630b6d50dfe76a740e9de22fa7943ed1516a"
     ],
     "commit": "local",
-    "recorded_at": "2026-10-01T02:04:58.669225+03:00"
+    "recorded_at": "2026-10-01T02:04:58.669225+03:00",
+    "evidence": "If you need blood pressure-lowering medicines, you'll probably need to take them for the rest of your life."
   },
   {
     "question": "الضغط ١٤٠ على ٩٠ ده خطر؟",
     "lang": "ar",
     "must_end_with": null,
     "must_contain": null,
-    "answer": "بشكل عام، تعتبر القراءة 140/90 ضغط دم مرتفع، فبحسب الإرشادات: \"You're usually considered to have high blood pressure if your reading is: 140/90 or higher when checked by a healthcare professional 135/85 or higher when checked at home\". ارتفاع ضغط الدم إذا لم يُعالج قد يشكل خطرًا ويزيد من احتمالية الإصابة بأمراض القلب والنوبات القلبية والسكتات الدماغية، لذا يجب استشارة الطبيب لتقييم حالتك بدقة. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+    "answer": "قراءة الضغط ١٤٠ على ٩٠ أو أعلى في العيادة بتعتبر عادةً ضغط عالي، وفي البيت الحد ١٣٥ على ٨٥. متابعة القياسات مع دكتورك بتساعده يقيّم حالتك.",
     "source_url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/",
     "source_title": "High blood pressure - NHS > What your blood pressure reading means / Check your blood pressure reading",
-    "supporting_sentence": "You're usually considered to have high blood pressure if your reading is: 140/90 or higher when checked by a healthcare professional 135/85 or higher when checked at home",
-    "why": "Provides general NHS definitions and context regarding a blood pressure reading of 140/90 and its risks without diagnosing the patient.",
+    "why": "المصدر بيوضح حدود قراءة الضغط في العيادة وفي البيت.",
     "model": "gemini-3.8-flash",
     "library_version": "80dd119d5e94853d989456e159a6aaa4f58f60b94149af6f4f2c805f108afc6d",
     "passage_keys": [
@@ -55,18 +54,18 @@
       "810860a66c01dc0fde246d8918b1832da7dc16194078dd2ce6d88a9f014ab2c0"
     ],
     "commit": "local",
-    "recorded_at": "2026-10-01T02:05:01.690082+03:00"
+    "recorded_at": "2026-10-01T02:05:01.690082+03:00",
+    "evidence": "You're usually considered to have high blood pressure if your reading is: 140/90 or higher when checked by a healthcare professional 135/85 or higher when checked at home"
   },
   {
     "question": "ينفع أوقف دوا السيولة قبل ما أخلع ضرس؟",
     "lang": "ar",
     "must_end_with": "اسأل دكتورك قبل ما توقف أي دوا.",
     "must_contain": null,
-    "answer": "إذا كنت تتناول دواء سيولة مثل الوارفارين، يجب عليك إظهار بطاقة تنبيه مضادات التخثر لطبيبك أو طبيب الأسنان قبل إجراء أي إجراءات طبية أو خاصة بالأسنان: \"Show it to your doctor or dentist before you have any medical or dental procedures.\" Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/). اسأل دكتورك قبل ما توقف أي دوا.",
+    "answer": "لو بتاخد وارفارين، ورّي بطاقة تنبيه مضادات التجلط لدكتورك أو دكتور الأسنان قبل أي إجراء طبي أو خلع ضرس. اسأل دكتورك قبل ما توقف أي دوا.",
     "source_url": "https://www.nhs.uk/medicines/warfarin/",
     "source_title": "Warfarin: medicine used to prevent and treat blood clots - NHS > Urgent advice: Call NHS 111 if: / Important",
-    "supporting_sentence": "Show it to your doctor or dentist before you have any medical or dental procedures.",
-    "why": "Explains that dental procedures require notifying the dentist/doctor and includes required mandatory rules.",
+    "why": "المصدر بينصح بإبلاغ الطبيب أو طبيب الأسنان قبل الإجراءات.",
     "model": "gemini-3.8-flash",
     "library_version": "80dd119d5e94853d989456e159a6aaa4f58f60b94149af6f4f2c805f108afc6d",
     "passage_keys": [
@@ -81,18 +80,18 @@
       "62333d564969311430b377d7f1db802978b78dab2ab809a901c8e45e1a87182d"
     ],
     "commit": "local",
-    "recorded_at": "2026-10-01T02:05:04.261197+03:00"
+    "recorded_at": "2026-10-01T02:05:04.261197+03:00",
+    "evidence": "Show it to your doctor or dentist before you have any medical or dental procedures."
   },
   {
     "question": "إيه الفرق بين رسم القلب والإيكو؟",
     "lang": "ar",
     "must_end_with": null,
     "must_contain": null,
-    "answer": "رسم القلب بيسجل النشاط الكهربائي للقلب، بينما الإيكو بيعمل صور متحركة للقلب باستخدام الموجات الصوتية. يوضح المصدر: \"Echocardiography, or echo, is a painless test that uses sound waves to create moving pictures of your heart.\" رسم القلب بيكتشف سرعة وانتظام ضربات القلب، والإيكو بيوضح حجم القلب وشكله وكفاءة عمل غرفه وصماماته. Source: MedlinePlus, National Library of Medicine.",
+    "answer": "رسم القلب بيسجل النشاط الكهربائي للقلب، والإيكو بيستخدم الموجات الصوتية عشان يعمل صور متحركة للقلب. كل فحص بيوضح معلومات مختلفة للدكتور.",
     "source_url": "https://medlineplus.gov/hearthealthtests.html",
     "source_title": "Heart Health Tests: MedlinePlus > Echocardiography",
-    "supporting_sentence": "Echocardiography, or echo, is a painless test that uses sound waves to create moving pictures of your heart.",
-    "why": "Explains the core difference between ECG and echocardiography using MedlinePlus passages.",
+    "why": "المصدر بيوضح إن الإيكو بيعمل صور متحركة للقلب بالموجات الصوتية.",
     "model": "gemini-3.8-flash",
     "library_version": "80dd119d5e94853d989456e159a6aaa4f58f60b94149af6f4f2c805f108afc6d",
     "passage_keys": [
@@ -110,18 +109,18 @@
       "1bc6cc1bec73f3f3acb4ac43d975f8f7b61a9eb198054f53c8d1551f5ae1f65c"
     ],
     "commit": "local",
-    "recorded_at": "2026-10-01T02:05:06.684522+03:00"
+    "recorded_at": "2026-10-01T02:05:06.684522+03:00",
+    "evidence": "Echocardiography, or echo, is a painless test that uses sound waves to create moving pictures of your heart."
   },
   {
     "question": "بحس بخفقان، ده طبيعي ولا لازم أقلق؟",
     "lang": "ar",
     "must_end_with": null,
     "must_contain": "لو حسيت بألم في الصدر أو إغماء اتصل بـ 123 فورًا.",
-    "answer": "خفقان القلب شائع وغالبًا ما يكون غير خطير، كما يوضح المصدر: \"Heart palpitations are common and not usually a sign of anything serious.\" لكن استشر الطبيب لو تكرر، استمر لأكثر من دقائق، أو كان لديك تاريخ مرضي بالقلب. لو حسيت بألم في الصدر أو إغماء اتصل بـ 123 فورًا. Information from the NHS website, licensed under the OGL v3.0 (https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).",
+    "answer": "الخفقان شائع وغالبًا مش علامة على حاجة خطيرة، لكن لو بيتكرر أو بيزيد راجع دكتورك. لو حسيت بألم في الصدر أو إغماء اتصل بـ 123 فورًا.",
     "source_url": "https://www.nhs.uk/conditions/heart-palpitations/",
     "source_title": "Heart palpitations\n - NHS > Causes of heart palpitations",
-    "supporting_sentence": "Heart palpitations are common and not usually a sign of anything serious.",
-    "why": "Explains whether palpitations are normal or a concern and includes the mandated emergency warning.",
+    "why": "المصدر بيوضح إن الخفقان شائع وغالبًا مش خطير.",
     "model": "gemini-3.8-flash",
     "library_version": "80dd119d5e94853d989456e159a6aaa4f58f60b94149af6f4f2c805f108afc6d",
     "passage_keys": [
@@ -139,6 +138,7 @@
       "2dfaad1016eed42f75beebb15a2c90909c90c544b00b3c4882747d43a225667c"
     ],
     "commit": "local",
-    "recorded_at": "2026-10-01T02:05:09.714856+03:00"
+    "recorded_at": "2026-10-01T02:05:09.714856+03:00",
+    "evidence": "Heart palpitations are common and not usually a sign of anything serious."
   }
 ]

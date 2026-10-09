@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 from urllib.parse import unquote, urlsplit
 
-from pydantic import Field, SecretStr, ValidationError
+from pydantic import Field, SecretStr, ValidationError, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import IntegrityError
@@ -20,7 +20,8 @@ from nowa import schema as s
 from nowa.clock import Clock
 from nowa.config import get_settings
 from nowa.core import auth, booking, ratelimit, telegram_tokens
-from nowa.core.clinic_settings import Hours
+from nowa.core.clinic_settings import Hours, numeric_input
+from nowa.core.text_norm import western_digits
 from nowa.core.timers import schedule_timer
 from nowa.db import write_tx
 from nowa.messaging.outbox import enqueue_message
@@ -29,20 +30,70 @@ from nowa.triage.registry import APPROVED_SPECIALTIES
 RESERVED = frozenset("d c l w p api static signup judge demo relay health _nowa".split())
 
 
+AGREEMENT_DEFAULTS: dict[str, tuple[str, str]] = {
+    "COMPANY_NAME": ("نوا، نسخة تجريبية", "Nowa, demo"),
+    "COMPANY_ADDRESS": ("القاهرة", "Cairo"),
+    "COMMERCIAL_REGISTER_NUMBER": ("تجريبي", "Demo"),
+    "PRIVACY_EMAIL": ("يتحدد عند التعاقد", "Set at contracting"),
+    "DPO_NAME": ("نوا، نسخة تجريبية", "Nowa, demo"),
+    "RENDER_REGION": ("القاهرة", "Cairo"),
+    "BACKUP_WINDOW_DAYS": ("30", "30"),
+    "PILOT_END_DATE": ("نهاية فترة التجربة", "End of the demo period"),
+    "LIABILITY_CAP_EGP": ("0", "0"),
+    "NOTICE_DAYS": ("30", "30"),
+}
+
+
 @dataclass(frozen=True)
 class Agreement:
-    text: str
     version: str
-    text_hash: str
+    display: dict[str, str]
+    text_hash: dict[str, str]
+    unfilled: tuple[str, ...] = ()
 
 
 def load_agreement() -> Agreement:
     path = Path(__file__).resolve().parents[2] / "docs/reference/doctor-agreement.md"
-    text = path.read_text(encoding="utf-8")
-    match = re.search(r"^Version:\s*(\S+)", text, re.MULTILINE)
+    source = path.read_text(encoding="utf-8")
+    match = re.search(r"^Version:\s*(\S+)", source, re.MULTILINE)
     if match is None:
         raise ValueError("Doctor agreement has no version")
-    return Agreement(text, match[1], hashlib.sha256(text.encode()).hexdigest())
+    settings = get_settings()
+    placeholders = set(re.findall(r"\[([A-Z][A-Z0-9_]*)\]", source))
+    unknown = placeholders - AGREEMENT_DEFAULTS.keys()
+    if unknown:
+        raise ValueError("Unknown agreement placeholder: " + ", ".join(sorted(unknown)))
+    unfilled = tuple(
+        sorted(
+            key
+            for key in placeholders
+            if not getattr(settings, "agreement_party_" + key.lower()).strip()
+        )
+    )
+    display: dict[str, str] = {}
+    for lang, index in (("ar", 0), ("en", 1)):
+        section = re.search(
+            rf"<!-- display:{lang} -->\s*(.*?)\s*<!-- /display -->", source, re.DOTALL
+        )
+        if section is None:
+            raise ValueError("Doctor agreement has no display text for " + lang)
+        text = section[1]
+        for key, defaults in AGREEMENT_DEFAULTS.items():
+            value = getattr(settings, "agreement_party_" + key.lower()).strip()
+            if not value:
+                value = (
+                    defaults[index]
+                    if settings.demo_mode
+                    else ("[يُحدد عند التعاقد]" if lang == "ar" else "[set at signing]")
+                )
+            text = text.replace("[" + key + "]", value)
+        display[lang] = text
+    return Agreement(
+        match[1],
+        display,
+        {lang: hashlib.sha256(text.encode()).hexdigest() for lang, text in display.items()},
+        unfilled,
+    )
 
 
 class Refused(Exception):
@@ -58,9 +109,7 @@ def system_id(conn: Connection) -> int:
 def real_ready(agreement: Agreement) -> None:
     settings = get_settings()
     if not settings.demo_mode and (
-        not settings.telegram_bot_token
-        or not settings.telegram_bot_username
-        or re.search(r"\[[A-Z][A-Z0-9_]*\]", agreement.text)
+        not settings.telegram_bot_token or not settings.telegram_bot_username or agreement.unfilled
     ):
         raise Refused("not open yet", 503)
 
@@ -100,7 +149,7 @@ def request_code(
         if not ratelimit.hit(conn, clock, "signup_code_ip", ip, 3600, 10):
             return CodeResult(False)
         if phone is None:
-            return CodeResult(True)
+            raise Refused("invalid_mobile", 422)
         phone_key = auth.keyed_hash(phone)
         if not ratelimit.hit(conn, clock, "signup_code_phone", phone_key, 3600, 3):
             return CodeResult(False)
@@ -211,7 +260,7 @@ def verify_code(engine: Engine, clock: Clock, mobile: str, code: str) -> str | N
             .values(attempts=s.auth_codes.c.attempts + 1)
         )
         if changed.rowcount != 1 or not hmac.compare_digest(
-            row["code_hash"], auth.keyed_hash(code)
+            row["code_hash"], auth.keyed_hash(western_digits(code))
         ):
             return None
         conn.execute(
@@ -255,6 +304,7 @@ class Complete(Hours):
     name_en: Annotated[str, Field(min_length=2, max_length=60)]
     specialty: str
     address: Annotated[str, Field(min_length=1, max_length=500)]
+    address_en: Annotated[str, Field(max_length=500)] = ""
     lat: Annotated[float | None, Field(allow_inf_nan=False)] = None
     lng: Annotated[float | None, Field(allow_inf_nan=False)] = None
     pin_kind: Literal["here", "link", "area"]
@@ -266,6 +316,19 @@ class Complete(Hours):
     agreement_version: str
     agree: Annotated[bool, Field(strict=True)]
     idempotency_key: Annotated[str, Field(min_length=1, max_length=200)]
+
+    @field_validator("price_egp", "area_id", mode="before")
+    @classmethod
+    def digits(cls, value: Any) -> Any:
+        return numeric_input(value)
+
+    @field_validator("name_ar", "name_en", "address", "address_en")
+    @classmethod
+    def meaningful(cls, value: str, info: Any) -> str:
+        value = value.strip()
+        if not value and info.field_name != "address_en":
+            raise ValueError("text_required")
+        return value
 
 
 def coordinates(conn: Connection, body: Complete) -> tuple[float, float]:
@@ -311,11 +374,24 @@ def coordinates(conn: Connection, body: Complete) -> tuple[float, float]:
     return float(lat), float(lng)
 
 
+def strip_honorific(raw: str) -> str:
+    # Longest prefixes first; accepted with or without a following space.
+    return re.sub(r"^(?:Doctor|Dr\.?|الدكتور|دكتور|د\.?)\s*", "", raw.strip(), flags=re.I)
+
+
 def slug_for(conn: Connection, name: str) -> str:
     stem = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
     if not stem or stem in RESERVED or name.casefold() in RESERVED:
         raise Refused("invalid_name", 422)
-    base, suffix = "dr-" + stem, 1
+    # Bound the slug without cutting the final word, including long direct callers.
+    words: list[str] = []
+    for word in stem.split("-"):
+        if len("dr-" + "-".join(words + [word])) > 60:
+            break
+        words.append(word)
+    if not words:
+        raise Refused("invalid_name", 422)
+    base, suffix = "dr-" + "-".join(words), 1
     while True:
         slug = base if suffix == 1 else f"{base}-{suffix}"
         if (
@@ -352,8 +428,15 @@ class Completion:
 
 
 def complete(
-    engine: Engine, clock: Clock, agreement: Agreement, payload: dict[str, Any]
+    engine: Engine,
+    clock: Clock,
+    agreement: Agreement,
+    payload: dict[str, Any],
+    *,
+    agreement_lang: str = "ar",
 ) -> Completion:
+    if agreement_lang not in {"ar", "en"}:
+        raise Refused("invalid_language", 422)
     # Validate only after replay; a replay can contain expired tokens or obsolete form fields.
     pid: int | None = None
     judge = False
@@ -443,9 +526,13 @@ def complete(
                 raise Refused()
         if body.specialty not in APPROVED_SPECIALTIES:
             raise Refused("invalid_specialty", 422)
-        if not booking.valid_name(body.name_ar) or not booking.valid_name(body.name_en):
+        name_ar = strip_honorific(body.name_ar)
+        name_en = strip_honorific(body.name_en)
+        if not booking.valid_name(name_ar) or not booking.valid_name(name_en):
             raise Refused("invalid_name", 422)
-        if not body.hours or len(body.password.get_secret_value()) < 8:
+        if not body.hours:
+            raise Refused("no_working_days", 422)
+        if len(body.password.get_secret_value()) < 8:
             raise Refused("invalid_input", 422)
         if not body.agree or body.agreement_version != agreement.version:
             raise Refused("agreement_required", 422)
@@ -453,16 +540,17 @@ def complete(
         clinic_phone = booking.normalize_phone(body.clinic_phone) if body.clinic_phone else phone
         if clinic_phone is None:
             raise Refused("invalid_clinic_phone", 422)
-        slug = slug_for(conn, body.name_en)
+        slug = slug_for(conn, name_en)
         cid = int(
             conn.execute(
                 s.clinics.insert()
                 .values(
                     slug=slug,
                     created_at=now,
-                    name=f"عيادة د. {body.name_ar}",
+                    name=f"عيادة د. {name_ar}",
                     specialty=body.specialty,
                     address=body.address,
+                    address_en=body.address_en or body.address,
                     lat=lat,
                     lng=lng,
                     phone=clinic_phone,
@@ -483,8 +571,8 @@ def complete(
                             s.doctors.insert()
                             .values(
                                 clinic_id=cid,
-                                name_ar=body.name_ar,
-                                name_en=body.name_en,
+                                name_ar=name_ar,
+                                name_en=name_en,
                                 mobile_e164=phone,
                                 password_hash=password_hash,
                                 lang="ar",
@@ -525,14 +613,14 @@ def complete(
                     end=time.fromisoformat(hour.end),
                 )
             )
-        for info_key, info_text in (("price", str(body.price_egp)), ("address", body.address)):
+        for info_key, info_text in (("price", western_digits(str(body.price_egp))),):
             conn.execute(s.clinic_info.insert().values(clinic_id=cid, key=info_key, text=info_text))
         conn.execute(
             s.agreement_acceptances.insert().values(
                 clinic_id=cid,
                 doctor_id=did,
                 version=agreement.version,
-                text_hash=agreement.text_hash,
+                text_hash=agreement.text_hash[agreement_lang],
                 at=now,
             )
         )

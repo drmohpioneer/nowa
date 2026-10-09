@@ -95,6 +95,7 @@ def test_script_population_counts_walkin_in_came(engine):
         chat_seen = sum(state == "seen" for number, state in states.items() if number <= 18)
     assert chat_seen == 16
     assert (derived.booked, derived.came, derived.no_show_count, derived.walk_ins) == (17, 17, 1, 1)
+    assert (derived.seen_booked, derived.cancelled, derived.total_seen) == (16, 1, 17)
     assert derived.came == chat_seen + derived.walk_ins
     assert derived.doctor_arrival == day + timedelta(hours=3, minutes=53)
     print(

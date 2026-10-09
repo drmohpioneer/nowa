@@ -48,15 +48,22 @@ def test_page_language(query, header, expected):
 def test_public_entrances(demo_client, monkeypatch):
     front = BeautifulSoup(demo_client.get("/?lang=ar").text, "html.parser")
     assert not front.find("form")
+    assert len(front.select(".story-card")) == 6
     assert front.select_one('a[href="/demo?lang=ar"]')
     assert front.select_one('a[href="/start?lang=ar"]')
     assert "هنقولك على تليجرام امتى تتحرك" in front.get_text()
     hub = BeautifulSoup(demo_client.get("/demo?lang=en").text, "html.parser")
-    assert len(hub.select(".door")) == 4
-    assert len(hub.select('a[href="/demo/evening?lang=en"]')) == 2
+    assert hub.select_one("#demo-mobile").text == "01000000001"
+    assert hub.select_one("#demo-password").text == get_settings().demo_doctor_password
+    assert len(hub.select(".creds button[data-copy]")) == 2
+    assert not hub.select("a .creds")
+    assert len(hub.select(".door")) == 5
+    assert hub.select_one('a[href="/c/dr-hesham?from=demo&lang=en"]')
+    assert len(hub.select('a[href="/demo/evening?lang=en"]')) == 1
+    assert hub.select_one('a[href="/demo/evening?lang=en#report"]')
     assert hub.select_one('a[href="/d/login?lang=en"]')
     assert hub.select_one('form[action="/demo/book?lang=en"][method="post"]')
-    assert "+201000000001" in hub.get_text()
+    assert "01000000001" in hub.get_text()
     assert (
         demo_client.post("/demo/book", headers={"Origin": "https://foreign.test"}).status_code
         == 403
@@ -66,6 +73,13 @@ def test_public_entrances(demo_client, monkeypatch):
     assert signup.text == demo_client.get("/signup?lang=en").text
     for ident in ("code-form", "verify-form", "complete-form", "signup-phone", "signup-success"):
         assert f'id="{ident}"' in signup.text
+    signup_page = BeautifulSoup(signup.text, "html.parser")
+    from nowa.web.strings import text
+
+    explanation = signup_page.select_one("#why-telegram")
+    assert explanation.text == text("signup.why_telegram", "en")
+    assert explanation.parent["id"] == "verification"
+    assert signup_page.select_one("#code-form").find_next_sibling("small") == explanation
     monkeypatch.setenv("JUDGE_CODES", "")
     get_settings.cache_clear()
     assert demo_client.get("/judge").status_code == 404
@@ -97,7 +111,7 @@ def test_english_static_text_and_arabic_direction(demo_client, monkeypatch, path
     # not the initial English page. Patient identities are permitted runtime data.
     for node in en.select("[hidden],script,style"):
         node.decompose()
-    assert not re.search(r"[\u0600-\u06ff]", en.get_text())
+    assert not re.search(r"[\u0600-\u06ff]", en.get_text().replace("العربية", ""))
     ar = demo_client.get(path + "?lang=ar")
     assert 'lang="ar" dir="rtl"' in ar.text
     assert 'lang="en"' in demo_client.get(path, headers={"Accept-Language": "en-US"}).text
@@ -128,8 +142,18 @@ def test_full_replay_report_and_action_coverage(demo_client, engine, demo_clock)
     with engine.connect() as conn:
         cid, eid = conn.execute(select(s.evenings.c.clinic_id, s.evenings.c.id)).one()
         expected = asdict(build_report(conn, demo_clock, cid, eid))
+    expected["total_seen"] = expected["seen_booked"] + expected["walk_ins"]
     assert payload["report"] == {key: expected[key] for key in payload["report"]}
-    assert set(payload["report"]) == {"booked", "came", "no_show_count", "walk_ins", "avg_wait"}
+    assert set(payload["report"]) == {
+        "booked",
+        "seen_booked",
+        "cancelled",
+        "no_show_count",
+        "no_show_names",
+        "walk_ins",
+        "total_seen",
+        "avg_wait",
+    }
     stages["closed"] = payload
     stages["texts"] = {key: value[1] for key, value in UI_TEXTS.items()}
     rendered = subprocess.run(

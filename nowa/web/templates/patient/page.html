@@ -1,12 +1,14 @@
 <!doctype html>
 <html lang="{{ 'ar' if v.lang == 'ar' else 'en' }}" dir="{{ 'rtl' if v.lang == 'ar' else 'ltr' }}">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t('title') }} · {{ t('brand') }}</title><link rel="stylesheet" href="/static/nowa.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t('title') }} · {{ t('brand') }}</title><link rel="icon" href="/favicon.ico" type="image/svg+xml"><link rel="stylesheet" href="/static/nowa.css"></head>
 <body><main class="page patient"><div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span><span class="pill">{{ day }}</span></div>
-<div class="patient-turn">
-{% if message %}<p class="pill status" role="status">{{ t(message) }}</p>{% endif %}
-{% if v.state == 'told_to_leave' %}<div class="now-card"><span class="k">{{ t('leave_number').format(name=v.patient_first_name) }} <span class="num">{{ v.queue_number }}</span></span><h2>{{ t('leave_now') }}</h2>{% if v.travel_min is defined and v.travel_min is not none %}<p class="sub">{{ t('travel').format(minutes=v.travel_min) }}</p>{% endif %}<div class="bar"><i></i></div></div>
-{% else %}<div class="turn-hero"><p class="k">{{ t('your_turn').format(name=v.patient_first_name) }}</p><div class="qnum num">{{ v.queue_number }}</div><p class="when">{{ t('expected') }} · <span class="num">{{ expected }}</span></p><p class="pill section"><span class="dot {{ 'live' if v.state == 'on_my_way' else '' }}"></span>{{ t(v.state) }}</p></div>{% if v.state == "booked" %}<p class="tg-note">{{ t('v2_note') }}</p>{% endif %}{% endif %}
-{% macro form_fields() %}<input type="hidden" name="form_token" value="{{ form.value }}"><input type="hidden" name="exp" value="{{ form.exp }}"><label class="field"><span>{{ t('last4') }}</span><input name="last4" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" required autocomplete="off"></label>{% endmacro %}
+{% if message and message != "cancelled_done" %}<p class="pill status" role="status">{{ t(message) }}</p>{% endif %}
+{% if v.state == 'cancelled' and mode in ('view','way') %}
+<div class="card" role="status"><p>{{ t('cancelled_done') }}</p><a class="btn btn-main" href="{{ chat_url }}">{{ t('book_again') }}</a></div>
+{% else %}<div class="patient-turn">
+{% if v.state == 'told_to_leave' %}<div class="now-card"><span class="k">{{ t('leave_number').format(name=v.patient_first_name)|isolate }} <span class="num">{{ v.queue_number }}</span></span><h2>{{ t('leave_now') }}</h2>{% if v.travel_min is defined and v.travel_min is not none %}<p class="sub">{{ t('travel').format(minutes=v.travel_min) }}</p>{% endif %}<p id="journey-progress">{{ t('journey_progress') }}</p><div class="bar" role="img" aria-labelledby="journey-progress"><i></i></div></div>
+{% else %}<div class="turn-hero"><p class="k">{{ t('your_turn').format(name=v.patient_first_name)|isolate }}</p><div class="qnum num">{{ v.queue_number }}</div><p class="when">{{ t('expected') }} · <span class="num">{{ expected }}</span></p><p class="pill section"><span class="dot {{ 'live' if v.state == 'on_my_way' else '' }}"></span>{{ t(v.state) }}</p></div>{% if v.state == "booked" %}<p class="tg-note">{{ t('v2_note') }}</p>{% endif %}{% endif %}
+{% macro form_fields(action) %}{% set field_error = message in ("verify_failed", "locked") and error_action == action %}<input type="hidden" name="form_token" value="{{ form.value }}"><input type="hidden" name="exp" value="{{ form.exp }}"><label class="field"><span>{{ t('last4') }}</span><input name="last4" inputmode="numeric" pattern="[0-9٠-٩۰-۹]{4}" minlength="4" maxlength="4" required autocomplete="off"{% if field_error %} aria-invalid="true" aria-describedby="{{ action }}-error"{% endif %}>{% if field_error %}<span class="field-error" id="{{ action }}-error" role="alert">{{ t(message) }}</span>{% endif %}</label>{% endmacro %}
 {% macro tap_fields() %}<input type="hidden" name="tap_token" value="{{ tap.value }}"><input type="hidden" name="exp" value="{{ tap.exp }}">{% endmacro %}
 {% if mode == 'way' %}
   {% if active and v.state == 'told_to_leave' %}
@@ -19,8 +21,8 @@
 {% elif mode in ('change', 'rebook') %}
   {% if (mode == 'change' and active) or (mode == 'rebook' and v.state_reason in ('cancel_tonight', 'close_untold')) %}
     <h2>{{ t('change' if mode == 'change' else 'rebook') }}</h2>
-    {% if days %}<form method="post" action="{{ '/l/' + code + '/change' if mode == 'change' else '/r/' + code }}">{{ form_fields() }}
-    {% for date, label in days %}<button class="btn btn-ghost" name="date" value="{{ date }}">{{ label }}</button>{% endfor %}</form>
+    {% if days %}<form method="post" action="{{ '/l/' + code + '/change' if mode == 'change' else '/r/' + code }}">{{ form_fields(mode) }}
+    {% for date, label in days %}<button class="btn {{ 'btn-main' if date == selected_day else 'btn-ghost' }}" name="date" value="{{ date }}" aria-pressed="{{ 'true' if date == selected_day else 'false' }}">{{ label }}</button>{% endfor %}</form>
     {% else %}<p>{{ t('no_days') }}</p>{% endif %}
   {% else %}<p>{{ t('readonly') }}</p>{% endif %}
 {% elif mode == 'view' %}
@@ -28,22 +30,22 @@
     {% if v.state == 'told_to_leave' %}<a class="btn btn-main" href="/w/{{ code }}">{{ t('tap') }}</a>{% endif %}
 
   {% endif %}
-  {% if telegram %}<form method="post" action="/l/{{ code }}/telegram">{{ form_fields() }}<button class="btn btn-main">{{ t('telegram') }}</button></form>{% endif %}
+  {% if telegram %}<form id="patient-telegram-form" method="post" action="/l/{{ code }}/telegram">{{ form_fields("telegram") }}<button class="btn btn-main">{{ t('telegram') }}</button></form>{% endif %}
 
 {% endif %}
 {% if v.state == 'told_to_leave' %}<p class="note-line">{{ t('tap_help') }}</p>{% endif %}
 </div><div class="patient-details">
 <div class="rows" id="booking-details">
-<div class="row"><span class="muted">{{ t('doctor') }}</span><span>{{ v.doctor_name }}</span></div>
+<div class="row"><span class="muted">{{ t('doctor') }}</span><span>{{ v.doctor_name|isolate }}</span></div>
 {% if v.in_room is defined %}<div class="row"><span class="muted">{{ t('in_room') }}</span><span class="num">{{ v.in_room }}</span></div>{% endif %}
 <div class="row"><span class="muted">{{ t('day') }}</span><span>{{ day }}</span></div>
 <div class="row"><span class="muted">{{ t('expected') }}</span><span class="num">{{ expected }}</span></div>
-<div class="row"><span class="muted">{{ t('address') }}</span><span>{{ v.clinic_address }}</span></div>
+<div class="row"><span class="muted">{{ t('address') }}</span><span>{{ v.clinic_address|isolate }}</span></div>
 <div class="row"><span class="muted">{{ t('phone') }}</span><a class="num ltr" href="tel:{{ v.clinic_phone }}" rel="noopener noreferrer">{{ v.clinic_phone }}</a></div>
 </div>
 <a class="btn btn-ghost" href="{{ map_url }}" rel="noopener noreferrer">{{ t('map') }}</a>
 {% if mode == 'view' and active %}<a class="btn btn-ghost" href="/l/{{ code }}/change">{{ t('change') }}</a>{% endif %}
-{% if mode == 'view' and active %}<details class="section"><summary class="quiet-link">{{ t('cancel') }}</summary>    <form method="post" action="/l/{{ code }}/cancel">{{ form_fields() }}<button class="btn btn-danger">{{ t('cancel') }}</button></form>
+{% if mode == 'view' and active %}<details class="section"{% if error_action == "cancel" and message %} open{% endif %}><summary class="quiet-link">{{ t('cancel') }}</summary>    <form method="post" action="/l/{{ code }}/cancel">{{ form_fields("cancel") }}<button class="btn btn-danger">{{ t('cancel') }}</button></form>
 </details>{% endif %}
 <div class="emg">{{ t('emergency') }}</div></div>
-</main></body></html>
+{% endif %}{% if telegram %}<div id="patient-telegram-card"></div><script id="linking-texts" type="application/json">{{ linking_texts|tojson }}</script><script defer src="/static/telegram-link.js"></script><script defer src="/static/patient-telegram.js"></script>{% endif %}<footer class="legal"><a href="/privacy{{ '?lang=en' if v.lang != 'ar' else '' }}">{{ ui_text('privacy', 'ar' if v.lang == 'ar' else 'en') }}</a></footer></main></body></html>

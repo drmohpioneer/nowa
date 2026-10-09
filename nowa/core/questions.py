@@ -14,8 +14,20 @@ from nowa.db import conflict_insert
 from nowa.messaging.outbox import clinic_lock
 
 
+@dataclass(frozen=True)
+class Asker:
+    patient_id: int | None
+    booking_id: int | None
+    chat_session_id: str
+
+
 def log_question(
-    conn: Connection, clock: Clock, clinic_id: int, raw_text: str, idempotency_key: str
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    raw_text: str,
+    idempotency_key: str,
+    asker: Asker | None = None,
 ) -> None:
     now = clock.now(clinic_id)
     claimed = conn.execute(
@@ -57,6 +69,53 @@ def log_question(
             set_={"count": s.questions.c.count + 1, "status": "open"},
         )
     )
+
+    if asker is not None:
+        if (
+            asker.patient_id is not None
+            and not conn.execute(
+                select(s.patients.c.id).where(
+                    s.patients.c.id == asker.patient_id, s.patients.c.clinic_id == clinic_id
+                )
+            ).first()
+        ):
+            raise ValueError("Asker patient is outside clinic")
+        if (
+            asker.booking_id is not None
+            and not conn.execute(
+                select(s.bookings.c.id).where(
+                    s.bookings.c.id == asker.booking_id,
+                    s.bookings.c.clinic_id == clinic_id,
+                    s.bookings.c.patient_id == asker.patient_id,
+                )
+            ).first()
+        ):
+            raise ValueError("Asker booking does not match patient")
+        question_id: int = conn.execute(
+            select(s.questions.c.id).where(
+                s.questions.c.clinic_id == clinic_id,
+                s.questions.c.evening_id == evening,
+                s.questions.c.text_norm == normalized,
+            )
+        ).scalar_one()
+        conn.execute(
+            conflict_insert(conn, s.question_askers)
+            .values(
+                question_id=question_id,
+                clinic_id=clinic_id,
+                patient_id=asker.patient_id,
+                booking_id=asker.booking_id,
+                chat_session_id=asker.chat_session_id,
+                asked_at=now,
+            )
+            .on_conflict_do_update(
+                index_elements=[
+                    s.question_askers.c.question_id,
+                    s.question_askers.c.chat_session_id,
+                ],
+                set_={"patient_id": asker.patient_id, "booking_id": asker.booking_id},
+            )
+        )
 
 
 # All actions run in the caller's write transaction. The clinic lock serializes
@@ -115,7 +174,7 @@ def act(
             values = dict(status="open", answering_at=clock.now(clinic_id))
             reason = "answer_prompt"
     elif command == "submit_draft":
-        if not isinstance(text, str) or not 1 <= len(text) <= 1000:
+        if not isinstance(text, str) or not 1 <= len(text.strip()) <= 1000:
             return QuestionResult(False, "text_only")
         if question["status"] == "open" and question["answering_at"] is not None:
             values = dict(draft_answer=text)
@@ -145,7 +204,7 @@ def act(
                 values = dict(status="answered", answering_at=None)
                 reason = "saved"
     elif command in {"later", "dismiss"}:
-        if question["status"] == "open":
+        if question["status"] == "open" or (command == "dismiss" and question["status"] == "later"):
             values = dict(status="later" if command == "later" else "dismissed", answering_at=None)
             reason = command
     else:

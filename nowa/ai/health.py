@@ -8,7 +8,7 @@ class Answered:
     source_url: str
     source_title: str
     why: str
-    supporting_sentence: str = ""
+    evidence: str = ""
     model: str = ""
     library_version: str = ""
     usage: list[float] = field(default_factory=list)

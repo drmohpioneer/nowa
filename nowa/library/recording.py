@@ -79,13 +79,13 @@ async def record_questions(
             rejected = answer if isinstance(answer, Answered) else answerer.last_output
             logger.warning(
                 "Refused recording question=%s attempt=%s reason=%s model=%s "
-                "answer=%r supporting_sentence=%r",
+                "answer=%r evidence=%r",
                 question.id,
                 attempt,
                 reason,
                 answer.model if isinstance(answer, Answered) else answerer.last_model,
                 rejected.answer if rejected else None,
-                rejected.supporting_sentence if rejected else None,
+                rejected.evidence if rejected else None,
             )
         else:
             failures.append(question.id + ":" + reason)
@@ -100,7 +100,7 @@ async def record_questions(
                 answer=answer.answer,
                 source_url=answer.source_url,
                 source_title=answer.source_title,
-                supporting_sentence=answer.supporting_sentence,
+                evidence=answer.evidence,
                 why=answer.why,
                 model=answer.model,
                 library_version=answer.library_version,

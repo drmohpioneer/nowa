@@ -108,6 +108,10 @@ def _link(conn: Connection, clock: Clock, row: RowMapping, phone: str, chat_id: 
     )
     conn.execute(s.link_tokens.update().where(s.link_tokens.c.id == row["id"]).values(used_at=now))
     record.write_action(conn, cid, role, "telegram_link")
+    if role == "patient":
+        from nowa.ai.standby import linked
+
+        linked(conn, clock, cid, row["subject_id"])
 
 
 def consume(engine: Engine, clock: Clock, chat_id: str, payload: str, key: str) -> str:

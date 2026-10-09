@@ -1,6 +1,6 @@
 import re
 from concurrent.futures import ThreadPoolExecutor
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy import select
@@ -23,6 +23,7 @@ def test_golden(engine, demo_setup):
     runner = make_runner(engine, clock, cid)
     runner.start()
     initial = runner.state()
+    assert initial["doctor"] == {"on_way_at": None, "eta_min": None, "arrived_at": None}
     T = initial["doctor_travel_min"]
     assert abs(T - 35) <= 5
     assert initial["clock"].astimezone(CAIRO).strftime("%a %H:%M") == "Tue 16:00"
@@ -45,6 +46,10 @@ def test_golden(engine, demo_setup):
             select(s.outbox.c.id).where(s.outbox.c.clinic_id == cid, s.outbox.c.template_id == "2")
         ).first()
     runner.advance(190)
+    doctor = runner.state()["doctor"]
+    assert datetime.fromisoformat(doctor["on_way_at"]) == initial["clock"] + timedelta(minutes=190)
+    assert doctor["eta_min"] == T
+    assert doctor["arrived_at"] is None
     with engine.connect() as conn:
         evening = (
             conn.execute(select(s.evenings).where(s.evenings.c.clinic_id == cid)).mappings().one()
@@ -72,9 +77,17 @@ def test_golden(engine, demo_setup):
     with engine.connect() as conn:
         result = report.build_report(conn, clock, cid, evening["id"])
         assert (result.booked, result.came, result.no_show_count, result.walk_ins) == (17, 17, 1, 1)
+        assert (result.seen_booked, result.cancelled, result.total_seen) == (16, 1, 17)
         assert result.doctor_arrival == projected
         assert result.health_answers[0]["question"] == script.HEALTH_QUESTION
-        assert result.health_answers[0]["model"].endswith("(recorded)")
+        stored_model = conn.execute(
+            select(s.health_record.c.model).where(
+                s.health_record.c.clinic_id == cid, s.health_record.c.kind == "health_answer"
+            )
+        ).scalar_one()
+        assert stored_model.endswith("(recorded)")
+        assert result.questions[0]["askers"][0]["name"] == script.PATIENTS[2].name
+        assert result.questions[0]["askers"][0]["queue_number"] == 3
         assert result.questions[0]["text_display"] == script.DOCTOR_QUESTION
         visits = list(
             conn.execute(
@@ -112,12 +125,12 @@ def test_golden(engine, demo_setup):
         assert not conn.execute(
             select(s.outbox.c.id).where(s.outbox.c.booking_id == states[19]["id"])
         ).first()
+    assert datetime.fromisoformat(runner.state()["doctor"]["arrived_at"]) == projected
     assert runner.state()["closed"]
     print(
         f"Trace: T={T}; projected_start={projected}; "
         f"visit_order={order}; counts=17/17/1/1; closed_minute={runner.state()['minute']}"
     )
-
 
 
 @pytest.fixture
@@ -141,13 +154,17 @@ def test_fractional_clock_positions_and_drains_on_due_minute(
     runner.advance(179)
     assert clock.now(cid) == zero + timedelta(minutes=179, seconds=0.5)
     with engine.connect() as conn:
-        reminder_timer = conn.execute(
-            select(s.timers).where(
-                s.timers.c.clinic_id == cid,
-                s.timers.c.due_at == zero + timedelta(minutes=180),
-                s.timers.c.status == "pending",
+        reminder_timer = (
+            conn.execute(
+                select(s.timers).where(
+                    s.timers.c.clinic_id == cid,
+                    s.timers.c.due_at == zero + timedelta(minutes=180),
+                    s.timers.c.status == "pending",
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         assert not conn.execute(
             select(s.outbox.c.id).where(s.outbox.c.clinic_id == cid, s.outbox.c.template_id == "5")
         ).first()
@@ -155,12 +172,19 @@ def test_fractional_clock_positions_and_drains_on_due_minute(
     assert runner.state()["minute"] == 180
     assert clock.now(cid) == zero + timedelta(minutes=180, seconds=0.5)
     with engine.connect() as conn:
-        assert conn.execute(
-            select(s.timers.c.status).where(s.timers.c.id == reminder_timer["id"])
-        ).scalar_one() == "done"
-        reminder = conn.execute(
-            select(s.outbox).where(s.outbox.c.clinic_id == cid, s.outbox.c.template_id == "5")
-        ).mappings().one()
+        assert (
+            conn.execute(
+                select(s.timers.c.status).where(s.timers.c.id == reminder_timer["id"])
+            ).scalar_one()
+            == "done"
+        )
+        reminder = (
+            conn.execute(
+                select(s.outbox).where(s.outbox.c.clinic_id == cid, s.outbox.c.template_id == "5")
+            )
+            .mappings()
+            .one()
+        )
         assert reminder["status"] == "delivered"
         assert reminder["created_at"] == zero + timedelta(minutes=180, seconds=0.5)
 
@@ -366,3 +390,46 @@ def test_restart_after_close_checkpoint_delivers_pending_report(engine, demo_set
             )
             == 1
         )
+
+
+def test_overbooking_learning_keeps_script_and_film_counts(engine, demo_setup):
+    cid, clock = demo_setup
+    runner = make_runner(engine, clock, cid)
+    with engine.connect() as conn:
+        learned = (
+            conn.execute(select(s.learned_no_show).where(s.learned_no_show.c.clinic_id == cid))
+            .mappings()
+            .one()
+        )
+        assert learned["n"] == 3 and learned["rate"] == pytest.approx(0.12)
+    runner.start()
+    assert len(bookings(engine, cid)) == 18
+    runner.advance(600)
+    with engine.connect() as conn:
+        eid = conn.execute(
+            select(s.evenings.c.id).where(s.evenings.c.clinic_id == cid)
+        ).scalar_one()
+        result = report.build_report(conn, clock, cid, eid)
+        assert result.standby_taken == 0
+        assert not conn.execute(select(s.standbys).where(s.standbys.c.clinic_id == cid)).first()
+        assert (
+            result.booked,
+            result.seen_booked,
+            result.cancelled,
+            result.no_show_count,
+            result.walk_ins,
+            result.total_seen,
+            result.avg_wait,
+        ) == (17, 16, 1, 1, 1, 17, 22)
+        totals = (
+            conn.execute(
+                select(s.daily_totals).where(
+                    s.daily_totals.c.clinic_id == cid, s.daily_totals.c.date == result.day_date
+                )
+            )
+            .mappings()
+            .one()
+        )
+        assert (
+            totals["came"] == 16
+        )  # Learning uses chat arrivals, the report still includes the walk-in.

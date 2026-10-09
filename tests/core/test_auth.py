@@ -54,8 +54,13 @@ def test_login_window_and_dummy(engine, frozen_clock, phone, monkeypatch):
         result = auth.login(engine, frozen_clock, phone, PASSWORD if i == 2 else "wrong", "ip")
         assert not result.limited
         assert result.ok == (phone == PHONE and i == 2)
+    if phone == PHONE:
+        assert auth.login(engine, frozen_clock, phone, PASSWORD, "ip").ok
+        assert not auth.login(engine, frozen_clock, phone, "wrong", "ip").ok
+        assert len(calls) == 7
+    else:
+        assert len(calls) == 5
     assert auth.login(engine, frozen_clock, phone, PASSWORD, "ip").limited
-    assert len(calls) == 5
     if phone != PHONE:
         assert all(h == auth._dummy for h in calls)
     frozen_clock.advance(minutes=15)

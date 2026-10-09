@@ -26,7 +26,7 @@ def book_output(booking_for="self", **values):
             day="2026-10-06",
             name="Karim Father",
             phone="01000000777",
-            area=None,
+            area="Maadi",
             booking_for=booking_for,
         ),
         **values,
@@ -55,7 +55,7 @@ def turn(client, session, text="hello", key=None, history=None):
 
 def day_payload(data):
     return next(
-        b["action"]["payload"] for b in data["buttons"] if b["action"]["kind"] == "book_day"
+        b["action"]["payload"] for b in data["buttons"] if b["action"]["kind"] == "confirm"
     )
 
 
@@ -64,7 +64,7 @@ def tap(client, session, payload, key=None):
         BASE + "/tap",
         json=dict(
             session=session,
-            action="book_day",
+            action="confirm",
             payload=payload,
             idempotency_key=key or uuid.uuid4().hex,
         ),

@@ -15,6 +15,7 @@ from nowa.core import auth, booking, ratelimit, signup, signup_handlers
 from nowa.core.timers import TimerContext, schedule_timer
 from nowa.db import write_tx
 from nowa.demo.template import CLINIC
+from nowa.seed import seed_history
 
 Kind = Literal["watch", "public"]
 
@@ -97,6 +98,7 @@ def create_demo_copy_in_tx(
         raise Busy("busy, try again later")
     for table, key in ((s.clinic_hours, "hours"), (s.clinic_info, "info")):
         conn.execute(table.insert(), [dict(clinic_id=cid, **r) for r in CLINIC[key]])
+    seed_history(conn, cid)
     conn.execute(s.learned_pace.insert().values(clinic_id=cid, **CLINIC["learned_pace"]))
     conn.execute(s.learned_start_gap.insert().values(clinic_id=cid, **CLINIC["learned_start_gap"]))
     schedule_timer(

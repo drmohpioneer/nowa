@@ -20,6 +20,11 @@ We asked six colleagues who run private clinics. Five of the six start late, by 
 - **For the patient:** one Telegram message at the right minute, "leave now", worked out from the pace of the queue, their own travel time and a small cushion. They arrive just before their turn.
 - **For the doctor:** two kinds of tap all evening. No second system to manage, no crowded waiting room.
 - **For safety:** the AI only talks. It understands the patient, triages, and answers from approved health pages. Code alone books, times and sends. An emergency gets a fixed "call 123" reply and booking stops.
+- **For a full day:** the clinic takes a few bookings over its capacity from its own learned no-show rate, and a standby list fills a freed place by Telegram with a one-tap take.
+- **It learns the clinic:** the visit length, how late the evening starts, and who comes and who does not, from each closed night, shown to the doctor in the settings.
+- **Any place in Greater Cairo:** 72 districts with Arabic, English and Franco spellings and typo tolerance; with a Mapbox token, any typed place is geocoded; a place off the map gets a safe travel allowance, never a refusal.
+- **Telegram on any device:** the linking step shows a QR on a laptop, explains the install when Telegram is missing, renews an expired link, and says what to fix when the numbers differ.
+- **Check a booking any time:** the chat finds it by name and the last four digits of the phone, with a lock after repeated failures.
 
 ![The live evening: clinic clock, the patient in the room, the queue and the Telegram messages](docs/img/live-evening.jpg)
 
@@ -60,7 +65,7 @@ The AI chat at `/c/dr-hesham` needs a Gemini key (`GEMINI_API_KEY=... python -m 
 ## Proof it works
 
 ```sh
-python -m pytest -q        # 1,298 tests, offline, no keys
+python -m pytest -q        # 1,954 tests, offline, no keys
 ruff check nowa tests
 mypy nowa
 ```
@@ -112,9 +117,15 @@ In the demo, the people and their actions in the Live evening are scripted; the 
 4. **More specialties.** Cardiology triage rules are in place; other specialties follow after specialist review.
 5. **Later.** A voice assistant that answers the clinic phone, and patient follow-up built on the visit history.
 
+## Hosted instance
+
+A hosted copy runs at https://nowa-bche.onrender.com (Render, Frankfurt; Postgres on Supabase, Frankfurt). Its front page leads to the judge page: a judge code from the submission form opens a seven-day practice clinic with a real Telegram link. Real clinic sign-up stays closed until the pilot agreement is in force.
+
 ## More
 
 - Environment names for your own instance: [.env.example](.env.example)
 - The queue simulator behind the wait numbers: [docs/reference/sim.py](docs/reference/sim.py)
+- Area coordinates: [docs/reference/greater-cairo-areas.json](docs/reference/greater-cairo-areas.json). Area coordinates © OpenStreetMap contributors, ODbL.
+- Licence: all rights reserved, see [LICENSE](LICENSE). The code is published for review; running it locally to evaluate it is permitted.
 
 Built by Dr Mohamed Mostafa, cardiologist, Cairo, for Agents at Work 2026. Designed by the doctor and built with two AI agents in fixed roles: one writes the code, the other specifies and reviews it.

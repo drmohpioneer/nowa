@@ -384,7 +384,9 @@ def test_pages_cookies_language_and_escaping(web, engine):
     assert "HttpOnly" in cookies[0] and "HttpOnly" not in cookies[1]
     assert all("SameSite=lax" in c and "Path=/" in c and "Secure" not in c for c in cookies)
     assert client.post("/d/logout", headers=headers(client)).status_code == 200
-    assert client.get("/d", follow_redirects=False).headers["location"] == "/d/login"
+    assert client.get("/d", follow_redirects=False).headers["location"] == (
+        "/d/login?lang=ar&next=%2Fd"
+    )
     assert client.get("/d/settings", follow_redirects=False).status_code == 303
 
 
@@ -621,3 +623,33 @@ def test_anonymous_ip_limit_http(web, engine, path, scope):
     assert next(
         r for r in rows(engine, s.rate_counters) if r["scope"] == scope and r["count"] == 21
     )
+
+
+@pytest.mark.parametrize("lang", ["ar", "en"])
+def test_settings_read_only_learning_block(web, lang):
+    from nowa.web import strings
+
+    client, _, _, _, _ = web
+    page = client.get("/d/settings", params={"lang": lang})
+    assert page.status_code == 200
+    assert 'id="learned-timing"' in page.text
+    assert strings.text("doctor.learned_title", lang) in page.text
+    for key in ("visit", "gap", "no_show"):
+        assert f'data-learned="{key}"' in page.text
+    data = client.get("/d/api/settings").json()["learned"]
+    assert data["visit"]["n"] == 10
+    assert data["no_show"]["n"] == 3
+
+
+def test_settings_shipped_learning_and_save_wiring():
+    import subprocess
+
+    from tests.web.support import ROOT
+
+    result = subprocess.run(
+        ["node", "tests/web/settings_feedback_dom.cjs"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

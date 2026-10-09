@@ -15,13 +15,14 @@ from nowa.ai.sessions import load_session
 from nowa.config import get_settings
 from nowa.core import auth, booking, signup
 from nowa.core.clinic_settings import Input
+from nowa.core.display import patient_display_name
+from nowa.core.text_norm import greeting_name
 from nowa.db import write_tx
 from nowa.demo.copy import Busy, create_demo_copy, create_demo_copy_in_tx
 from nowa.demo.evening_script import KARIM
 from nowa.demo.runner import EveningRunner, stage_start_minute
-from nowa.messaging.outbox import screen_messages
+from nowa.messaging.outbox import ScreenMessage, screen_messages
 from nowa.web.chat import clinic_for
-from nowa.web.doctor_auth import start_session
 from nowa.web.logging import PRIVATE_HEADERS
 from nowa.web.request import client_ip, page_language
 from nowa.web.strings import MESSAGE_LABELS, STRINGS
@@ -70,7 +71,7 @@ def hub(request: Request) -> HTMLResponse:
     return public_page(
         request,
         "demo.html",
-        mobile=CLINIC["doctor"]["mobile_e164"],
+        mobile="0" + CLINIC["doctor"]["mobile_e164"][3:],
         password=get_settings().demo_doctor_password,
     )
 
@@ -124,11 +125,42 @@ def start(request: Request, body: Start) -> JSONResponse | HTMLResponse:
     if cid is None:
         return busy()
     runner(request, cid).start()
+    runner(request, cid).advance(stage_start_minute())
     with engine.connect() as conn:
         did = conn.execute(select(s.doctors.c.id).where(s.doctors.c.clinic_id == cid)).scalar_one()
     tokens = auth.create_session(engine, clock, cid, did)
     response = JSONResponse({"run_id": run_id, "token": tokens.token}, headers=PRIVATE_HEADERS)
-    start_session(response, tokens, host=request.url.hostname)
+    with engine.connect() as conn:
+        eid = conn.execute(
+            select(s.evenings.c.id).where(s.evenings.c.clinic_id == cid)
+        ).scalar_one()
+    secure = request.url.scheme == "https"
+    # The board-scoped pair mirrors a login's pair (session + readable CSRF) without touching a real
+    # doctor's cookies (audit 66); the board picks the pair through its csrf-cookie meta tag.
+    for name, value, path, httponly in (
+        ("nowa_demo_session", tokens.token, "/demo/evening", True),
+        ("nowa_demo_board", tokens.token, "/d", True),
+        ("nowa_demo_csrf", tokens.csrf_token, "/d", False),
+    ):
+        response.set_cookie(
+            name,
+            value,
+            httponly=httponly,
+            secure=secure,
+            samesite="lax",
+            path=path,
+            expires=tokens.expires_at,
+        )
+    for path in (f"/d/report/{eid}", f"/d/api/report/{eid}"):
+        response.set_cookie(
+            "nowa_demo_report",
+            tokens.token,
+            httponly=True,
+            secure=secure,
+            samesite="lax",
+            path=path,
+            expires=tokens.expires_at,
+        )
     return response
 
 
@@ -150,14 +182,17 @@ def authorized(request: Request, run_id: str, token: str) -> int:
 
 
 def phones(request: Request, cid: int, contact_id: int | None = None) -> list[dict[str, Any]]:
+    lang = page_language(request)
     with request.app.state.engine.connect() as conn:
         messages = []
         for msg in screen_messages(conn, cid, 0):
-            phone = STRINGS["demo.doctor"]["ar"]
+            phone = STRINGS["demo.doctor"][lang]
             number = 0
             name = (
                 conn.execute(
-                    select(s.doctors.c.name_ar).where(s.doctors.c.clinic_id == cid)
+                    select(s.doctors.c.name_en if lang == "en" else s.doctors.c.name_ar).where(
+                        s.doctors.c.clinic_id == cid
+                    )
                 ).scalar_one_or_none()
                 or ""
             )
@@ -168,6 +203,7 @@ def phones(request: Request, cid: int, contact_id: int | None = None) -> list[di
                         s.bookings.c.queue_number,
                         s.bookings.c.contact_id,
                         s.patients.c.name,
+                        s.patients.c.name_en,
                     )
                     .join(s.bookings, s.bookings.c.contact_id == s.contacts.c.id)
                     .outerjoin(s.patients, s.patients.c.id == s.bookings.c.patient_id)
@@ -179,12 +215,46 @@ def phones(request: Request, cid: int, contact_id: int | None = None) -> list[di
                     continue
                 phone, number = row.phone_e164, row.queue_number
                 if msg.audience == "patient":
-                    name = row.name.split()[0] if row.name else ""
+                    name = (
+                        greeting_name(patient_display_name(row._mapping, lang)) if row.name else ""
+                    )
+            elif msg.standby_id is not None:
+                standby_row = (
+                    conn.execute(
+                        select(
+                            s.contacts.c.phone_e164,
+                            s.standbys.c.contact_id,
+                            s.patients.c.name,
+                            s.patients.c.name_en,
+                        )
+                        .select_from(s.standbys.join(s.contacts).join(s.patients))
+                        .where(
+                            s.standbys.c.id == msg.standby_id,
+                            s.standbys.c.clinic_id == cid,
+                        )
+                    )
+                    .mappings()
+                    .first()
+                )
+                if standby_row is None or (
+                    contact_id is not None and standby_row["contact_id"] != contact_id
+                ):
+                    continue
+                phone = standby_row["phone_e164"]
+                name = greeting_name(patient_display_name(standby_row, lang))
             elif contact_id is not None:
                 continue
             messages.append(
                 dict(
-                    asdict(msg),
+                    dict(
+                        asdict(msg),
+                        body=stage_body(msg, lang)
+                        if request.url.path.startswith("/demo/evening/")
+                        else msg.body,
+                    ),
+                    sent_in_arabic=lang == "en"
+                    and msg.lang == "ar"
+                    and msg.values_json is not None,
                     recipient=phone,
                     recipient_name=name,
                     channel="telegram",
@@ -204,7 +274,8 @@ def advance(request: Request, run_id: str, body: Advance) -> JSONResponse:
     replay = runner(request, cid)
     replay.advance(body.to_minute)
     return JSONResponse(
-        jsonable_encoder(replay.state() | {"phones": phones(request, cid)}), headers=PRIVATE_HEADERS
+        jsonable_encoder(replay.state(page_language(request)) | {"phones": phones(request, cid)}),
+        headers=PRIVATE_HEADERS,
     )
 
 
@@ -214,7 +285,9 @@ def state(
 ) -> JSONResponse:
     cid = authorized(request, run_id, token)
     return JSONResponse(
-        jsonable_encoder(runner(request, cid).state() | {"phones": phones(request, cid)}),
+        jsonable_encoder(
+            runner(request, cid).state(page_language(request)) | {"phones": phones(request, cid)}
+        ),
         headers=PRIVATE_HEADERS,
     )
 
@@ -237,7 +310,11 @@ def book_copy(request: Request) -> RedirectResponse | HTMLResponse:
         return busy()
     with request.app.state.engine.connect() as conn:
         slug = conn.execute(select(s.clinics.c.slug).where(s.clinics.c.id == cid)).scalar_one()
-    return RedirectResponse("/c/" + slug, status_code=303, headers=PRIVATE_HEADERS)
+    return RedirectResponse(
+        "/c/" + slug + "?from=demo&lang=" + page_language(request),
+        status_code=303,
+        headers=PRIVATE_HEADERS,
+    )
 
 
 @router.get("/c/{slug}/demo/phone")
@@ -247,7 +324,15 @@ def public_phone(
     clinic = clinic_for(request, slug)
     if not (get_settings().demo_mode or clinic["is_sandbox"]):
         raise HTTPException(403)
-    with request.app.state.engine.connect() as conn:
-        chat = load_session(conn, clinic["id"], session)
+    with write_tx(request.app.state.engine) as conn:
+        chat = load_session(conn, clinic["id"], session, request.app.state.clock)
     result = phones(request, clinic["id"], chat["contact_id"]) if chat["contact_id"] else []
     return JSONResponse(jsonable_encoder(result), headers=PRIVATE_HEADERS)
+
+
+def stage_body(msg: ScreenMessage, lang: str) -> str:
+    from nowa.messaging.templates import render_saved
+
+    if lang == "en" and msg.values_json is not None:
+        return render_saved(msg.template_id, lang, msg.values_json)
+    return msg.body

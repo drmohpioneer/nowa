@@ -51,6 +51,7 @@ def test_registry():
         "delivery_timeout",
         "leave_now_check",
         "silent_check",
+        "standby_expire",
         "are_you_on_way",
         "evening_auto_close",
         "evening_system_close",

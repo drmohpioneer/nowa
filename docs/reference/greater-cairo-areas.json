@@ -1,0 +1,752 @@
+{
+ "source": "OpenStreetMap Nominatim (https://nominatim.openstreetmap.org), ODbL, fetched 2026-10-09; bounded to the Greater Cairo box lng 30.75..31.90 lat 29.70..30.40",
+ "rows": [
+  {
+   "name_en": "Heliopolis",
+   "name_ar": "مصر الجديدة",
+   "lat": 30.1006,
+   "lng": 31.3329,
+   "osm_type": "node",
+   "osm_id": 768591736,
+   "display_name": "مصر الجديدة, القاهرة, 11757, مصر",
+   "query": "Heliopolis, Cairo"
+  },
+  {
+   "name_en": "Nasr City",
+   "name_ar": "مدينة نصر",
+   "lat": 30.0521,
+   "lng": 31.3422,
+   "osm_type": "node",
+   "osm_id": 768552342,
+   "display_name": "مدينة نصر, القاهرة, 11765, مصر",
+   "query": "Nasr City, Cairo"
+  },
+  {
+   "name_en": "Madinaty",
+   "name_ar": "مدينتي",
+   "lat": 30.0917,
+   "lng": 31.6381,
+   "osm_type": "way",
+   "osm_id": 1103956339,
+   "display_name": "Madinaty, القاهرة, مصر",
+   "query": "Madinaty, Cairo"
+  },
+  {
+   "name_en": "New Cairo 5th Settlement",
+   "name_ar": "التجمع الخامس",
+   "lat": 30.0038,
+   "lng": 31.4249,
+   "osm_type": "way",
+   "osm_id": 774635278,
+   "display_name": "التجمع الخامس, أحياء التجمع الخامس, القاهرة, مصر",
+   "query": "Fifth Settlement, New Cairo"
+  },
+  {
+   "name_en": "Maadi",
+   "name_ar": "المعادي",
+   "lat": 29.9603,
+   "lng": 31.2631,
+   "osm_type": "way",
+   "osm_id": 210572241,
+   "display_name": "المعادى, 70, شارع 14, الفاروقية, القاهرة, 11728, مصر",
+   "query": "Maadi, Cairo"
+  },
+  {
+   "name_en": "Zamalek",
+   "name_ar": "الزمالك",
+   "lat": 30.063,
+   "lng": 31.2196,
+   "osm_type": "node",
+   "osm_id": 13800621826,
+   "display_name": "الزمالك, القاهرة, 11561, مصر",
+   "query": "Zamalek, Cairo"
+  },
+  {
+   "name_en": "Dokki",
+   "name_ar": "الدقي",
+   "lat": 30.0389,
+   "lng": 31.2126,
+   "osm_type": "node",
+   "osm_id": 324279974,
+   "display_name": "الدقى, الجيزة, 12611, مصر",
+   "query": "Dokki, Giza"
+  },
+  {
+   "name_en": "Mohandessin",
+   "name_ar": "المهندسين",
+   "lat": 30.0584,
+   "lng": 31.202,
+   "osm_type": "way",
+   "osm_id": 723065148,
+   "display_name": "المهندسين, الجيزة, 12655, مصر",
+   "query": "Mohandessin, Giza"
+  },
+  {
+   "name_en": "Shubra",
+   "name_ar": "شبرا",
+   "lat": 30.0482,
+   "lng": 31.2456,
+   "osm_type": "way",
+   "osm_id": 981259847,
+   "display_name": "El-Mounib - Shubra El-Kheima Railway, حارة ابو قوطه, الفواله, باب الشعرية, القاهرة, 11518, مصر",
+   "query": "Shubra, Cairo"
+  },
+  {
+   "name_en": "Ain Shams",
+   "name_ar": "عين شمس",
+   "lat": 30.1305,
+   "lng": 31.3167,
+   "osm_type": "node",
+   "osm_id": 384320947,
+   "display_name": "عين شمس, القاهرة, 18531, مصر",
+   "query": "Ain Shams, Cairo"
+  },
+  {
+   "name_en": "El Obour",
+   "name_ar": "العبور",
+   "lat": 30.1914,
+   "lng": 31.4505,
+   "osm_type": "node",
+   "osm_id": 311994035,
+   "display_name": "العبور, القليوبية, 11785, مصر",
+   "query": "Obour City, Qalyubia"
+  },
+  {
+   "name_en": "6th of October",
+   "name_ar": "٦ أكتوبر",
+   "lat": 29.9723,
+   "lng": 30.9409,
+   "osm_type": "node",
+   "osm_id": 299523927,
+   "display_name": "السادس من أكتوبر, الجيزة, 12591, مصر",
+   "query": "6th of October City, Giza"
+  },
+  {
+   "name_en": "El Rehab",
+   "name_ar": "الرحاب",
+   "lat": 30.0537,
+   "lng": 31.4681,
+   "osm_type": "node",
+   "osm_id": 9170162454,
+   "display_name": "ميدان النجار, أحياء البنفسج, القاهرة, 11865, مصر",
+   "query": "Al Rehab, New Cairo"
+  },
+  {
+   "name_en": "New Cairo 1st Settlement",
+   "name_ar": "التجمع الأول",
+   "lat": 30.0633,
+   "lng": 31.4545,
+   "osm_type": "node",
+   "osm_id": 2595097113,
+   "display_name": "التجمع الأول, القاهرة, 11865, مصر",
+   "query": "First Settlement, New Cairo"
+  },
+  {
+   "name_en": "New Cairo 3rd Settlement",
+   "name_ar": "التجمع الثالث",
+   "lat": 29.9809,
+   "lng": 31.4346,
+   "osm_type": "way",
+   "osm_id": 257176943,
+   "display_name": "التجمع الثالث, القاهرة, مصر",
+   "query": "Third Settlement, New Cairo"
+  },
+  {
+   "name_en": "El Shorouk",
+   "name_ar": "الشروق",
+   "lat": 30.1492,
+   "lng": 31.6292,
+   "osm_type": "way",
+   "osm_id": 772922707,
+   "display_name": "مدينة الشروق, الشروق, القاهرة, مصر",
+   "query": "El Shorouk City, Cairo"
+  },
+  {
+   "name_en": "Badr City",
+   "name_ar": "مدينة بدر",
+   "lat": 30.1428,
+   "lng": 31.7428,
+   "osm_type": "node",
+   "osm_id": 330191267,
+   "display_name": "بدر, القاهرة, 11829, مصر",
+   "query": "Badr City, Cairo"
+  },
+  {
+   "name_en": "New Administrative Capital",
+   "name_ar": "العاصمة الإدارية",
+   "lat": 30.0238,
+   "lng": 31.7549,
+   "osm_type": "node",
+   "osm_id": 7152775457,
+   "display_name": "العاصمة الإدارية الجديدة, القاهرة, 11845, مصر",
+   "query": "New Administrative Capital, Egypt"
+  },
+  {
+   "name_en": "El Matareya",
+   "name_ar": "المطرية",
+   "lat": 30.1155,
+   "lng": 31.3102,
+   "osm_type": "way",
+   "osm_id": 707273169,
+   "display_name": "المطريه القبليه, الزيتون, القاهرة, مصر",
+   "query": "El Matareya, Cairo"
+  },
+  {
+   "name_en": "El Marg",
+   "name_ar": "المرج",
+   "lat": 30.1371,
+   "lng": 31.3363,
+   "osm_type": "way",
+   "osm_id": 1563285049,
+   "display_name": "ادارة المرج التعليمية, شارع حسين عوده, عين شمس, القاهرة, 11888, مصر",
+   "query": "El Marg, Cairo"
+  },
+  {
+   "name_en": "El Salam City",
+   "name_ar": "مدينة السلام",
+   "lat": 30.1696,
+   "lng": 31.4106,
+   "osm_type": "way",
+   "osm_id": 706334143,
+   "display_name": "مساكن القاهرة ج, El-Salam City, القليوبية, مصر",
+   "query": "El Salam City, Cairo"
+  },
+  {
+   "name_en": "El Nozha",
+   "name_ar": "النزهة",
+   "lat": 30.1281,
+   "lng": 31.3605,
+   "osm_type": "node",
+   "osm_id": 9159388953,
+   "display_name": "النزهة‎, شارع جسر السويس, حدائق الزيتون, القاهرة, 11777, مصر",
+   "query": "El Nozha, Cairo"
+  },
+  {
+   "name_en": "Sheraton",
+   "name_ar": "شيراتون",
+   "lat": 30.1062,
+   "lng": 31.3646,
+   "osm_type": "way",
+   "osm_id": 183820456,
+   "display_name": "Hilton Cairo Heliopolis, شارع كمال الدين حسين, شيراتون, القاهرة, 11799, مصر",
+   "query": "Sheraton Heliopolis, Cairo"
+  },
+  {
+   "name_en": "Gesr El Suez",
+   "name_ar": "جسر السويس",
+   "lat": 30.1276,
+   "lng": 31.3622,
+   "osm_type": "node",
+   "osm_id": 8244508751,
+   "display_name": "Nozha Al Gedeeda (Gesr el Suez Garage), كوبرى 6 اكتوبر, القاهرة, 11311, مصر",
+   "query": "Gesr El Suez, Cairo"
+  },
+  {
+   "name_en": "El Zeitoun",
+   "name_ar": "الزيتون",
+   "lat": 30.1143,
+   "lng": 31.3139,
+   "osm_type": "node",
+   "osm_id": 316643091,
+   "display_name": "حلمية الزيتون, شارع محطه حلميه الزيتون, حلميه الزيتون, عين شمس, القاهرة, 11718, مصر",
+   "query": "El Zeitoun, Cairo"
+  },
+  {
+   "name_en": "Rod El Farag",
+   "name_ar": "روض الفرج",
+   "lat": 30.0806,
+   "lng": 31.2454,
+   "osm_type": "node",
+   "osm_id": 316634715,
+   "display_name": "محطة مترو روض الفرج, شارع شبرا, البراد, روض الفرج, القاهرة, 11637, مصر",
+   "query": "Rod El Farag, Cairo"
+  },
+  {
+   "name_en": "El Sahel",
+   "name_ar": "الساحل",
+   "lat": 30.0918,
+   "lng": 31.2375,
+   "osm_type": "way",
+   "osm_id": 704920022,
+   "display_name": "الساحل, القاهرة, 11614, مصر",
+   "query": "El Sahel, Cairo"
+  },
+  {
+   "name_en": "Downtown Cairo",
+   "name_ar": "وسط البلد",
+   "lat": 30.0888,
+   "lng": 31.2898,
+   "osm_type": "node",
+   "osm_id": 4405020689,
+   "display_name": "وسط البلد, شارع وسط البلد, القبه, حدائق القبة, القاهرة, 11663, مصر",
+   "query": "Downtown, Cairo"
+  },
+  {
+   "name_en": "Garden City",
+   "name_ar": "جاردن سيتي",
+   "lat": 30.0348,
+   "lng": 31.2315,
+   "osm_type": "way",
+   "osm_id": 707036948,
+   "display_name": "جاردن سيتى, السيدة زينب, القاهرة, 11241, مصر",
+   "query": "Garden City, Cairo"
+  },
+  {
+   "name_en": "Abdeen",
+   "name_ar": "عابدين",
+   "lat": 30.0437,
+   "lng": 31.2456,
+   "osm_type": "way",
+   "osm_id": 24942981,
+   "display_name": "Abdeen Garden, عابدين, القاهرة, مصر",
+   "query": "Abdeen, Cairo"
+  },
+  {
+   "name_en": "El Sayeda Zeinab",
+   "name_ar": "السيدة زينب",
+   "lat": 30.031,
+   "lng": 31.2387,
+   "osm_type": "way",
+   "osm_id": 478776608,
+   "display_name": "السيده, السيدة زينب, القاهرة, مصر",
+   "query": "El Sayeda Zeinab, Cairo"
+  },
+  {
+   "name_en": "Old Cairo",
+   "name_ar": "مصر القديمة",
+   "lat": 30.0174,
+   "lng": 31.2332,
+   "osm_type": "node",
+   "osm_id": 768552664,
+   "display_name": "القاهرة القديمة, مصر القديمة, خرطة الشيخ مبارك, القاهرة, 11554, مصر",
+   "query": "Old Cairo, Cairo"
+  },
+  {
+   "name_en": "Manial",
+   "name_ar": "المنيل",
+   "lat": 30.0168,
+   "lng": 31.2245,
+   "osm_type": "node",
+   "osm_id": 768552658,
+   "display_name": "جزيرة الروضة, القاهرة, 11553, مصر",
+   "query": "Manial, Cairo"
+  },
+  {
+   "name_en": "Zahraa El Maadi",
+   "name_ar": "زهراء المعادي",
+   "lat": 29.9693,
+   "lng": 31.3267,
+   "osm_type": "way",
+   "osm_id": 1094447118,
+   "display_name": "طريق القاهرة السويس, زهراء المعادي منطقه 7, حلوان, القاهرة, 00007, مصر",
+   "query": "Zahraa El Maadi, Cairo"
+  },
+  {
+   "name_en": "Dar El Salam",
+   "name_ar": "دار السلام",
+   "lat": 29.9821,
+   "lng": 31.2422,
+   "osm_type": "way",
+   "osm_id": 182328074,
+   "display_name": "مبنى محطة مترو دار السلام, شارع المحطه, معادي الخبيري, القاهرة, 11745, مصر",
+   "query": "Dar El Salam, Cairo"
+  },
+  {
+   "name_en": "Helwan",
+   "name_ar": "حلوان",
+   "lat": 29.85,
+   "lng": 31.3333,
+   "osm_type": "node",
+   "osm_id": 768775606,
+   "display_name": "حلوان, القاهرة, 11421, مصر",
+   "query": "Helwan, Cairo"
+  },
+  {
+   "name_en": "15th of May City",
+   "name_ar": "١٥ مايو",
+   "lat": 29.832,
+   "lng": 31.3648,
+   "osm_type": "way",
+   "osm_id": 1103679051,
+   "display_name": "مدينة الخامس عشر من مايو, القاهرة, مصر",
+   "query": "15th of May City, Cairo"
+  },
+  {
+   "name_en": "El Tebbin",
+   "name_ar": "التبين",
+   "lat": 29.7758,
+   "lng": 31.2975,
+   "osm_type": "way",
+   "osm_id": 502404024,
+   "display_name": "محطة كهرباء التبين, حلوان البلد, القاهرة, مصر",
+   "query": "El Tebbin, Cairo"
+  },
+  {
+   "name_en": "Mokattam",
+   "name_ar": "المقطم",
+   "lat": 30.0333,
+   "lng": 31.2833,
+   "osm_type": "node",
+   "osm_id": 768552480,
+   "display_name": "جبل المقطم, القاهرة, 11699, مصر",
+   "query": "Mokattam, Cairo"
+  },
+  {
+   "name_en": "Katameya",
+   "name_ar": "القطامية",
+   "lat": 29.9988,
+   "lng": 31.5207,
+   "osm_type": "relation",
+   "osm_id": 2091262,
+   "display_name": "كمبوند قطامية ديونز, القاهرة, مصر",
+   "query": "Katameya, Cairo"
+  },
+  {
+   "name_en": "El Maasara",
+   "name_ar": "المعصرة",
+   "lat": 29.9061,
+   "lng": 31.2998,
+   "osm_type": "node",
+   "osm_id": 5348846069,
+   "display_name": "المعصرة, شارع الشيخ سليمان, ارض العمده, المعصرة, حلوان, القاهرة, 11433, مصر",
+   "query": "El Maasara, Cairo"
+  },
+  {
+   "name_en": "Shubra El Kheima",
+   "name_ar": "شبرا الخيمة",
+   "lat": 30.1286,
+   "lng": 31.2422,
+   "osm_type": "node",
+   "osm_id": 768591737,
+   "display_name": "شبرا الخيمة, القليوبية, 13771, مصر",
+   "query": "Shubra El Kheima, Qalyubia"
+  },
+  {
+   "name_en": "Qalyub",
+   "name_ar": "قليوب",
+   "lat": 30.1789,
+   "lng": 31.2064,
+   "osm_type": "node",
+   "osm_id": 299570446,
+   "display_name": "قليوب, القليوبية, 13612, مصر",
+   "query": "Qalyub, Qalyubia"
+  },
+  {
+   "name_en": "El Khanka",
+   "name_ar": "الخانكة",
+   "lat": 30.213,
+   "lng": 31.3657,
+   "osm_type": "node",
+   "osm_id": 768551883,
+   "display_name": "الخانكة, شارع محمد حميده, Salam City, العبور, القليوبية, 13763, مصر",
+   "query": "El Khanka, Qalyubia"
+  },
+  {
+   "name_en": "Agouza",
+   "name_ar": "العجوزة",
+   "lat": 30.0549,
+   "lng": 31.2127,
+   "osm_type": "node",
+   "osm_id": 324282170,
+   "display_name": "العجوزة, الجيزة, 12654, مصر",
+   "query": "Agouza, Giza"
+  },
+  {
+   "name_en": "Imbaba",
+   "name_ar": "إمبابة",
+   "lat": 30.076,
+   "lng": 31.2076,
+   "osm_type": "node",
+   "osm_id": 11495591856,
+   "display_name": "Imbaba, شارع المزارع, عبد النعيم, كيت كات, الجيزة, 12658, مصر",
+   "query": "Imbaba, Giza"
+  },
+  {
+   "name_en": "El Warraq",
+   "name_ar": "الوراق",
+   "lat": 30.1302,
+   "lng": 31.1831,
+   "osm_type": "node",
+   "osm_id": 7968331229,
+   "display_name": "مساكن شركه النصر للمسبوكات, شارع كورنيش النيل, سقيل, الجيزة, 12992, مصر",
+   "query": "El Warraq, Giza"
+  },
+  {
+   "name_en": "Boulaq El Dakrour",
+   "name_ar": "بولاق الدكرور",
+   "lat": 30.0465,
+   "lng": 31.1912,
+   "osm_type": "way",
+   "osm_id": 181645781,
+   "display_name": "خزان بولاق, شارع الجمعيه, ارض الواء, المهندسين, نزلة بهجت, الجيزة, 12616, مصر",
+   "query": "Boulaq El Dakrour, Giza"
+  },
+  {
+   "name_en": "Giza",
+   "name_ar": "الجيزة",
+   "lat": 29.9871,
+   "lng": 31.2118,
+   "osm_type": "node",
+   "osm_id": 27565120,
+   "display_name": "الجيزة, 12524, مصر",
+   "query": "Giza, Egypt"
+  },
+  {
+   "name_en": "Haram",
+   "name_ar": "الهرم",
+   "lat": 30.0063,
+   "lng": 31.1921,
+   "osm_type": "node",
+   "osm_id": 9775640060,
+   "display_name": "خزان مياه الهرم, شارع الاهرام, الجيزة, 12551, مصر",
+   "query": "Al Haram, Giza"
+  },
+  {
+   "name_en": "Faisal",
+   "name_ar": "فيصل",
+   "lat": 30.0173,
+   "lng": 31.204,
+   "osm_type": "way",
+   "osm_id": 151409756,
+   "display_name": "فيصل, محور الفريق كمال عامر, ابو قتاده و نوفل, بين السرايات, الجيزة, 12984, مصر",
+   "query": "Faisal, Giza"
+  },
+  {
+   "name_en": "Omraneya",
+   "name_ar": "العمرانية",
+   "lat": 29.9933,
+   "lng": 31.195,
+   "osm_type": "way",
+   "osm_id": 726176413,
+   "display_name": "العمرانيه الغربيه, الجيزة, مصر",
+   "query": "Omraneya, Giza"
+  },
+  {
+   "name_en": "Sheikh Zayed",
+   "name_ar": "الشيخ زايد",
+   "lat": 30.0483,
+   "lng": 30.9832,
+   "osm_type": "node",
+   "osm_id": 330194927,
+   "display_name": "الشيخ زايد, الجيزة, 12588, مصر",
+   "query": "Sheikh Zayed City, Giza"
+  },
+  {
+   "name_en": "Hadayek October",
+   "name_ar": "حدائق أكتوبر",
+   "lat": 29.9529,
+   "lng": 31.0864,
+   "osm_type": "node",
+   "osm_id": 13274189499,
+   "display_name": "Chillout Hadayek El Ahram, طريق الواحات, منطقة ع, حي الأشجار, الشيخ زايد, الجيزة, 12587, مصر",
+   "query": "Hadayek October, Giza"
+  },
+  {
+   "name_en": "Hadayek El Ahram",
+   "name_ar": "حدائق الأهرام",
+   "lat": 29.97,
+   "lng": 31.0973,
+   "osm_type": "way",
+   "osm_id": 547716812,
+   "display_name": "Hadayek El-Ahram Club, شارع 11, منطقة ح, الجيزة, 12572, مصر",
+   "query": "Hadayek El Ahram, Giza"
+  },
+  {
+   "name_en": "Bulaq",
+   "name_ar": "بولاق",
+   "lat": 30.0268,
+   "lng": 31.2059,
+   "osm_type": "relation",
+   "osm_id": 15072032,
+   "display_name": "جامعة القاهرة, شارع عبد الرزاق عثمان, ابو قتاده و نوفل, بين السرايات, الجيزة, 12984, مصر",
+   "query": "Bulaq, Cairo"
+  },
+  {
+   "name_en": "El Zawya El Hamra",
+   "name_ar": "الزاوية الحمراء",
+   "lat": 30.0924,
+   "lng": 31.2734,
+   "osm_type": "way",
+   "osm_id": 48372898,
+   "display_name": "شارع شركات الزاوية الحمراء, مساكن الزاويه الحمراء, الأميرية, القاهرة, 11659, مصر",
+   "query": "El Zawya El Hamra, Cairo"
+  },
+  {
+   "name_en": "Ezbet El Nakhl",
+   "name_ar": "عزبة النخل",
+   "lat": 30.1393,
+   "lng": 31.3245,
+   "osm_type": "node",
+   "osm_id": 5349031067,
+   "display_name": "محطة عزبة النخل, شارع شرق السكه الحديد, القاهرة, القليوبية, 11761, مصر",
+   "query": "Ezbet El Nakhl, Cairo"
+  },
+  {
+   "name_en": "El Darb El Ahmar",
+   "name_ar": "الدرب الأحمر",
+   "lat": 30.0422,
+   "lng": 31.262,
+   "osm_type": "node",
+   "osm_id": 394488468,
+   "display_name": "الدرب الأحمر, القاهرة, 11675, مصر",
+   "query": "El Darb El Ahmar, Cairo"
+  },
+  {
+   "name_en": "El Khalifa",
+   "name_ar": "الخليفة",
+   "lat": 30.0308,
+   "lng": 31.2559,
+   "osm_type": "way",
+   "osm_id": 97228424,
+   "display_name": "قسم شرطة الخليفة, شارع شيخون, البقلى, الدرب الأحمر, القاهرة, 11636, مصر",
+   "query": "El Khalifa, Cairo"
+  },
+  {
+   "name_en": "Maadi Degla",
+   "name_ar": "دجلة المعادي",
+   "lat": 29.9581,
+   "lng": 31.3133,
+   "osm_type": "way",
+   "osm_id": 686871840,
+   "display_name": "شارع وادي دجله, زهراء المعادي منطقه 3, حلوان, القاهرة, 00007, مصر",
+   "query": "Degla, Maadi, Cairo"
+  },
+  {
+   "name_en": "New Maadi",
+   "name_ar": "المعادي الجديدة",
+   "lat": 29.9776,
+   "lng": 31.2842,
+   "osm_type": "node",
+   "osm_id": 2199534862,
+   "display_name": "بندر المعادى مول, 1, امتداد شارع فلسطين, المعادي الجديدة, حلوان, القاهرة, 11742, مصر",
+   "query": "New Maadi, Cairo"
+  },
+  {
+   "name_en": "Tura",
+   "name_ar": "طرة",
+   "lat": 29.9346,
+   "lng": 31.2807,
+   "osm_type": "node",
+   "osm_id": 768769511,
+   "display_name": "طرة, القاهرة, 11729, مصر",
+   "query": "Tura, Cairo"
+  },
+  {
+   "name_en": "El Haram Mariouteya",
+   "name_ar": "المريوطية",
+   "lat": 30.0655,
+   "lng": 31.1311,
+   "osm_type": "way",
+   "osm_id": 1319205423,
+   "display_name": "Mariouteya, محور 26 يوليو, كوم بيرة, الجيزة, 12875, مصر",
+   "query": "Mariouteya, Giza"
+  },
+  {
+   "name_en": "Kerdasa",
+   "name_ar": "كرداسة",
+   "lat": 30.0314,
+   "lng": 31.1156,
+   "osm_type": "way",
+   "osm_id": 722860621,
+   "display_name": "مدينه كرداسه, كرداسة, الجيزة, 12943, مصر",
+   "query": "Kerdasa, Giza"
+  },
+  {
+   "name_en": "Nasr City 10th District",
+   "name_ar": "الحي العاشر",
+   "lat": 30.0381,
+   "lng": 31.339,
+   "osm_type": "way",
+   "osm_id": 700084849,
+   "display_name": "حى السفارات, مدينة نصر, القاهرة, مصر",
+   "query": "10th District, Nasr City, Cairo"
+  },
+  {
+   "name_en": "Madinet El Salam Nahda",
+   "name_ar": "النهضة",
+   "lat": 30.1604,
+   "lng": 31.4321,
+   "osm_type": "way",
+   "osm_id": 701375424,
+   "display_name": "النهضه, العبور, القليوبية, مصر",
+   "query": "El Nahda, Cairo"
+  },
+  {
+   "name_en": "Abbassia",
+   "name_ar": "العباسية",
+   "lat": 30.0728,
+   "lng": 31.2841,
+   "osm_type": "node",
+   "osm_id": 5194348142,
+   "display_name": "العباسية, شارع العباسيه, العباسية, الدمرداش, القاهرة, 11535, مصر",
+   "query": "Abbassia, Cairo"
+  },
+  {
+   "name_en": "Ghamra",
+   "name_ar": "غمرة",
+   "lat": 30.069,
+   "lng": 31.2679,
+   "osm_type": "way",
+   "osm_id": 702497450,
+   "display_name": "غمره, السكاكيني, القاهرة, 11674, مصر",
+   "query": "Ghamra, Cairo"
+  },
+  {
+   "name_en": "Ramses",
+   "name_ar": "رمسيس",
+   "lat": 30.0619,
+   "lng": 31.246,
+   "osm_type": "node",
+   "osm_id": 5194295701,
+   "display_name": "الشهداء, كوبرى الليمون, الفجاله, الأزبكية, القاهرة, 11523, مصر",
+   "query": "Ramses, Cairo"
+  },
+  {
+   "name_en": "Mostorod",
+   "name_ar": "مسطرد",
+   "lat": 30.143,
+   "lng": 31.2995,
+   "osm_type": "way",
+   "osm_id": 28830035,
+   "display_name": "Mostorod, مسطرد, مسطرود, القليوبية, مصر",
+   "query": "Mostorod, Qalyubia"
+  },
+  {
+   "name_en": "Bahtim",
+   "name_ar": "بهتيم",
+   "lat": 30.1383,
+   "lng": 31.2746,
+   "osm_type": "way",
+   "osm_id": 741588124,
+   "display_name": "بهتيم, شبرا الخيمة, القليوبية, 13752, مصر",
+   "query": "Bahtim, Qalyubia"
+  }
+ ],
+ "unresolved": [
+  [
+   "Hadayek El Kobba",
+   "no result"
+  ],
+  [
+   "El Waili",
+   "no result"
+  ],
+  [
+   "El Basateen",
+   "no result"
+  ],
+  [
+   "El Khosous",
+   "no result"
+  ],
+  [
+   "El Amiria",
+   "no result"
+  ],
+  [
+   "El Monib",
+   "no result"
+  ]
+ ],
+ "note": "Shubra Misr is an alias of Shubra and is not a separate row. The first 12 names keep the coordinates already in nowa/reference.py (ids 1 to 12); this file's values for those names are informational. No deduplication by distance: El Nozha and Gesr El Suez are 173 m apart in this source and both stay as neighbouring districts. Every other row is used as sourced."
+}

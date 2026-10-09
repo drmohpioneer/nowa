@@ -18,7 +18,7 @@ from nowa.messaging.outbox import (
     recipient,
 )
 from nowa.record import record_usage
-from nowa.schema import action_record, bookings, evenings, outbox, timers
+from nowa.schema import action_record, bookings, evenings, outbox, standbys, timers
 
 
 def _row(conn: Connection, oid: int) -> RowMapping | None:
@@ -49,6 +49,21 @@ def send_retry(ctx: TimerContext, payload: dict[str, Any]) -> None:
         or row["attempts"] >= attempt
     ):
         return
+    if row["template_id"] == "op:standby_offer":
+        offer = (
+            ctx.conn.execute(
+                select(standbys).where(
+                    standbys.c.id == row["standby_id"],
+                    standbys.c.clinic_id == ctx.clinic_id,
+                )
+            )
+            .mappings()
+            .first()
+        )
+        if offer is None or offer["state"] != "offered" or offer["expires_at"] <= ctx.now:
+            ctx.conn.execute(update(outbox).where(outbox.c.id == row["id"]).values(status="failed"))
+            audit(ctx.conn, row, "message_failure", "standby_offer_ended")
+            return
     if row["channel"] != "telegram" or row["adapter"] not in ADAPTERS:
         _failure(ctx.conn, ctx.clock, row, "no_channel")
         return
@@ -103,7 +118,7 @@ def send_retry(ctx: TimerContext, payload: dict[str, Any]) -> None:
     if (
         row["recipient_kind"] == "pending_signup"
         and not phone
-        or row["recipient_kind"] in {"patient_contact", "doctor", "screen"}
+        or row["recipient_kind"] in {"patient_contact", "standby_contact", "doctor", "screen"}
         and not phone
     ):
         _failure(ctx.conn, ctx.clock, row, "no_recipient")

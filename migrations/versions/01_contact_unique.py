@@ -1,4 +1,4 @@
-"""One contact per clinic and phone."""
+"""One contact per clinic and phone ."""
 
 from alembic import op
 

@@ -11,7 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from nowa import record
 from nowa.clock import Clock
-from nowa.core import report, signup_handlers, timing_handlers
+from nowa.core import report, signup_handlers, standby, timing_handlers
 from nowa.core.timers import TimerContext, TimerHandler
 from nowa.db import write_tx
 from nowa.messaging.pipeline import delivery_timeout, send_retry
@@ -24,6 +24,7 @@ KINDS = frozenset(
         "travel_check",
         "leave_now_check",
         "silent_check",
+        "standby_expire",
         "are_you_on_way",
         "evening_auto_close",
         "evening_system_close",
@@ -57,6 +58,7 @@ def register(registry: dict[str, TimerHandler], kind: str, handler: TimerHandler
 
 def build_registry() -> dict[str, TimerHandler]:
     registry: dict[str, TimerHandler] = {}
+    register(registry, "standby_expire", standby.expire)
     register(registry, "send_retry", send_retry)
     register(registry, "delivery_timeout", delivery_timeout)
     register(registry, "travel_check", timing_handlers.travel_check)

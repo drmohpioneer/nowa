@@ -14,7 +14,7 @@ PRIVATE_HEADERS = {
 
 
 def private_path(path: str) -> bool:
-    return bool(re.match(r"^/(l|w|r)(/|$)", path))
+    return bool(re.match(r"^/(l|w|r|s)(/|$)", path))
 
 
 class AccessLogMiddleware:
@@ -42,7 +42,7 @@ class AccessLogMiddleware:
         try:
             await self.app(scope, receive, send_response)
         finally:
-            redacted = re.sub(r"^/(l|w|r)/[^/]+", r"/\1/<code>", path)
+            redacted = re.sub(r"^/(l|w|r|s)/[^/]+", r"/\1/<code>", path)
             redacted = redacted.replace("\n", "").replace("\r", "")
             logger.info(
                 "%s %s %s %.1fms",

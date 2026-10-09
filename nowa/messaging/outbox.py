@@ -9,7 +9,7 @@ from sqlalchemy.engine import Connection
 from nowa.clock import Clock
 from nowa.core.timers import schedule_timer
 from nowa.messaging import texts
-from nowa.messaging.templates import render, render_operational
+from nowa.messaging.templates import render, render_operational, save_values
 from nowa.record import write_action
 from nowa.schema import (
     bookings,
@@ -20,6 +20,7 @@ from nowa.schema import (
     patients,
     pending_signups,
     secretary_links,
+    standbys,
     telegram_links,
 )
 
@@ -66,6 +67,20 @@ def recipient(conn: Connection, row: Mapping[Any, Any]) -> tuple[str | None, str
         return phone, telegram_chat(conn, phone, "doctor") if phone else None
     if kind == "secretary":
         return None, secretary_chat(conn, row["clinic_id"])
+    if kind == "standby_contact":
+        phone = conn.execute(
+            select(contacts.c.phone_e164)
+            .join(
+                standbys,
+                standbys.c.contact_id == contacts.c.id,
+            )
+            .where(
+                standbys.c.id == row["standby_id"],
+                standbys.c.clinic_id == row["clinic_id"],
+                contacts.c.clinic_id == row["clinic_id"],
+            )
+        ).scalar_one_or_none()
+        return phone, telegram_chat(conn, phone, "patient") if phone else None
     if kind == "patient_contact":
         phone = conn.execute(
             select(contacts.c.phone_e164)
@@ -117,6 +132,7 @@ def enqueue_message(
     idempotency_key: str,
     channel: str | None = None,
     pending_signup_id: int | None = None,
+    standby_id: int | None = None,
 ) -> int:
     if channel not in {None, "telegram"}:
         raise ValueError("Invalid channel")
@@ -136,7 +152,11 @@ def enqueue_message(
         "telegram",
     }:
         raise ValueError("Invalid audience or channel")
-    if pending_signup_id is not None:
+    if standby_id is not None:
+        if audience != "patient" or booking_id is not None or pending_signup_id is not None:
+            raise ValueError("Invalid standby recipient")
+        kind = "standby_contact"
+    elif pending_signup_id is not None:
         if audience != "doctor" or booking_id is not None:
             raise ValueError("Invalid pending sign-up recipient")
         signup = (
@@ -172,6 +192,7 @@ def enqueue_message(
         booking_id=booking_id,
         pending_signup_id=pending_signup_id,
         recipient_kind=kind,
+        standby_id=standby_id,
     )
     phone, chat = recipient(conn, values)
     if kind == "secretary" and not chat:
@@ -198,6 +219,7 @@ def enqueue_message(
         channel=channel,
         adapter=adapter,
         body=body,
+        values_json=save_values(blanks),
         status="queued" if approved or texts.allowed(clinic) else "blocked_unapproved",
         idempotency_key=idempotency_key,
         created_at=clock.now(clinic_id),
@@ -222,6 +244,9 @@ class ScreenMessage:
     status: str
     created_at: datetime
     pending_signup_id: int | None = None
+    values_json: dict[str, Any] | None = None
+    lang: str = "ar"
+    standby_id: int | None = None
 
 
 def screen_messages(conn: Connection, clinic_id: int, after_id: int) -> list[ScreenMessage]:
@@ -244,6 +269,9 @@ def screen_messages(conn: Connection, clinic_id: int, after_id: int) -> list[Scr
             row["status"],
             row["created_at"],
             row["pending_signup_id"],
+            row["values_json"],
+            row["lang"],
+            row["standby_id"],
         )
         for row in rows
     ]
@@ -262,21 +290,48 @@ def alert_failure(conn: Connection, clock: Clock, row: Mapping[Any, Any]) -> Non
         .mappings()
         .one_or_none()
     )
+    standby = (
+        conn.execute(
+            select(standbys).where(
+                standbys.c.id == row.get("standby_id"), standbys.c.clinic_id == row["clinic_id"]
+            )
+        )
+        .mappings()
+        .one_or_none()
+        if row.get("standby_id") is not None
+        else None
+    )
+    subject = booking if booking is not None else standby
     phone, _ = recipient(conn, row)
     name = (
         None
-        if booking is None
+        if subject is None
         else conn.execute(
-            select(patients.c.name).where(
-                patients.c.id == booking["patient_id"], patients.c.clinic_id == row["clinic_id"]
+            select(patients.c.name, patients.c.name_en).where(
+                patients.c.id == subject["patient_id"], patients.c.clinic_id == row["clinic_id"]
             )
-        ).scalar_one_or_none()
+        )
+        .mappings()
+        .one_or_none()
     )
-    if not booking or not phone or not name:
+    if subject is None or not phone or not name:
         audit(conn, row, "message_alert_unavailable", "no_recipient")
         return
     doctor = doctor_row(conn, row["clinic_id"])
-    blanks = {"patient_name": name, "queue_number": booking["queue_number"], "phone": phone}
+    from nowa.web.strings import text
+
+    def alert_blanks(lang: str) -> dict[str, Any]:
+        number = (
+            booking["queue_number"]
+            if booking is not None
+            else text(
+                "doctor.standby_number",
+                lang,
+            ).format(number=subject["position"])
+        )
+        return {"patient_name": dict(name), "queue_number": number, "phone": phone}
+
+    blanks = alert_blanks(doctor["lang"])
     enqueue_message(
         conn,
         clock,
@@ -298,6 +353,6 @@ def alert_failure(conn: Connection, clock: Clock, row: Mapping[Any, Any]) -> Non
             "ar",
             "secretary",
             row["booking_id"],
-            blanks,
+            alert_blanks("ar"),
             row["idempotency_key"] + ":alert:secretary",
         )

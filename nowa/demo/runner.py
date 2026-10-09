@@ -19,6 +19,7 @@ from nowa.ai.health import Answered
 from nowa.ai.schema import ChatResponse
 from nowa.clock import CAIRO, Clock, FrozenClock
 from nowa.core import booking, flows, projection, questions, report, signup, timing, travel
+from nowa.core.display import clinic_address
 from nowa.db import write_tx
 from nowa.demo import evening_script as script
 from nowa.library.answer import RecordedHealthAnswerer
@@ -116,6 +117,7 @@ class EveningRunner:
                             ),
                             self._key(run, f"book:{patient.number}"),
                             actor="system",
+                            patient_name_en=patient.name_en,
                         ),
                     )
                     if not isinstance(result, booking.BookingOk):
@@ -169,6 +171,13 @@ class EveningRunner:
                     self.clinic_id,
                     script.DOCTOR_QUESTION,
                     self._key(run, "question"),
+                    questions.Asker(
+                        conn.execute(
+                            select(s.bookings.c.patient_id).where(s.bookings.c.id == ids[3])
+                        ).scalar_one(),
+                        ids[3],
+                        "demo:" + run["run_id"],
+                    ),
                 )
                 T = travel.minutes(
                     conn,
@@ -337,7 +346,7 @@ class EveningRunner:
             run["visit_index"] += 1
         return False
 
-    def state(self) -> dict[str, Any]:
+    def state(self, lang: str = "ar") -> dict[str, Any]:
         with self.engine.connect() as conn:
             run = self._run(conn)
             evening = (
@@ -359,11 +368,13 @@ class EveningRunner:
                 ).scalar_one(),
                 doctor=True,
             )
+            taps = tap_state(conn, self.clinic_id, evening["id"] if evening else None, lang)
             additions: dict[str, Any] = {
+                "doctor": taps["doctor"],
                 "clinic": {
                     "name": clinic["name"],
                     "specialty": clinic["specialty"],
-                    "area": clinic["address"],
+                    "area": clinic_address(clinic, lang),
                 },
                 "evening": {
                     "first_minute": 0,
@@ -373,15 +384,22 @@ class EveningRunner:
                     "start_at": self._zero(conn) + timedelta(minutes=stage_start_minute()),
                     "end_at": self._zero(conn) + timedelta(minutes=600),
                 },
-                "in_room": tap_state(conn, self.clinic_id, evening["id"] if evening else None)[
-                    "in_room"
-                ],
+                "in_room": taps["in_room"],
             }
             if evening and run["step"] == 2:
-                result = report.build_report(conn, self.clock, self.clinic_id, evening["id"])
+                result = report.build_report(conn, self.clock, self.clinic_id, evening["id"], lang)
                 additions["report"] = {
                     key: getattr(result, key)
-                    for key in ("booked", "came", "no_show_count", "walk_ins", "avg_wait")
+                    for key in (
+                        "booked",
+                        "seen_booked",
+                        "cancelled",
+                        "no_show_count",
+                        "no_show_names",
+                        "walk_ins",
+                        "total_seen",
+                        "avg_wait",
+                    )
                     if getattr(result, key) is not None
                 }
             return dict(
@@ -389,15 +407,15 @@ class EveningRunner:
                 run_id=run["run_id"],
                 minute=run["minute"],
                 closed=run["step"] == 2,
-                clock=self.clock.now(self.clinic_id),
+                clock=self._zero(conn) + timedelta(minutes=run["minute"]),
                 doctor_travel_min=T,
                 queue=[
                     asdict(r)
-                    for r in timing.tonight_board(conn, self.clinic_id, evening["id"]).rows
+                    for r in timing.tonight_board(conn, self.clinic_id, evening["id"], lang).rows
                 ]
                 if evening
                 else [],
-                timeline=timeline(conn, self.clinic_id),
+                timeline=timeline(conn, self.clinic_id, lang),
                 chat_url="/c/" + clinic["slug"],
                 report_url=f"/d/report/{evening['id']}" if evening and run["step"] == 2 else None,
             )

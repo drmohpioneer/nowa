@@ -50,6 +50,6 @@ def test_head12_preserves_token_and_enforces_new_claim_scope(tmp_path):
         with engine.connect() as conn:
             assert len(conn.execute(select(s.link_tokens)).all()) == 3
             head = conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one()
-            assert head == "15"
+            assert head == "31"
     finally:
         engine.dispose()

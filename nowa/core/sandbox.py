@@ -25,6 +25,20 @@ NAMES = (
     "Laila",
     "Mostafa",
 )
+NAMES_AR = (
+    "كريم",
+    "نور",
+    "أحمد",
+    "منى",
+    "سلمى",
+    "عمر",
+    "هنا",
+    "يوسف",
+    "فريدة",
+    "علي",
+    "ليلى",
+    "مصطفى",
+)
 LANGS: tuple[Literal["ar", "en", "franco"], ...] = ("ar", "en", "franco")
 
 
@@ -47,9 +61,7 @@ def seed_sandbox_evening_in_tx(conn: Connection, clock: Clock, clinic_id: int) -
         )
     ).first():
         return
-    area_ids: list[int] = list(
-        conn.execute(select(s.areas.c.id).order_by(s.areas.c.id)).scalars()
-    )
+    area_ids: list[int] = list(conn.execute(select(s.areas.c.id).order_by(s.areas.c.id)).scalars())
     if not area_ids:
         raise ValueError("Sandbox seeding requires reference areas")
     now = clock.now(clinic_id)
@@ -71,13 +83,14 @@ def seed_sandbox_evening_in_tx(conn: Connection, clock: Clock, clinic_id: int) -
                     booking.BookingRequest(
                         clinic_id,
                         day,
-                        name,
+                        NAMES_AR[index],
                         f"+201000002{index:03d}",
                         LANGS[index % 3],
                         area_ids[index % len(area_ids)],
                         booking.ConsentInput("fictional", "fictional", "self"),
                         f"sandbox_seed:{clinic_id}:{int(clinic['created_at'].timestamp())}:{index}",
                         actor="system",
+                        patient_name_en=name,
                     ),
                     confirm=False,
                 )

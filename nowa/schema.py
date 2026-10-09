@@ -57,6 +57,7 @@ clinics = Table(
     Column("name", Text, nullable=False),
     Column("specialty", Text, nullable=False),
     Column("address", Text, nullable=False),
+    Column("address_en", Text),
     Column("lat", Float, nullable=False),
     Column("lng", Float, nullable=False),
     Column("phone", Text, nullable=False),
@@ -76,7 +77,12 @@ clinics = Table(
     CheckConstraint("usual_visit_min > 0", name="positive_visit"),
 )
 patients = Table(
-    "patients", metadata, id_column(), clinic_column(), Column("name", Text, nullable=False)
+    "patients",
+    metadata,
+    id_column(),
+    clinic_column(),
+    Column("name", Text, nullable=False),
+    Column("name_en", Text),
 )
 contacts = Table(
     "contacts",
@@ -184,6 +190,14 @@ areas = Table(
     Column("name_en", Text, nullable=False, unique=True),
     Column("lat", Float, nullable=False),
     Column("lng", Float, nullable=False),
+    Column("source", String, server_default="reference"),
+)
+geocode_cache = Table(
+    "geocode_cache",
+    metadata,
+    Column("query", Text, primary_key=True),
+    Column("area_id", Integer, ForeignKey("areas.id")),
+    stamp("fetched_at", nullable=False),
 )
 bookings = Table(
     "bookings",
@@ -205,6 +219,11 @@ bookings = Table(
     Column("travel_min", Float),
     Column("link_code_hash", Text),
     Column("area_id", Integer, ForeignKey("areas.id")),
+    Column("origin_text", String(40)),
+    CheckConstraint(
+        "origin_text IS NULL OR (area_id IS NULL AND length(origin_text) <= 40)",
+        name="origin_text_unresolved",
+    ),
     stamp("created_at", nullable=False),
     Column("silent", Boolean, nullable=False, server_default=false()),
     UniqueConstraint("evening_id", "queue_number"),
@@ -243,6 +262,41 @@ evening_taps = Table(
     Column("idempotency_key", Text, nullable=False, unique=True),
     enum_check("kind", "doctor_on_way who_comes_in walk_in"),
 )
+standbys = Table(
+    "standbys",
+    metadata,
+    id_column(),
+    clinic_column(),
+    Column("date", Date, nullable=False),
+    Column("evening_id", Integer, ForeignKey("evenings.id"), nullable=False),
+    Column("patient_id", Integer, ForeignKey("patients.id"), nullable=False),
+    Column("contact_id", Integer, ForeignKey("contacts.id"), nullable=False),
+    Column("area_id", Integer, ForeignKey("areas.id")),
+    Column("origin_text", String(40)),
+    CheckConstraint(
+        "origin_text IS NULL OR (area_id IS NULL AND length(origin_text) <= 40)",
+        name="origin_text_unresolved",
+    ),
+    Column("booking_for", String, nullable=False),
+    Column("consent_version", Text, nullable=False),
+    Column("consent_text_hash", Text, nullable=False),
+    stamp("consented_at", nullable=False),
+    Column("lang", String, nullable=False),
+    Column("position", Integer, nullable=False),
+    Column("state", String, nullable=False),
+    stamp("created_at", nullable=False),
+    stamp("offered_at"),
+    stamp("expires_at"),
+    Column("offer_code_hash", Text, unique=True),
+    stamp("expected_time"),
+    Column("booking_id", Integer, ForeignKey("bookings.id")),
+    UniqueConstraint("clinic_id", "date", "contact_id"),
+    UniqueConstraint("evening_id", "position"),
+    enum_check("state", "waiting offered taken expired declined"),
+    enum_check("booking_for", "self other"),
+    enum_check("lang", "ar en franco"),
+)
+
 outbox = Table(
     "outbox",
     metadata,
@@ -250,6 +304,7 @@ outbox = Table(
     clinic_column(),
     Column("booking_id", Integer, ForeignKey("bookings.id")),
     Column("pending_signup_id", Integer, ForeignKey("pending_signups.id", ondelete="SET NULL")),
+    Column("standby_id", Integer, ForeignKey("standbys.id")),
     Column("recipient_kind", String, nullable=False),
     Column("audience", String, nullable=False),
     Column("template_id", Text, nullable=False),
@@ -257,13 +312,16 @@ outbox = Table(
     Column("channel", String, nullable=False),
     Column("adapter", String, nullable=False),
     Column("body", Text, nullable=False),
+    Column("values_json", JSON),
     Column("status", String, nullable=False, server_default="queued"),
     Column("attempts", Integer, nullable=False, server_default="0"),
     Column("idempotency_key", Text, nullable=False, unique=True),
     Column("provider_ref", Text),
     stamp("next_attempt_at"),
     stamp("created_at", nullable=False),
-    enum_check("recipient_kind", "patient_contact doctor secretary pending_signup screen"),
+    enum_check(
+        "recipient_kind", "patient_contact standby_contact doctor secretary pending_signup screen"
+    ),
     enum_check("audience", "patient doctor secretary"),
     enum_check("lang", "ar en franco"),
     enum_check("channel", "sms telegram"),
@@ -288,7 +346,7 @@ timers = Table(
         "kind",
         "travel_check leave_now_check silent_check are_you_on_way evening_auto_close "
         "evening_system_close send_retry delivery_timeout evening_report retention_daily "
-        "sandbox_expire pending_signup_purge",
+        "sandbox_expire pending_signup_purge standby_expire",
     ),
     Index("ix_timers_status_due_at", "status", "due_at"),
 )
@@ -355,6 +413,13 @@ learned_start_gap = Table(
     clinic_column(primary_key=True),
     Column("mean_min", Float, nullable=False),
     Column("n", Integer, nullable=False),
+)
+learned_no_show = Table(
+    "learned_no_show",
+    metadata,
+    clinic_column(primary_key=True),
+    Column("n", Integer, nullable=False),
+    Column("rate", Float, nullable=False),
 )
 area_hour_travel = Table(
     "area_hour_travel",
@@ -491,7 +556,7 @@ usage = Table(
     Column("units", Integer, nullable=False),
     Column("est_cost_usd", Float, nullable=False),
     UniqueConstraint("date", "clinic_id", "judge_id", "service"),
-    enum_check("service", "ai sms mapbox telegram"),
+    enum_check("service", "ai sms mapbox mapbox_geocode telegram"),
 )
 
 doctor_sessions = Table(
@@ -541,6 +606,7 @@ chat_sessions = Table(
     Column("contact_id", Integer, ForeignKey("contacts.id")),
     Column("patient_id", Integer, ForeignKey("patients.id")),
     Column("last_booking_id", Integer, ForeignKey("bookings.id")),
+    Column("draft", Text),
     stamp("consent_other_at"),
     Column("ai_msg_count", Integer, nullable=False, server_default="0"),
     Column("turn_seq", Integer, nullable=False, server_default="0"),
@@ -613,4 +679,17 @@ demo_runs = Table(
     stamp("last_step_at", nullable=False),
     enum_check("kind", "watch public"),
     CheckConstraint("minute BETWEEN 0 AND 600", name="minute_range"),
+)
+
+question_askers = Table(
+    "question_askers",
+    metadata,
+    id_column(),
+    clinic_column(),
+    Column("question_id", Integer, ForeignKey("questions.id"), nullable=False),
+    Column("patient_id", Integer, ForeignKey("patients.id")),
+    Column("booking_id", Integer, ForeignKey("bookings.id")),
+    Column("chat_session_id", Text, nullable=False),
+    stamp("asked_at", nullable=False),
+    UniqueConstraint("question_id", "chat_session_id"),
 )

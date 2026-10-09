@@ -100,22 +100,24 @@ def test_calendar_protection_and_later_start(engine):
     assert row(engine, s.bookings, ids[-1])["expected_shown"] == original
 
 
-def test_overnight_hours_and_changed_days(engine):
+def test_reject_overnight_hours_and_track_changed_days(engine):
     cid, eid, clock, _ = setup(engine, count=1)
     move(clock, 0)
+    with pytest.raises(ValidationError):
+        settings.HoursRow(weekday=DAY.weekday(), start="19:00", end="01:00")
     affected, tonight = change(
         engine,
         clock,
         cid,
         "hours",
         settings.Hours(
-            hours=[settings.HoursRow(weekday=DAY.weekday(), start="19:00", end="01:00")]
+            hours=[settings.HoursRow(weekday=DAY.weekday(), start="19:00", end="23:59")]
         ),
     )
     assert affected == [eid] and tonight == eid
     with engine.connect() as conn:
         paper = projection.paper_hours(conn, cid, DAY)
-        assert paper[1].date() == DAY + timedelta(days=1)
+        assert paper[1].date() == DAY
     affected, tonight = change(
         engine,
         clock,

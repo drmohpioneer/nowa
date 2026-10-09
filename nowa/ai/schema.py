@@ -63,7 +63,7 @@ class HistoryTurn(StrictModel):
 
 
 class Action(StrictModel):
-    kind: Literal["book_day", "consent", "area", "lookup", "none"]
+    kind: Literal["confirm", "set_area", "set_for", "more_days", "book", "lookup", "none"]
     payload: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -73,9 +73,17 @@ class Button(StrictModel):
     action: Action
 
 
+class Source(StrictModel):
+    label: str
+    url: str
+    attribution: str
+
+
 class ChatResponse(StrictModel):
+    source: Source | None = None
     telegram_url: str | None = None
     booking_confirmed: bool = False
+    standby_pending: bool = False
     reply: str
     buttons: list[Button] = Field(default_factory=list)
     state: Literal["open", "locked_emergency"] = "open"

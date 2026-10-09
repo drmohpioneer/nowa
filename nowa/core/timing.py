@@ -12,6 +12,8 @@ from nowa import schema as s
 from nowa.clock import Clock
 from nowa.config import get_settings
 from nowa.core import booking, learning, projection, timers, travel
+from nowa.core.display import origin_label, patient_display_name
+from nowa.core.text_norm import greeting_name
 from nowa.core.travel import LatLng
 from nowa.db import write_tx
 from nowa.messaging.outbox import enqueue_message
@@ -65,6 +67,7 @@ class BoardRow:
     told_to_leave_at: datetime | None
     on_my_way_at: datetime | None
     no_show_count: int
+    origin_display: str = ""
 
 
 @dataclass(frozen=True)
@@ -121,16 +124,22 @@ def patient_blanks(conn: Connection, booking_id: int, template: str) -> dict[str
         .one()
     )
     blanks: dict[str, Any] = {
-        "patient_name": conn.execute(
-            select(s.patients.c.name).where(s.patients.c.id == row["patient_id"])
-        ).scalar_one(),
+        "patient_name": dict(
+            conn.execute(
+                select(s.patients.c.name, s.patients.c.name_en).where(
+                    s.patients.c.id == row["patient_id"]
+                )
+            )
+            .mappings()
+            .one()
+        ),
         "doctor_name": DoctorNames(doctor["name_ar"], doctor["name_en"]),
         "queue_number": row["queue_number"],
         "clinic_phone": conn.execute(
             select(s.clinics.c.phone).where(s.clinics.c.id == row["clinic_id"])
         ).scalar_one(),
     }
-    if template in {"1", "3"}:
+    if template in {"1", "3", "4"}:
         blanks["day_franco" if row["lang"] == "franco" else "day"] = conn.execute(
             select(s.evenings.c.date).where(s.evenings.c.id == row["evening_id"])
         ).scalar_one()
@@ -231,6 +240,7 @@ def recompute(conn: Connection, clock: Clock, evening_id: int) -> None:
         .mappings()
         .all()
     )
+    newly_silent = False
     k = 0
     future: list[datetime] = []
     for row in rows:
@@ -243,6 +253,7 @@ def recompute(conn: Connection, clock: Clock, evening_id: int) -> None:
         changes: dict[str, Any] = {}
         if silent != row["silent"]:
             changes["silent"] = silent
+            newly_silent = newly_silent or silent
         projected = projection.expected_time(snap, k, pace, now)
         if not silent:
             k += 1
@@ -310,6 +321,10 @@ def recompute(conn: Connection, clock: Clock, evening_id: int) -> None:
     from nowa.core.travel_mapbox import arm_travel_checks
 
     arm_travel_checks(conn, clock, evening_id)
+    if newly_silent:
+        from nowa.core.standby import offer_next
+
+        offer_next(conn, clock, evening_id)
 
 
 def _auto_due(conn: Connection, evening: RowMapping) -> datetime | None:
@@ -817,7 +832,6 @@ def close_evening_in_tx(
                 .where(s.visits.c.id == visit["id"])
                 .values(ended_at=now, accepted=accepted)
             )
-        learning.learn(conn, clinic_id, evening_id)
     conn.execute(
         s.evenings.update()
         .where(s.evenings.c.id == evening_id)
@@ -831,6 +845,14 @@ def close_evening_in_tx(
             else "auto",
         )
     )
+    from nowa.core.standby import close
+
+    close(conn, clock, evening_id)
+    from nowa.core.report import daily_totals
+
+    daily_totals(conn, clinic_id, evening_id)
+    if not _system_no_taps:
+        learning.learn(conn, clinic_id, evening_id)
     timers.schedule_timer(
         conn,
         clinic_id,
@@ -906,14 +928,17 @@ def cancel_tonight_in_tx(
         .values(state="cancelled", cancelled_at=clock.now(clinic_id))
     )
     result = TapResult(True)
+    from nowa.core.standby import close
+
+    close(conn, clock, evening_id)
     _finish(conn, clock, evening, idempotency_key, "cancel_tonight", result)
     return result
 
 
-def tonight_board(conn: Connection, clinic_id: int, evening_id: int) -> Board:
+def tonight_board(conn: Connection, clinic_id: int, evening_id: int, lang: str = "ar") -> Board:
     rows = (
         conn.execute(
-            select(s.bookings, s.patients.c.name)
+            select(s.bookings, s.patients.c.name, s.patients.c.name_en)
             .outerjoin(s.patients, s.patients.c.id == s.bookings.c.patient_id)
             .where(s.bookings.c.clinic_id == clinic_id, s.bookings.c.evening_id == evening_id)
             .order_by(s.bookings.c.order_key, s.bookings.c.id)
@@ -940,7 +965,7 @@ def tonight_board(conn: Connection, clinic_id: int, evening_id: int) -> Board:
             BoardRow(
                 row["id"],
                 row["queue_number"],
-                row["name"].split()[0] if row["name"] else None,
+                greeting_name(patient_display_name(row, lang)) if row["name"] else None,
                 row["state"],
                 row["state"] in projection.WAITING_STATES,
                 row["silent"],
@@ -949,6 +974,7 @@ def tonight_board(conn: Connection, clinic_id: int, evening_id: int) -> Board:
                 row["told_to_leave_at"],
                 row["on_my_way_at"],
                 count,
+                origin_label(row, lang),
             )
         )
     return Board(result)

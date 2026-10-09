@@ -1,4 +1,6 @@
+import json
 from collections.abc import Callable
+from pathlib import Path
 
 from sqlalchemy.engine import Engine
 
@@ -6,7 +8,7 @@ from nowa.db import conflict_insert, write_tx
 from nowa.schema import areas
 
 REFERENCE_LOADERS: list[Callable[[Engine], None]] = []
-AREAS = [
+_ORIGINAL_AREAS = [
     ("Heliopolis", "مصر الجديدة", 30.0911, 31.3228),
     ("Nasr City", "مدينة نصر", 30.0561, 31.3300),
     ("Madinaty", "مدينتي", 30.1057, 31.6440),
@@ -20,6 +22,23 @@ AREAS = [
     ("El Obour", "العبور", 30.1930, 31.4780),
     ("6th of October", "٦ أكتوبر", 29.9740, 30.9450),
 ]
+
+
+def _load_areas() -> list[tuple[str, str, float, float]]:
+    source = Path(__file__).resolve().parents[1] / "docs/reference/greater-cairo-areas.json"
+    rows = json.loads(source.read_text())["rows"]
+    originals = {row[0]: row for row in _ORIGINAL_AREAS}
+    return [
+        *originals.values(),
+        *[
+            (row["name_en"], row["name_ar"], row["lat"], row["lng"])
+            for row in rows
+            if row["name_en"] not in originals
+        ],
+    ]
+
+
+AREAS = _load_areas()
 
 
 def load_reference(engine: Engine) -> None:

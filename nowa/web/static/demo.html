@@ -1,11 +1,27 @@
-<!doctype html><html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ t('brand') }}</title><link rel="stylesheet" href="/static/nowa.css"></head><body>{% include "icons.html" %}<main class="page wide">{% include "public-topbar.html" %}
+<!doctype html><html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ page_title }} · {{ t("brand") }}</title><link rel="icon" href="/favicon.ico" type="image/svg+xml"><link rel="stylesheet" href="/static/nowa.css"></head><body>{% include "icons.html" %}<main class="page wide">{% include "public-topbar.html" %}
 <div class="demo-h"><div class="eyebrow">{{ t('demo_eyebrow') }}</div><h1>{{ t('demo_title') }}</h1><p>{{ t('demo_intro') }}</p></div>
 <div class="doors">
 {% for kind, icon, badge in [('live','stage','live'),('booking','chat','ready'),('board','board','ready'),('report','report','after_close')] %}
-{% if kind == 'booking' %}<form class="door-form" action="{{ link('/demo/book') }}" method="post"><button class="door" type="submit">{% else %}<a class="door{{ ' lead' if kind == 'live' else '' }}" href="{{ link('/d/login' if kind == 'board' else '/demo/evening') }}">{% endif %}
+{% if kind == 'board' %}<div class="door-card board-door">{% endif %}{% if kind == 'booking' %}<form class="door-form" action="{{ link('/demo/book') }}" method="post"><button class="door" type="submit">{% else %}<a class="door{{ ' lead' if kind == 'live' else '' }}" href="{{ link('/d/login' if kind == 'board' else '/demo/evening#report' if kind == 'report' else '/demo/evening') }}">{% endif %}
 <div class="door-top"><span class="door-ic"><svg aria-hidden="true"><use href="#i-{{ icon }}"/></svg></span><span class="pill" data-live="{{ 'on' if kind == 'live' else 'wait' if kind == 'report' else 'ready' }}"><span class="dot"></span>{{ t(badge) }}</span></div>
 <b>{{ t('door_' ~ kind) }}</b><small>{{ t('door_' ~ kind ~ '_sub') }}</small>
-{% if kind == 'board' %}<small class="ltr">{{ t('credentials').format(mobile=mobile, password=password) }}</small>{% endif %}
 <svg class="go" aria-hidden="true"><use href="#i-arrow"/></svg>
 {% if kind == 'booking' %}</button></form>{% else %}</a>{% endif %}
-{% endfor %}</div><p class="demo-note"><span class="dot live"></span>{{ t('demo_note') }}</p><p class="foot">{{ t('emergency') }}</p></main></body></html>
+{% if kind == 'board' %}<div class="creds">{% for key,value in [('mobile',mobile),('password',password)] %}<div><span>{{ t(key) }}</span><code class="ltr" id="demo-{{ key }}">{{ value }}</code><button class="btn btn-ghost" type="button" data-copy="demo-{{ key }}">{{ t('copy') }}</button></div>{% endfor %}</div></div>{% endif %}
+{% endfor %}<a class="door" href="{{ link('/c/dr-hesham?from=demo') }}"><div class="door-top"><span class="door-ic"><svg aria-hidden="true"><use href="#i-chat"/></svg></span><span class="pill"><span class="dot"></span>{{ t('ready') }}</span></div><b>{{ t('door_chat') }}</b><small>{{ t('door_chat_sub') }}</small><svg class="go" aria-hidden="true"><use href="#i-arrow"/></svg></a></div><p class="demo-note"><span class="dot live"></span>{{ t('demo_note') }}</p><p class="foot">{{ t('emergency') }}</p><footer class="legal"><a href="/privacy{{ '?lang=en' if lang == 'en' else '' }}">{{ t('privacy') }}</a></footer></main><script>
+for (const button of document.querySelectorAll('[data-copy]')) button.onclick = async () => {
+  if (button.disabled) return;
+  button.disabled = true; button.setAttribute('aria-busy', 'true');
+  const code = document.getElementById(button.dataset.copy);
+  try {
+    await navigator.clipboard.writeText(code.textContent);
+    button.textContent = {{ t('copied')|tojson }};
+  } catch {
+    const range = document.createRange(); range.selectNodeContents(code);
+    const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+    button.textContent = {{ t('copy_here')|tojson }};
+  } finally { button.disabled = false; button.removeAttribute('aria-busy'); }
+  clearTimeout(button.copyTimer);
+  button.copyTimer = setTimeout(() => { button.textContent = {{ t('copy')|tojson }}; }, 1500);
+};
+</script></body></html>

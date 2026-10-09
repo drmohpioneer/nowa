@@ -11,6 +11,7 @@ from nowa import schema as s
 from nowa.clock import Clock
 from nowa.core import booking, flows, timing
 from nowa.core.telegram_tokens import mint
+from nowa.core.text_norm import western_digits
 from nowa.db import write_tx
 
 
@@ -25,11 +26,12 @@ class TelegramRefused:
     reason: Literal["sandbox"] = "sandbox"
 
 
-def view(engine: Engine, code: str) -> booking.BookingView | None:
-    return booking.booking_view(engine, code)
+def view(engine: Engine, code: str, lang: str | None = None) -> booking.BookingView | None:
+    return booking.booking_view(engine, code, lang)
 
 
 def _last4(value: str) -> str:
+    value = western_digits(value)
     return value if re.fullmatch(r"[0-9]{4}", value) else ""
 
 

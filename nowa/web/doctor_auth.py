@@ -1,6 +1,6 @@
 import hmac
 import secrets
-from typing import Annotated
+from typing import Annotated, Any
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -33,11 +33,26 @@ class ResetConfirm(ResetRequest):
     new_password: SecretStr
 
 
+def session_token(request: Request) -> str:
+    if request.url.path.startswith(("/d/report/", "/d/api/report/")):
+        demo = request.cookies.get("nowa_demo_report")
+        if demo:
+            return demo
+    # A real doctor session always wins (audit 66); a visitor who only started the demo
+    # stage reaches that stage's own board through the board-scoped demo cookie.
+    return request.cookies.get("nowa_session", "") or request.cookies.get("nowa_demo_board", "")
+
+
+def csrf_cookie_name(request: Request) -> str:
+    """The readable CSRF cookie that pairs with the session the request resolves to."""
+    return "nowa_csrf" if request.cookies.get("nowa_session") else "nowa_demo_csrf"
+
+
 def require_session(request: Request) -> auth.Session:
     session = auth.session_for(
         request.app.state.engine,
         request.app.state.clock,
-        request.cookies.get("nowa_session", ""),
+        session_token(request),
         touch=False,
     )
     if session is None:
@@ -131,10 +146,21 @@ def reset_request(request: Request, body: ResetRequest, origin: Origin) -> JSONR
     if url is None and username:
         # Match a real claim's shape without tracking or granting a credential.
         url = f"https://t.me/{username}?start=r_{secrets.token_urlsafe(32)}"
-    return JSONResponse(
-        {"ok": True, "telegram_url": url},
-        status_code=200 if result.allowed else 429,
+    response = JSONResponse(
+        {"ok": True, "telegram_url": url}, status_code=200 if result.allowed else 429
     )
+    if get_settings().demo_mode and not url and result.allowed:
+        cookie = auth.demo_reset_cookie(request.app.state.clock, result.demo_token)
+        response.set_cookie(
+            "nowa_reset",
+            cookie,
+            httponly=True,
+            samesite="lax",
+            max_age=600,
+            secure=request.url.hostname not in {"127.0.0.1", "localhost"},
+            path="/d/reset",
+        )
+    return response
 
 
 @router.post("/d/reset/confirm")
@@ -149,8 +175,14 @@ def reset_confirm(request: Request, body: ResetConfirm, origin: Origin) -> JSONR
         body.code.get_secret_value(),
         password,
     )
+    attempts_left = auth.reset_attempts_left(
+        request.app.state.engine, request.app.state.clock, body.mobile
+    )
     return JSONResponse(
-        {"ok": True, "redirect": "/d/login"} if ok else GENERIC, status_code=200 if ok else 400
+        {"ok": True, "redirect": "/d/login"}
+        if ok
+        else {"ok": False, "reason": "wrong_code", "attempts_left": attempts_left},
+        status_code=200 if ok else 400,
     )
 
 
@@ -166,3 +198,42 @@ def reset_page(request: Request) -> HTMLResponse | RedirectResponse:
     from nowa.web.doctor_pages import render
 
     return render(request, "reset")
+
+
+def doctor_language(request: Request, conn: Any, session: auth.Session) -> str:
+    explicit = request.query_params.get("lang")
+    if explicit in {"ar", "en"}:
+        return explicit
+    stored = conn.execute(
+        select(s.doctors.c.lang).where(
+            s.doctors.c.id == session.doctor_id, s.doctors.c.clinic_id == session.clinic_id
+        )
+    ).scalar_one()
+    return "en" if stored == "en" else "ar"
+
+
+@router.get("/d/reset/phone")
+def reset_phone(request: Request) -> JSONResponse:
+    from nowa.web.logging import PRIVATE_HEADERS
+    from nowa.web.request import page_language
+    from nowa.web.strings import text
+
+    if not get_settings().demo_mode:
+        raise HTTPException(404)
+    try:
+        rows = auth.demo_reset_messages(
+            request.app.state.engine, request.app.state.clock, request.cookies.get("nowa_reset", "")
+        )
+    except ValueError:
+        raise HTTPException(403) from None
+    messages = [
+        dict(
+            outbox_id=row["id"],
+            body=row["body"],
+            created_at=row["created_at"].isoformat(),
+            status=row["status"],
+            recipient=text("demo.doctor", page_language(request)),
+        )
+        for row in rows
+    ]
+    return JSONResponse(messages, headers=PRIVATE_HEADERS)

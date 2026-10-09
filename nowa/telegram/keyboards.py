@@ -196,6 +196,24 @@ def question_buttons(question_id: int, lang: str, *, draft: bool = False) -> Mar
 def markup_for(outbox_row: Mapping[str, Any]) -> Markup | None:
     lang = outbox_row.get("lang", "ar")
     key = outbox_row.get("idempotency_key", "")
+    if outbox_row.get("template_id") in {"op:standby_offer", "op:standby_closed"}:
+        offered = outbox_row["template_id"] == "op:standby_offer"
+        values = outbox_row.get("values_json") or {}
+        path = values.get("take_link" if offered else "next_day_link")
+        if isinstance(path, str) and path.startswith("/"):
+            return {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": text(
+                                "patient.standby_take" if offered else "patient.rebook", lang
+                            ),
+                            "url": get_settings().public_base_url + path,
+                        }
+                    ]
+                ]
+            }
+        return None
     if outbox_row.get("template_id") == "6":
         match = re.fullmatch(r"report:([1-9][0-9]*)", key)
         if match is None:

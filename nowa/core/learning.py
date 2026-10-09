@@ -25,6 +25,7 @@ def learn(conn: Connection, clinic_id: int, evening_id: int) -> None:
     conn.execute(
         select(s.clinics.c.id).where(s.clinics.c.id == clinic_id).with_for_update()
     ).scalar_one()
+    learn_no_show(conn, clinic_id)
     lengths = accepted_lengths(conn, clinic_id, evening_id)
     if lengths:
         old = (
@@ -81,5 +82,27 @@ def learn(conn: Connection, clinic_id: int, evening_id: int) -> None:
         .on_conflict_do_update(
             index_elements=[s.learned_start_gap.c.clinic_id],
             set_={"mean_min": value, "n": min(20, n + 1)},
+        )
+    )
+
+
+def learn_no_show(conn: Connection, clinic_id: int) -> None:
+    """Recompute from closed-evening aggregates; small evenings still use a window place."""
+    recent = conn.execute(
+        select(s.daily_totals)
+        .where(s.daily_totals.c.clinic_id == clinic_id)
+        .order_by(s.daily_totals.c.date.desc())
+        .limit(10)
+    ).mappings()
+    qualifying = [r for r in recent if r["booked"] + r["cancelled"] >= 5]
+    missing = sum(r["didnt_come"] for r in qualifying)
+    total = sum(r["didnt_come"] + r["came"] for r in qualifying)
+    rate = missing / total if total else 0.0
+    conn.execute(
+        conflict_insert(conn, s.learned_no_show)
+        .values(clinic_id=clinic_id, n=len(qualifying), rate=rate)
+        .on_conflict_do_update(
+            index_elements=[s.learned_no_show.c.clinic_id],
+            set_={"n": len(qualifying), "rate": rate},
         )
     )

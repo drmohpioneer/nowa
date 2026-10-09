@@ -3,6 +3,7 @@ import hmac
 import secrets
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
@@ -14,6 +15,7 @@ from nowa import schema as s
 from nowa.clock import Clock
 from nowa.config import get_settings
 from nowa.core import booking, ratelimit, telegram_tokens
+from nowa.core.text_norm import western_digits
 from nowa.db import write_tx
 from nowa.messaging.outbox import enqueue_message, telegram_chat
 
@@ -94,19 +96,22 @@ def login(engine: Engine, clock: Clock, mobile: str, password: str, client_ip: s
         if not ratelimit.hit(conn, clock, "doctor_login_ip", client_ip, 900, 20):
             return LoginResult(False, limited=True)
         phone = booking.normalize_phone(mobile)
-        if not ratelimit.hit(conn, clock, "doctor_login", phone or mobile, 900, 5):
-            return LoginResult(False, limited=True)
         doctor = (
-            conn.execute(select(s.doctors).where(s.doctors.c.mobile_e164 == phone))
+            conn.execute(
+                select(s.doctors).where(s.doctors.c.mobile_e164 == phone).with_for_update()
+            )
             .mappings()
             .one_or_none()
         )
+        if ratelimit.exhausted(conn, clock, "doctor_login", phone or mobile, 900, 5):
+            return LoginResult(False, limited=True)
         try:
             valid: bool = _hasher.verify(doctor["password_hash"] if doctor else _dummy, password)
         except VerificationError:
             valid = False
         if not valid or doctor is None:
-            return LoginResult(False)
+            allowed = ratelimit.hit(conn, clock, "doctor_login", phone or mobile, 900, 5)
+            return LoginResult(False, limited=not allowed)
         return LoginResult(
             True, tokens=_create_session(conn, clock, doctor["clinic_id"], doctor["id"])
         )
@@ -164,7 +169,11 @@ def redact_code_row(conn: Connection, outbox_id: int) -> None:
     ).scalar_one()
     if template != "op:reset_code":
         raise ValueError("Only reset-code messages may be redacted")
-    conn.execute(s.outbox.update().where(s.outbox.c.id == outbox_id).values(body="[redacted]"))
+    conn.execute(
+        s.outbox.update()
+        .where(s.outbox.c.id == outbox_id)
+        .values(body="[redacted]", values_json=None)
+    )
 
 
 def _redact(conn: Connection, code_id: int) -> None:
@@ -180,6 +189,7 @@ def _redact(conn: Connection, code_id: int) -> None:
 @dataclass(frozen=True)
 class ResetResult:
     allowed: bool
+    demo_token: str | None = field(default=None, repr=False)
     telegram_url: str | None = field(default=None, repr=False)
 
     def __bool__(self) -> bool:
@@ -271,7 +281,12 @@ def request_reset(engine: Engine, clock: Clock, mobile: str, client_ip: str) -> 
                 f"reset_code:{code_id}",
             )
         record.write_action(conn, doctor["clinic_id"], "doctor", "doctor_reset_request")
-        return ResetResult(True, url)
+        demo_token = None
+        if get_settings().demo_mode and not url:
+            expires = int((now + timedelta(minutes=10)).timestamp())
+            payload = f"reset_phone|{code_id}|{keyed_hash(keyed_hash(code))}|{expires}"
+            demo_token = payload + "." + keyed_hash(payload)
+        return ResetResult(True, demo_token, url)
 
 
 def confirm_reset(engine: Engine, clock: Clock, mobile: str, code: str, new_password: str) -> bool:
@@ -309,7 +324,9 @@ def confirm_reset(engine: Engine, clock: Clock, mobile: str, code: str, new_pass
             .where(s.auth_codes.c.id == row["id"], s.auth_codes.c.attempts < 5)
             .values(attempts=s.auth_codes.c.attempts + 1)
         )
-        if changed.rowcount == 0 or not hmac.compare_digest(row["code_hash"], keyed_hash(code)):
+        if changed.rowcount == 0 or not hmac.compare_digest(
+            row["code_hash"], keyed_hash(western_digits(code))
+        ):
             return False
         conn.execute(
             s.doctors.update()
@@ -327,3 +344,69 @@ def confirm_reset(engine: Engine, clock: Clock, mobile: str, code: str, new_pass
         _redact(conn, row["id"])
         record.write_action(conn, doctor["clinic_id"], "doctor", "doctor_reset_complete")
         return True
+
+
+def demo_reset_cookie(clock: Clock, token: str | None) -> str:
+    if token:
+        return token
+    nonce = keyed_hash(secrets.token_urlsafe(32))
+    expires = int(clock.base_now().timestamp()) + 600
+    payload = f"reset_phone|0|{nonce}|{expires}"
+    return payload + "." + keyed_hash(payload)
+
+
+def reset_attempts_left(engine: Engine, clock: Clock, mobile: str) -> int:
+    with engine.connect() as conn:
+        attempts = conn.execute(
+            select(s.auth_codes.c.attempts)
+            .where(
+                s.auth_codes.c.phone_key == keyed_hash(booking.normalize_phone(mobile) or ""),
+                s.auth_codes.c.purpose == "reset",
+                s.auth_codes.c.used_at.is_(None),
+                s.auth_codes.c.expires_at > clock.base_now(),
+            )
+            .order_by(s.auth_codes.c.id.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+    return max(0, 5 - (attempts if attempts is not None else 5))
+
+
+def demo_reset_messages(engine: Engine, clock: Clock, cookie: str) -> list[dict[str, Any]]:
+    from nowa.core.signup import Refused, unsign
+
+    try:
+        parts = unsign(cookie, "reset_phone", clock.base_now().timestamp())
+        if len(parts) != 4:
+            raise ValueError
+        code_id = int(parts[1])
+    except (ValueError, Refused):
+        raise ValueError("invalid reset scope") from None
+    with engine.connect() as conn:
+        code = (
+            conn.execute(
+                select(s.auth_codes).where(
+                    s.auth_codes.c.id == code_id,
+                    s.auth_codes.c.purpose == "reset",
+                    s.auth_codes.c.used_at.is_(None),
+                    s.auth_codes.c.expires_at > clock.base_now(),
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if not code:
+            return []
+        if not hmac.compare_digest(keyed_hash(code["code_hash"]), parts[2]):
+            raise ValueError("invalid reset scope")
+        row = (
+            conn.execute(
+                select(s.outbox).where(
+                    s.outbox.c.idempotency_key == f"reset_code:{code_id}",
+                    s.outbox.c.clinic_id == code["clinic_id"],
+                    s.outbox.c.adapter == "screen_phone",
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        return [dict(row)] if row else []

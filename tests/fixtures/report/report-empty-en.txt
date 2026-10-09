@@ -1,8 +1,10 @@
 📋 Tonight's clinic report (Tue 6/10)
 
-👥 Bookings: 0
-✅ Came: 0
-❌ Didn't come: 0
-🚶 Walk-ins: 0
+👥 Booked: 0 (1 cancelled)
+Cancelled at close: 0
+✅ Seen, of the booked: 0
+❌ Did not come: 0
+🚶 Came without a booking, seen: 0
+📊 Total seen: 0
 
 📅 : 0 bookings so far

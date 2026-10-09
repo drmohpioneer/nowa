@@ -147,7 +147,6 @@ def test_cross_clinic_and_specialty_gate(chat, engine):
     for path, data in [
         ("turn", dict(text="hello", history=[])),
         ("tap", dict(action="none", payload={"faq": "price"})),
-        ("consent", dict(booking_for="other")),
         ("lookup", dict(name="Person", last4="1234")),
     ]:
         assert (
@@ -188,7 +187,7 @@ def test_no_keys_safe_and_no_judge_cap(chat, engine):
         BASE + "/tap",
         json=dict(session=key, idempotency_key="faq", action="none", payload={"faq": "price"}),
     )
-    assert faq.status_code == 200 and "٣٠٠" in faq.json()["reply"]
+    assert faq.status_code == 200 and "300" in faq.json()["reply"]
 
 
 def test_pending_turn_replay_and_no_open_model_transaction(chat, engine, frozen_clock):
@@ -344,7 +343,7 @@ def check_emergency_tap_race(engine, clock):
 
     def booking_tap():
         start.wait()
-        return tap_command(clinic, key, "book_day", payload, "tap", engine=engine, clock=clock)
+        return tap_command(clinic, key, "confirm", payload, "tap", engine=engine, clock=clock)
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         first, second = pool.submit(emergency_turn), pool.submit(booking_tap)
@@ -356,7 +355,7 @@ def check_emergency_tap_race(engine, clock):
         assert tap_result.reply == render_emergency("general", "en")
     after = snapshot(engine)
     assert tap_command(
-        clinic, key, "book_day", payload, "tap", engine=engine, clock=clock
+        clinic, key, "confirm", payload, "tap", engine=engine, clock=clock
     ).reply == (render_emergency("general", "en"))
     assert snapshot(engine) == after
 

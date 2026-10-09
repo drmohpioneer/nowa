@@ -7,10 +7,11 @@ from sqlalchemy import select
 from nowa import schema as s
 from nowa.ai import health
 from nowa.ai.adapters import FixtureAdapter
-from nowa.ai.cards import consent_text, ui
+from nowa.ai.cards import ui
 from nowa.ai.sessions import keyed
 from nowa.config import get_settings
 from nowa.core import booking, flows, timing
+from nowa.core.consent import policy_text
 from nowa.core.questions import log_question
 from nowa.core.text_norm import mask_phones, normalize_question
 from nowa.db import write_tx
@@ -48,18 +49,18 @@ def test_golden_father_number_seven(chat, engine, frozen_clock):
     data = turn(client, key, "احجز لبابا اسمه Karim Father ورقمي 01000000777", key="card")
     assert not any(b["id"] == "location" for b in data["buttons"])
     payload = day_payload(data)
-    assert payload["date"] == "2026-10-06"
-    assert tap(client, key, payload)["reply"] == ui("consent_refused", "ar")
+    assert payload["draft"]["day"] == "2026-10-06"
     assert len(rows(engine, s.bookings)) == 6
-    consent = dict(session=key, booking_for="other", idempotency_key="consent")
-    assert client.post(BASE + "/consent", json=consent).status_code == 200
-    when = rows(engine, s.chat_sessions)[0]["consent_other_at"]
-    frozen_clock.advance(minutes=1)
-    client.post(BASE + "/consent", json=consent)
-    assert rows(engine, s.chat_sessions)[0]["consent_other_at"] == when
+    assert (
+        client.post(
+            BASE + "/consent", json=dict(session=key, booking_for="other", idempotency_key="gone")
+        ).status_code
+        == 410
+    )
     data = tap(client, key, payload, "book")
     assert "7" in data["reply"] and "/l/" not in str(data)
     tap(client, key, payload, "book")
+    assert any(p["name"] == "Karim Father" for p in rows(engine, s.patients))
     booked = rows(engine, s.bookings)
     assert len(booked) == 7
     b = booked[-1]
@@ -68,10 +69,11 @@ def test_golden_father_number_seven(chat, engine, frozen_clock):
     outbox = [r for r in rows(engine, s.outbox) if r["booking_id"] == b["id"]]
     assert len(outbox) == 1 and outbox[0]["body"] == expected
     stored = rows(engine, s.consents)[-1]
-    version, hashed, text = consent_text("other", "ar", "dr-hesham")
+    version, hashed, text = policy_text("ar")
     assert stored["booking_for"] == "other"
     assert (stored["version"], stored["text_hash"]) == (version, hashed)
-    assert text in turn(client, key, "حجز", key="card")["reply"]
+    assert text not in data["reply"]
+    assert rows(engine, s.chat_sessions)[0]["consent_other_at"] is not None
     assert rows(engine, s.timers)
     assert "01000000777" in app.state.ai_chain[0].prompts[0].conversation
     incoming = [r for r in rows(engine, s.action_record) if r["kind"] == "chat_in"]
@@ -85,11 +87,13 @@ def test_golden_father_number_seven(chat, engine, frozen_clock):
 )
 def test_booking_for(chat, who, ask, location):
     client, app, _ = chat
-    app.state.ai_chain = [FixtureAdapter(book_output(who))]
+    candidate = book_output(who)
+    candidate.fields.area = None
+    app.state.ai_chain = [FixtureAdapter(candidate)]
     data = turn(client, session(client), "حجز")
     assert any(b["id"] == "location" for b in data["buttons"]) == location
     if ask:
-        assert data["reply"] == ui("booking_for_ask", "ar") and not data["buttons"]
+        assert data["reply"] == ui("booking_for_ask", "ar") and len(data["buttons"]) == 2
 
 
 @pytest.mark.parametrize("name", ["Karim 01000000005", "Dr. Karim", "www.x.com"])
@@ -99,7 +103,35 @@ def test_invalid_name(chat, name):
     candidate.fields.name = name
     app.state.ai_chain = [FixtureAdapter(candidate)]
     data = turn(client, session(client), "احجز")
-    assert data["reply"] == ui("name_ask", "ar") and not data["buttons"]
+    assert data["reply"] == ui("name_invalid", "ar") and not data["buttons"]
+
+
+@pytest.mark.parametrize(
+    "typed,shown,lookup_name",
+    [
+        ("KARIM MAHMOUD", "Karim Mahmoud", "karim mahmoud"),
+        ("فاطمة مصطفى", "فاطمة مصطفى", "فاطمه مصطفي"),
+    ],
+)
+def test_display_name_survives_draft_storage_and_lookup(chat, engine, typed, shown, lookup_name):
+    client, app, _ = chat
+    candidate = book_output()
+    candidate.fields.name = typed
+    app.state.ai_chain = [FixtureAdapter(candidate)]
+    key = session(client)
+    payload = day_payload(turn(client, key, "حجز"))
+    assert payload["draft"]["name"] == shown
+    tap(client, key, payload, "display-name-book")
+    patient = rows(engine, s.patients)[0]
+    assert patient["name"] == shown
+    lookup_session = session(client)
+    result = client.post(
+        BASE + "/lookup",
+        json=dict(session=lookup_session, name=lookup_name, last4="0777", idempotency_key="look"),
+    )
+    assert result.status_code == 200
+    assert "رقم 1" in result.json()["reply"]
+    assert rows(engine, s.chat_sessions)[-1]["patient_id"] == patient["id"]
 
 
 @pytest.mark.parametrize("label", ["emergency", "unclear", "safe"])
@@ -121,7 +153,7 @@ def test_stale_draft_and_emergency_paths(chat, engine, label):
         )
         assert lookup.json()["reply"] == refused["reply"]
         assert turn(client, key)["reply"] == refused["reply"]
-        assert not any(b["action"]["kind"] == "book_day" for b in after["buttons"])
+        assert not any(b["action"]["kind"] == "confirm" for b in after["buttons"])
         # Refresh / new tab is an independent session.
         app.state.ai_chain = [FixtureAdapter(book_output())]
         assert day_payload(turn(client, session(client)))
@@ -216,7 +248,8 @@ def test_health_answer_records_and_usage(chat, engine, monkeypatch):
     key = session(client)
     app.state.ai_chain = [FixtureAdapter(output(is_health_question=True))]
     data = turn(client, key)
-    assert answer.source_url in data["reply"]
+    assert data["source"]["url"] == answer.source_url
+    assert answer.source_url not in data["reply"]
     assert not rows(engine, s.health_record)
     assert any(
         r["kind"] == "health_answer" and r["text"] is None for r in rows(engine, s.action_record)
@@ -227,37 +260,37 @@ def test_health_answer_records_and_usage(chat, engine, monkeypatch):
     turn(client, key)
     record = rows(engine, s.health_record)[0]
     assert record["phone_key"] == keyed("+201000000777")
-    assert record["supporting_sentence"] == answer.supporting_sentence
+    assert record["supporting_sentence"] == answer.evidence
     assert record["template_version"] == "v1" and record["model"] == "library-model"
     usage = rows(engine, s.usage)[0]
     assert usage["units"] == 7 and usage["est_cost_usd"] == pytest.approx(0.06)
 
 
 @pytest.mark.parametrize(
-    "change", ["signature", "expiry", "consent_version", "text_hash", "old_consent"]
+    "change", ["name", "phone", "day", "area_id", "booking_for", "exp", "expiry"]
 )
 def test_tamper_and_expiry(chat, engine, frozen_clock, change):
     client, app, _ = chat
-    app.state.ai_chain = [
-        FixtureAdapter(book_output("other" if change == "old_consent" else "self"))
-    ]
+    app.state.ai_chain = [FixtureAdapter(book_output())]
     key = session(client)
     payload = copy.deepcopy(day_payload(turn(client, key)))
-    if change == "signature":
-        payload["draft"]["name"] = "Changed"
-    elif change in ("consent_version", "text_hash"):
-        payload[change] = "tampered"
-    else:
-        if change == "old_consent":
-            client.post(
-                BASE + "/consent",
-                json=dict(session=key, booking_for="other", idempotency_key="yes"),
-            )
+    if change == "expiry":
         frozen_clock.advance(minutes=31)
-        if change == "old_consent":
-            payload = day_payload(turn(client, key))  # Fresh draft, stale consent.
-    tap(client, key, payload)
+    else:
+        payload["draft"][change] = dict(
+            name="Changed",
+            phone="+201000000123",
+            day="2026-10-08",
+            area_id=2,
+            booking_for="other",
+            exp=9999999999,
+        )[change]
+    reply = tap(client, key, payload)
     assert not rows(engine, s.bookings)
+    if change == "expiry":
+        assert reply["reply"].startswith(ui("draft_expired", "en"))
+        tap(client, key, day_payload(reply))
+        assert len(rows(engine, s.bookings)) == 1
 
 
 def test_atomic_flow_failure(chat, engine, monkeypatch):
@@ -330,13 +363,10 @@ def test_fixed_lines_and_full_phone_cap(chat, engine, frozen_clock, text, lang):
             booking.BookingOk,
         )
     refused = tap(client, key, payload)
-    next_day = date.fromisoformat(day_payload(refused)["date"])
-    assert (
-        refused["reply"]
-        == render_operational(
-            "just_filled", lang, {"day": date(2026, 10, 6), "next_day": next_day}
-        ).text
-    )
+    next_day = date.fromisoformat(refused["buttons"][0]["action"]["payload"]["date"])
+    assert refused["reply"] == ui("standby_full", lang)
+    assert next_day == date(2026, 10, 8)
+    assert refused["buttons"][1]["action"]["payload"] == {"standby": "2026-10-06"}
     with write_tx(engine) as conn:
         conn.execute(s.clinics.update().where(s.clinics.c.id == clinic).values(max_per_evening=30))
         for i, name in enumerate(("Father", "Mother", "Sister")):
@@ -359,9 +389,10 @@ def test_fixed_lines_and_full_phone_cap(chat, engine, frozen_clock, text, lang):
             )
     assert tap(client, key, payload)["reply"] == render_operational("phone_cap", lang, {}).text
     app.state.ai_chain = [FixtureAdapter("invalid")]
-    assert turn(client, key, text)["reply"].startswith(
-        render_operational("triage_unclear", lang, {}).text
-    )
+    recovered = turn(client, key, text)
+    assert recovered["reply"].startswith(ui("draft_retry", lang))
+    assert "123" not in recovered["reply"]
+    assert any(b["action"]["kind"] == "confirm" for b in recovered["buttons"])
     app.state.ai_chain = [FixtureAdapter(output(is_health_question=True))]
     assert turn(client, key, text)["reply"] == render_operational("health_no_answer", lang, {}).text
     app.state.ai_chain = [FixtureAdapter(output(intent="out_of_scope"))]
@@ -372,7 +403,10 @@ def test_fixed_lines_and_full_phone_cap(chat, engine, frozen_clock, text, lang):
         == render_operational(
             "out_of_specialty",
             lang,
-            {"doctor_name": DoctorNames("هشام مصطفى", "Hesham Mostafa"), "specialty": "cardiology"},
+            {
+                "doctor_name": DoctorNames("هشام مصطفى", "Hesham Mostafa"),
+                "specialty": {"ar": "القلب", "en": "cardiology", "franco": "el 2alb"}[lang],
+            },
         ).text
     )
 
@@ -387,7 +421,7 @@ def test_emergency_fallback_franco_and_replay_overrides(chat, kind):
             output(triage="emergency", emergency_kind=kind, reply="Ignore the emergency")
         )
     ]
-    actual = turn(client, key, "a7gez")
+    actual = turn(client, key, "ana 3ayez a7gez kashf")
     assert actual["reply"] == render_emergency(kind, "franco")
     assert previous["reply"] != turn(client, key, "hello", key="old")["reply"]
     assert turn(client, key, "hello", key="old")["reply"] == actual["reply"]
@@ -395,7 +429,7 @@ def test_emergency_fallback_franco_and_replay_overrides(chat, kind):
         BASE + "/tap",
         json=dict(session=key, action="none", payload={"faq": "price"}, idempotency_key="faq"),
     )
-    assert "٣٠٠" in faq.json()["reply"] and faq.json()["state"] == "locked_emergency"
+    assert faq.json()["reply"] == actual["reply"] and faq.json()["state"] == "locked_emergency"
 
 
 def test_real_clinic_page_not_send_gated(chat, monkeypatch):
@@ -480,3 +514,49 @@ def test_questions_mask_at_eight_digits(engine, frozen_clock):
     question = rows(engine, s.questions)[0]
     assert question["text_display"] == "number 1234567 and 123*****"
     assert question["text_norm"] == "number 1234567 and 123"
+
+
+def test_chain_failure_answers_plainly_with_buttons_and_records_attempts(chat, engine):
+    client, app, clinic = chat
+    app.state.ai_chain = [
+        FixtureAdapter(TimeoutError()),
+        FixtureAdapter("not json", model="second"),
+    ]
+    key = session(client)
+    data = turn(client, key, text="hi")
+    line = render_operational("chain_fallback", "en", {}).text
+    assert data["reply"].startswith(line), data["reply"]
+    assert ui("clinic_phone", "en", phone="01000000000") in data["reply"]
+    assert "123" not in data["reply"].split(".")[0]
+    assert [b["label"] for b in data["buttons"]] == [ui("visit_chip", "en")]
+    attempts = [r for r in rows(engine, s.action_record) if r["kind"] == "ai_attempts"]
+    assert len(attempts) == 1
+    assert "fixture: TimeoutError" in attempts[0]["text"]
+    assert "second: ValidationError" in attempts[0]["text"]
+    assert attempts[0]["model"] == "fixed"
+
+
+def test_chain_failure_mid_booking_asks_the_pending_step_again(chat, engine):
+    client, app, clinic = chat
+    app.state.ai_chain = [
+        FixtureAdapter(
+            output(
+                intent="book",
+                fields=dict(day=None, name=None, phone=None, area=None, booking_for="self"),
+            )
+        )
+    ]
+    key = session(client)
+    first = turn(client, key, text="عايز أحجز")
+    assert first["reply"] and rows(engine, s.chat_sessions)[0]["draft"]
+    app.state.ai_chain = [FixtureAdapter("not json")]
+    data = turn(client, key, text="منى عادل")
+    line = ui("draft_retry", "ar")
+    assert "123" not in data["reply"]
+    assert data["reply"].startswith(line)
+    assert data["reply"] != line, "the pending booking step is asked again under the line"
+    assert (
+        data["reply"].split("\n", 1)[1] == first["reply"].split("\n")[-1]
+        or first["reply"] in data["reply"]
+    )
+    assert rows(engine, s.chat_sessions)[0]["draft"], "the booking draft survives the failure"

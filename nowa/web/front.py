@@ -1,19 +1,22 @@
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
-import segno
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy import select
 
 from nowa import schema as s
 from nowa.config import get_settings
+from nowa.core import auth
+from nowa.core.display import clinic_address
 from nowa.triage.registry import APPROVED_SPECIALTIES
 from nowa.web import strings
-from nowa.web.doctor_auth import Session
+from nowa.web.doctor_auth import doctor_language, session_token
 from nowa.web.logging import PRIVATE_HEADERS
+from nowa.web.qr import svg_for
 from nowa.web.request import page_language, page_link
-from nowa.web.templates import environment
+from nowa.web.templates import environment, markdown_html
 
 router = APIRouter()
 
@@ -23,6 +26,8 @@ def public_page(request: Request, filename: str, **context: Any) -> HTMLResponse
     return HTMLResponse(
         environment.from_string((Path(__file__).parent / "static" / filename).read_text()).render(
             lang=lang,
+            current_path=request.url.path,
+            page_title=strings.text("ui.page_" + filename.removesuffix(".html"), lang),
             t=lambda key: (
                 strings.text("ui." + key, lang)
                 if key in strings.UI_TEXTS
@@ -38,7 +43,13 @@ def public_page(request: Request, filename: str, **context: Any) -> HTMLResponse
 
 @router.get("/", response_class=HTMLResponse)
 def front(request: Request) -> HTMLResponse:
-    return public_page(request, "front.html")
+    settings = get_settings()
+    return public_page(
+        request,
+        "front.html",
+        demo=settings.demo_mode,
+        judge=bool(settings.judge_codes),
+    )
 
 
 @router.get("/start", response_class=HTMLResponse)
@@ -52,6 +63,7 @@ def start_page(request: Request) -> HTMLResponse:
         areas=areas,
         specialties=sorted(APPROVED_SPECIALTIES),
         agreement=request.app.state.agreement,
+        agreement_html=markdown_html(request.app.state.agreement.display[page_language(request)]),
         demo=get_settings().demo_mode,
     )
 
@@ -75,31 +87,68 @@ def poster_data(request: Request, clinic_id: int, doctor_id: int) -> dict[str, A
             .mappings()
             .one()
         )
+        session = auth.Session(0, clinic_id, doctor_id, "")
+        lang = doctor_language(request, conn, session)
+        poster_address = clinic_address(clinic, lang)
+        clinic = dict(
+            clinic,
+            display_name=strings.text("identity.clinic", lang).format(
+                name=doctor["name_en" if lang == "en" else "name_ar"]
+            ),
+        )
     return {
+        "lang": lang,
         "clinic": clinic,
         "doctor": doctor,
+        "poster_address": poster_address,
         "chat_url": get_settings().public_base_url + "/c/" + clinic["slug"],
     }
 
 
 @router.get("/d/qr.svg")
-def qr(request: Request, session: Session) -> Response:
+def qr(request: Request) -> Response:
+    session = poster_session(request)
+    if isinstance(session, RedirectResponse):
+        return session
     url = poster_data(request, session.clinic_id, session.doctor_id)["chat_url"]
     return Response(
-        segno.make(url, micro=False).svg_inline(scale=8),
+        svg_for(url),
         media_type="image/svg+xml",
         headers=PRIVATE_HEADERS,
     )
 
 
 @router.get("/d/poster", response_class=HTMLResponse)
-def poster(request: Request, session: Session) -> HTMLResponse:
-    lang = "en" if request.query_params.get("lang") == "en" else "ar"
+def poster(request: Request) -> Response:
+    session = poster_session(request)
+    if isinstance(session, RedirectResponse):
+        return session
+    data = poster_data(request, session.clinic_id, session.doctor_id)
+    lang = data["lang"]
     return HTMLResponse(
         environment.get_template("doctor/poster.html").render(
-            **poster_data(request, session.clinic_id, session.doctor_id),
-            lang=lang,
+            **data,
             t=lambda key: strings.text("signup." + key, lang),
         ),
         headers=PRIVATE_HEADERS,
     )
+
+
+@router.get("/favicon.ico")
+def favicon() -> Response:
+    return Response(
+        (Path(__file__).parent / "static/favicon.svg").read_text(), media_type="image/svg+xml"
+    )
+
+
+def poster_session(request: Request) -> auth.Session | RedirectResponse:
+    session = auth.session_for(
+        request.app.state.engine, request.app.state.clock, session_token(request), touch=False
+    )
+    if session is None:
+        return RedirectResponse(
+            "/d/login?lang=" + page_language(request) + "&next=" + quote(request.url.path, safe=""),
+            status_code=303,
+            headers=PRIVATE_HEADERS,
+        )
+    return session

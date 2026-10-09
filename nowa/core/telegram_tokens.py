@@ -1,8 +1,10 @@
 """One-time Telegram tokens. Public issuance creates a durable, unproven claim."""
 
 import hashlib
+import re
 import secrets
 from datetime import timedelta
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.engine import Connection
@@ -79,3 +81,50 @@ def delete_signup_tokens(conn: Connection, pending_id: int) -> None:
     hashes = select(s.link_tokens.c.token_hash).where(*where)
     conn.execute(s.telegram_pending.delete().where(s.telegram_pending.c.token_hash.in_(hashes)))
     conn.execute(s.link_tokens.delete().where(*where))
+
+
+def link_digest(url: str) -> str:
+    """Accept only a claim for our configured bot; never fetch user-supplied URLs."""
+    username = get_settings().telegram_bot_username
+    pattern = rf"https://t\.me/{re.escape(username)}\?start=([psrd])_([A-Za-z0-9_-]{{43}})"
+    match = re.fullmatch(pattern, url) if username else None
+    if match is None:
+        raise ValueError("Invalid Telegram link")
+    return hashlib.sha256(match[2].encode()).hexdigest()
+
+
+def link_status(conn: Connection, clock: Clock, url: str) -> dict[str, Any]:
+    digest = link_digest(url)
+    row = (
+        conn.execute(
+            select(s.link_tokens, s.telegram_pending.c.attempts)
+            .outerjoin(
+                s.telegram_pending, s.telegram_pending.c.token_hash == s.link_tokens.c.token_hash
+            )
+            .where(s.link_tokens.c.token_hash == digest)
+        )
+        .mappings()
+        .first()
+    )
+    # Registration deliberately returns an unusable, indistinguishable link for
+    # an already registered number. Do not reveal registration through polling.
+    if row is None:
+        return {"status": "pending", "remaining_seconds": 900, "usable": True}
+    cid = row["clinic_id"]
+    if cid is None:
+        cid = conn.execute(select(s.clinics.c.id).where(s.clinics.c.slug == "_nowa")).scalar_one()
+    remaining = max(0.0, (row["expires_at"] - clock.now(cid, conn=conn)).total_seconds())
+    attempts = row["attempts"] or 0
+    if row["used_at"] is not None and attempts < 2:
+        state = "linked"
+    elif remaining == 0:
+        state = "expired"
+    elif attempts:
+        state = "contact_mismatch"
+    else:
+        state = "pending"
+    return {
+        "status": state,
+        "remaining_seconds": remaining,
+        "usable": row["used_at"] is None and remaining > 0,
+    }

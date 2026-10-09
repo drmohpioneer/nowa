@@ -62,6 +62,11 @@ def test_fixture_ingest_load_chat_records_and_caps(chat, engine, tmp_path, monke
     reply = turn(client, key, "exercise")
     assert SENTENCE in reply["reply"]
     assert "Fixture heart" in reply["reply"]
+    assert reply["source"]["label"] == "Source: NHS · Fixture heart"
+    assert reply["source"]["url"] == URL
+    assert URL not in reply["reply"]
+    assert "Open Government Licence" in reply["source"]["attribution"]
+    assert "Licence" not in reply["reply"]
     with engine.connect() as conn:
         row = conn.execute(select(s.health_record)).mappings().one()
         assert row["supporting_sentence"] == SENTENCE
@@ -87,7 +92,12 @@ def test_fixture_ingest_load_chat_records_and_caps(chat, engine, tmp_path, monke
     turn(client, anonymous, "سؤال مختلف؟")
     turn(client, anonymous, "سُؤال مختلف!")
     with engine.connect() as conn:
-        assert conn.execute(select(s.questions.c.count)).scalar_one() == 2
+        assert dict(
+            conn.execute(select(s.questions.c.text_display, s.questions.c.count)).all()
+        ) == {
+            "exercise": 2,
+            "سؤال مختلف؟": 2,
+        }
         reasons = (
             conn.execute(
                 select(s.action_record.c.text).where(s.action_record.c.kind == "health_no_answer")

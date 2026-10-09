@@ -8,6 +8,7 @@ from typing import Literal
 class Patient:
     number: int
     name: str
+    name_en: str
     phone: str
     area: str
     lang: Literal["ar", "en", "franco"]
@@ -17,13 +18,13 @@ class Patient:
 NAMES = (
     "Ahmed Ali",
     "Nour Hassan",
-    "Mona Adel",
+    "Youssef Adel",
     "Omar Samir",
     "Salma Ahmed",
     "Ali Nour",
     "Mahmoud Karim",
     "Hana Mostafa",
-    "Youssef Adel",
+    "Mona Adel",
     "Farida Samir",
     "Laila Hassan",
     "Mostafa Ali",
@@ -34,8 +35,29 @@ NAMES = (
     "Heba Mostafa",
     "Samir Ahmed",
 )
+NAMES_AR = (
+    "أحمد علي",
+    "نور حسن",
+    "يوسف عادل",
+    "عمر سمير",
+    "سلمى أحمد",
+    "علي نور",
+    "محمود كريم",
+    "هنا مصطفى",
+    "منى عادل",
+    "فريدة سمير",
+    "ليلى حسن",
+    "مصطفى علي",
+    "حسام نور",
+    "دينا سمير",
+    "تامر حسن",
+    "أميرة عادل",
+    "هبة مصطفى",
+    "سمير أحمد",
+)
 PATIENTS = tuple(
-    Patient(n, name, f"+201000002{n:03d}", "Heliopolis", "ar") for n, name in enumerate(NAMES, 1)
+    Patient(n, NAMES_AR[n - 1], name, f"+201000002{n:03d}", "Heliopolis", "ar")
+    for n, name in enumerate(NAMES, 1)
 )
 KARIM = 7  # Karim Mahmoud books his father, Mahmoud Karim; consent is for another person.
 SILENT = 11

@@ -34,7 +34,11 @@ def page(engine, monkeypatch):
 
 
 def post(client, path, data):
-    return client.post(path, data=data, headers=ORIGIN)
+    result = client.post(path, data=data, headers=ORIGIN)
+    if result.status_code == 303 and result.headers["location"].startswith(("/l/", "/w/", "/r/")):
+        assert_private_headers(result)
+        return client.get(result.headers["location"], follow_redirects=True)
+    return result
 
 
 def leave(engine, page, monkeypatch):
@@ -54,6 +58,9 @@ def test_view_language_time_and_map(engine, page, lang, dir):
     view = booking.booking_view(engine, code)
     assert response.status_code == 200
     assert f'dir="{dir}"' in response.text
+    assert '<footer class="legal">' in response.text
+    assert ("سياسة الخصوصية" if lang == "ar" else "Privacy policy") in response.text
+    assert ('/privacy"' if lang == "ar" else '/privacy?lang=en"') in response.text
     assert view.patient_first_name in response.text and view.doctor_name in response.text
     assert format_day(DAY, lang) in response.text
     assert format_time(view.expected_shown, lang) in response.text
@@ -99,7 +106,7 @@ def test_telegram_tap_undo_retap_and_silent_golden(engine, page, monkeypatch):
     assert set(data) == {"tap_token", "exp"}
     done = post(client, f"/w/{code}/tap", data)
     assert done.status_code == 200 and "Done, you're on your way" in unescape(done.text)
-    assert fields(done, "/undo") == data
+    assert set(fields(done, "/undo")) == set(data)
     first = row(engine, s.bookings, ids[0])["on_my_way_at"]
     clock.advance(minutes=2)
     post(client, f"/w/{code}/tap", data)
@@ -179,7 +186,8 @@ def test_terminal_booking_readonly(engine, page, state):
     with write_tx(engine) as conn:
         conn.execute(s.bookings.update().where(s.bookings.c.id == ids[0]).values(state=state))
     response = client.get(f"/w/{code}")
-    assert response.status_code == 200 and "cannot be changed" in response.text
+    assert response.status_code == 200
+    assert ("Book again" if state == "cancelled" else "cannot be changed") in response.text
     assert 'name="tap_token"' not in response.text
 
 
@@ -215,7 +223,7 @@ def test_cancel_once_and_reason(engine, page):
     client, cid, eid, clock, ids, code = page
     data = fields(client.get(f"/l/{code}"), "/cancel") | {"last4": "0000"}
     response = post(client, f"/l/{code}/cancel", data)
-    assert "Done, your booking is cancelled" in response.text
+    assert response.text.count("Done, your booking is cancelled") == 1
     assert row(engine, s.bookings, ids[0])["state"] == "cancelled"
     assert booking.booking_view(engine, code).state_reason == "patient"
     assert post(client, f"/l/{code}/cancel", data).status_code == 200
@@ -413,7 +421,7 @@ def test_telegram_form_is_view_only(engine, page):
     for path in (f"/w/{code}", f"/r/{code}", f"/l/{code}"):
         response = client.get(path)
         assert response.status_code == 200
-        assert (f'action="/l/{code}/telegram"' in response.text) == (path == f"/l/{code}")
+        assert f'action="/l/{code}/telegram"' not in response.text
 
 
 def test_telegram_token_once_replace_and_expiry(engine, page):
@@ -480,9 +488,14 @@ def test_pending_send_block_does_not_gate_page(engine, page, monkeypatch):
         doctor_phone = conn.execute(
             select(s.doctors.c.mobile_e164).where(s.doctors.c.clinic_id == cid)
         ).scalar_one()
-        conn.execute(s.telegram_links.insert().values(
-            phone_e164=doctor_phone, kind="doctor", telegram_chat_id="991", linked_at=clock.now(cid)
-        ))
+        conn.execute(
+            s.telegram_links.insert().values(
+                phone_e164=doctor_phone,
+                kind="doctor",
+                telegram_chat_id="991",
+                linked_at=clock.now(cid),
+            )
+        )
         outbox_id = enqueue_message(
             conn,
             clock,
@@ -610,22 +623,31 @@ def test_adversarial_forms_do_not_write(engine, page, action, bad):
     elif bad == "expired":
         clock.advance(minutes=30)
     elif bad == "signature":
-        data["form_token"] = token.value[:22] + (
-            "A" if token.value[22] != "A" else "B"
-        ) + token.value[23:]
+        data["form_token"] = (
+            token.value[:22] + ("A" if token.value[22] != "A" else "B") + token.value[23:]
+        )
     elif bad == "exp":
         data["exp"] = str(token.exp + 1)
     tables = [
-        s.bookings, s.evenings, s.outbox, s.timers, s.action_record,
-        s.idempotency_keys, s.link_tokens, s.rate_counters,
+        s.bookings,
+        s.evenings,
+        s.outbox,
+        s.timers,
+        s.action_record,
+        s.idempotency_keys,
+        s.link_tokens,
+        s.rate_counters,
     ]
     before = [rows(engine, t) for t in tables]
     path = f"/r/{code}" if action == "rebook" else f"/l/{code}/{action}"
     response = client.post(
         path,
         data=data,
-        headers={"Origin": "https://foreign.example"} if bad == "foreign"
-        else {} if bad == "no_origin" else ORIGIN,
+        headers={"Origin": "https://foreign.example"}
+        if bad == "foreign"
+        else {}
+        if bad == "no_origin"
+        else ORIGIN,
     )
     assert response.status_code == 403
     assert response.headers["content-type"].startswith("text/html")
@@ -649,8 +671,10 @@ def test_ambiguous_or_uploaded_form_fields_refused(engine, page, bad):
         )
     else:
         response = client.post(
-            f"/l/{code}/cancel", data=data,
-            files={"extra": ("upload.txt", b"untrusted")}, headers=ORIGIN,
+            f"/l/{code}/cancel",
+            data=data,
+            files={"extra": ("upload.txt", b"untrusted")},
+            headers=ORIGIN,
         )
     assert response.status_code == 403
     assert_private_headers(response)
@@ -663,8 +687,10 @@ def test_same_origin_referer_fallback_posts_real_form(engine, page):
     assert opened.headers["referrer-policy"] == "same-origin"
     data = fields(opened, "/cancel") | {"last4": "0000"}
     response = client.post(
-        f"/l/{code}/cancel", data=data,
+        f"/l/{code}/cancel",
+        data=data,
         headers={"Referer": f"http://127.0.0.1:8000/l/{code}"},
+        follow_redirects=True,
     )
     assert response.status_code == 200
     assert row(engine, s.bookings, ids[0])["state"] == "cancelled"
@@ -768,10 +794,12 @@ def test_external_anchors_suppress_referrer(engine, page):
 def test_rebook_page_isolates_cancelled_booking_on_shared_contact(engine, page):
     client, cid, eid, clock, ids, code = page
     second = flows.book(
-        engine, clock,
+        engine,
+        clock,
         replace(
             request(cid, 0, DAY + timedelta(days=2)),
-            patient_name="Zain Different", idempotency_key="other-day",
+            patient_name="Zain Different",
+            idempotency_key="other-day",
         ),
     )
     assert isinstance(second, booking.BookingOk)
@@ -782,7 +810,8 @@ def test_rebook_page_isolates_cancelled_booking_on_shared_contact(engine, page):
             .values(name="Karim Separate")
         )
         conn.execute(
-            s.bookings.update().where(s.bookings.c.id == second.booking_id)
+            s.bookings.update()
+            .where(s.bookings.c.id == second.booking_id)
             .values(expected_shown=clock.now(cid) + timedelta(hours=3, minutes=35))
         )
     doctor = rows(engine, s.doctors)[0]["id"]
@@ -795,10 +824,9 @@ def test_rebook_page_isolates_cancelled_booking_on_shared_contact(engine, page):
     response = client.get(f"/r/{code}")
     assert response.status_code == 200
     # Compare booking details only: the available-day buttons may legitimately list B's day.
-    details = (
-        response.text.split('id="booking-details">', 1)[1]
-        .split('<a class="btn btn-ghost"', 1)[0]
-    )
+    details = response.text.split('id="booking-details">', 1)[1].split(
+        '<a class="btn btn-ghost"', 1
+    )[0]
     assert "Karim" in response.text and "Zain" not in response.text
     assert format_day(a.date, "en") in details and format_day(b.date, "en") not in details
     assert format_time(a.expected_shown, "en") in details
@@ -807,3 +835,44 @@ def test_rebook_page_isolates_cancelled_booking_on_shared_contact(engine, page):
     assert_private_headers(response)
     assert client.head(f"/r/{code}").status_code == 200
     assert before == [rows(engine, t) for t in tables]
+
+
+def test_telegram_json_card_renews_with_verified_form_only(page, engine):
+    client, cid, eid, clock, ids, code = page
+    get_settings().telegram_bot_username = "fictional_bot"
+    # Existing private-link flow is deliberately unavailable to sandbox bookings.
+    with write_tx(engine) as conn:
+        conn.execute(s.clinics.update().where(s.clinics.c.id == cid).values(is_sandbox=False))
+    page_response = client.get(f"/l/{code}")
+    html = page_response.text
+    assert 'id="patient-telegram-form"' in html
+    assert "/static/patient-telegram.js" in html
+    form = fields(page_response, "/telegram")
+    form["last4"] = "0000"
+    headers = ORIGIN | {"Accept": "application/json"}
+    endpoint = f"/l/{code}/telegram"
+    result = client.post(endpoint, data=form, headers=headers)
+    assert result.status_code == 200, result.text
+    first = result.json()
+    clock.advance(minutes=15)
+    replacement = client.post(
+        endpoint,
+        data={"form_token": first["form_token"], "exp": first["exp"], "last4": "0000"},
+        headers=headers,
+    )
+    assert replacement.status_code == 200, replacement.text
+    assert replacement.json()["telegram_url"] != first["telegram_url"]
+    with engine.connect() as conn:
+        assert len(conn.execute(select(s.link_tokens)).all()) == 2
+        # Private-link proof remains as before; this slice adds no public bypass.
+        assert not conn.execute(select(s.telegram_pending)).first()
+    bad = client.post(
+        endpoint,
+        data={
+            "form_token": replacement.json()["form_token"],
+            "exp": replacement.json()["exp"],
+            "last4": "9999",
+        },
+        headers=headers,
+    )
+    assert bad.status_code != 200

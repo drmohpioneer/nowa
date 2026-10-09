@@ -27,7 +27,7 @@ def health_json_schema(schema: dict[str, Any]) -> None:
     properties = {
         "answer": {"type": "string", "minLength": 1, "maxLength": 600},
         "source_url": {"type": "string"},
-        "supporting_sentence": {"type": "string"},
+        "evidence": {"type": "string"},
         "why": {"type": "string"},
     }
     schema.clear()
@@ -56,17 +56,17 @@ class HealthOutput(BaseModel):
     model_config = ConfigDict(extra="forbid", json_schema_extra=health_json_schema)
     answer: str | None = Field(default=None, min_length=1, max_length=600)
     source_url: str | None = None
-    supporting_sentence: str | None = None
+    evidence: str | None = None
     why: str | None = None
     no_answer: bool | None = None
 
     @model_validator(mode="after")
     def check_shape(self) -> Self:
-        fields = (self.answer, self.source_url, self.supporting_sentence, self.why)
+        fields = (self.answer, self.source_url, self.evidence, self.why)
         if self.no_answer is True:
             if self.model_fields_set != {"no_answer"}:
                 raise ValueError("No-answer output has extra answer fields")
-        elif self.model_fields_set != {"answer", "source_url", "supporting_sentence", "why"} or any(
+        elif self.model_fields_set != {"answer", "source_url", "evidence", "why"} or any(
             not value for value in fields
         ):
             raise ValueError("Answer fields are required")
@@ -76,9 +76,8 @@ class HealthOutput(BaseModel):
 
 
 def supported(output: HealthOutput, passages: list[Passage]) -> Passage | None:
-    sentence = " ".join((output.supporting_sentence or "").split())
-    answer = " ".join((output.answer or "").split())
-    if len(sentence.split()) < 8 or sentence not in answer:
+    sentence = " ".join((output.evidence or "").split())
+    if len(sentence.split()) < 8:
         return None
     return next(
         (
@@ -116,19 +115,22 @@ source's general principles without deciding this person's diagnosis, medicine o
 For questions about how long treatment lasts, explain only what the passages establish;
 the person's own duration is a question for their doctor, not a decision you can make.
 Return only strict HealthOutput JSON: either {no_answer:true} alone, or answer (max 600 chars),
-source_url, supporting_sentence, why (one line). For an answer emit EXACTLY these four fields;
-omit no_answer completely (never emit no_answer:false or null). For a refusal emit ONLY
-{no_answer:true}, without answer fields. Quote a supporting sentence of at least eight
-words EXACTLY from one passage in its original English, and include it VERBATIM in answer.
-The URL must be that passage's supplied URL. Say no_answer if the passages cannot answer.
+source_url, evidence, why (one line). For an answer emit EXACTLY these four fields;
+omit no_answer completely. For a refusal emit ONLY {no_answer:true}.
+Write answer and why ONLY in the patient's language: Egyptian Arabic for ar, English for en,
+and Franco for franco. Never put a quote in another language, a licence line or a URL in answer.
+Put one verbatim passage sentence of at least eight words in evidence, in its original language.
+The source_url must be that passage's supplied URL. Say no_answer if passages cannot answer.
 For stopping-a-medicine-before-a-procedure questions (including aspirin before dental work
-or surgery), include this exact Arabic sentence as the FINAL sentence after any attribution:
-اسأل دكتورك قبل ما توقف أي دوا.
-For palpitations include this exact Arabic emergency sentence verbatim:
-لو حسيت بألم في الصدر أو إغماء اتصل بـ 123 فورًا.
-Attribute NHS content: Information from the NHS website, licensed under the OGL v3.0
-(https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
-Attribute MedlinePlus content: Source: MedlinePlus, National Library of Medicine.
+or surgery), end with this sentence in the patient's language:
+ar: اسأل دكتورك قبل ما توقف أي دوا.
+en: Ask your doctor before stopping any medicine.
+franco: Es2al doctorak abl ma tewa2af ay dawa.
+For palpitations include the emergency sentence in the patient's language:
+ar: لو حسيت بألم في الصدر أو إغماء اتصل بـ 123 فورًا.
+en: If you have chest pain or faint, call 123 immediately.
+franco: Law 7asseit be alam fel sadr aw eghma2 ettesel be 123 fawran.
+
 """
 
 
@@ -215,7 +217,7 @@ class LibraryHealthAnswerer:
             passage.source_url,
             passage.title,
             output.why or "",
-            output.supporting_sentence or "",
+            output.evidence or "",
             result.model,
             version,
             usage,
@@ -245,7 +247,7 @@ class RecordedHealthAnswerer:
             return NoAnswer("unsupported")
         try:
             output = HealthOutput.model_validate(
-                {key: row[key] for key in ("answer", "source_url", "supporting_sentence", "why")}
+                {key: row[key] for key in ("answer", "source_url", "evidence", "why")}
             )
         except (KeyError, ValidationError):
             return NoAnswer("unsupported")
@@ -261,7 +263,7 @@ class RecordedHealthAnswerer:
             passage.source_url,
             passage.title,
             row["why"],
-            row["supporting_sentence"],
+            row["evidence"],
             row["model"] + " (recorded)",
             row["library_version"],
         )

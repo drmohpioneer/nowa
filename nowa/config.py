@@ -45,6 +45,17 @@ class Settings(BaseSettings):
     embedding_usd_per_call: float = Field(default=0.00001, ge=0)
     ai_rates_json: dict[str, dict[str, float]] = Field(default_factory=dict)
 
+    agreement_party_company_name: str = ""
+    agreement_party_company_address: str = ""
+    agreement_party_commercial_register_number: str = ""
+    agreement_party_privacy_email: str = ""
+    agreement_party_dpo_name: str = ""
+    agreement_party_render_region: str = ""
+    agreement_party_backup_window_days: str = ""
+    agreement_party_pilot_end_date: str = ""
+    agreement_party_liability_cap_egp: str = ""
+    agreement_party_notice_days: str = ""
+
     @field_validator("ai_chain")
     @classmethod
     def validate_ai_chain(cls, value: str) -> str:

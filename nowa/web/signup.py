@@ -1,9 +1,11 @@
 """Sign-up HTTP adapters; provisioning remains in the deterministic core."""
 
+import base64
 import hmac
 from dataclasses import asdict
 from json import JSONDecodeError
 from typing import Annotated, Literal
+from urllib.parse import parse_qs, urlsplit
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
@@ -13,12 +15,14 @@ from sqlalchemy import select
 
 from nowa import schema as s
 from nowa.config import get_settings
-from nowa.core import signup
+from nowa.core import signup, telegram_tokens
 from nowa.core.clinic_settings import Input
 from nowa.messaging.outbox import screen_messages
+from nowa.web import strings
 from nowa.web.doctor_auth import Origin, start_session
 from nowa.web.logging import PRIVATE_HEADERS
-from nowa.web.request import client_ip
+from nowa.web.qr import svg_for
+from nowa.web.request import client_ip, page_language
 
 router = APIRouter()
 
@@ -80,7 +84,7 @@ def verify(request: Request, body: Verify, origin: Origin) -> JSONResponse:
         request.app.state.engine, request.app.state.clock, body.mobile, body.code.get_secret_value()
     )
     return JSONResponse(
-        {"signup_token": token} if token else {"ok": False, "reason": "refused"},
+        {"signup_token": token} if token else {"ok": False, "reason": "wrong_code"},
         status_code=200 if token else 400,
         headers=PRIVATE_HEADERS,
     )
@@ -94,9 +98,21 @@ async def complete(request: Request, origin: Origin) -> JSONResponse:
         raise HTTPException(422) from None
     if not isinstance(payload, dict):
         raise HTTPException(422)
+    # Explicit page language wins; otherwise use the same browser language as GET /start.
+    try:
+        referer = urlsplit(request.headers.get("referer", ""))
+    except ValueError:
+        raise HTTPException(422) from None
+    lang = parse_qs(referer.query).get("lang", [page_language(request)])[0]
+    if lang not in {"ar", "en"}:
+        lang = page_language(request)
     try:
         result = signup.complete(
-            request.app.state.engine, request.app.state.clock, request.app.state.agreement, payload
+            request.app.state.engine,
+            request.app.state.clock,
+            request.app.state.agreement,
+            payload,
+            agreement_lang=lang,
         )
     except signup.Refused as exc:
         return refusal(exc)
@@ -118,7 +134,7 @@ def judge(request: Request, body: Judge, origin: Origin) -> JSONResponse:
     except signup.Refused as exc:
         return refusal(exc)
     return JSONResponse(
-        {"signup_token": token} if token else {"ok": False, "reason": "refused"},
+        {"signup_token": token} if token else {"ok": False, "reason": "wrong_code"},
         status_code=200 if token else 400,
         headers=PRIVATE_HEADERS,
     )
@@ -149,9 +165,26 @@ def phone(request: Request, after_id: Annotated[int, Query(ge=0)] = 0) -> JSONRe
         return JSONResponse(
             jsonable_encoder(
                 [
-                    dict(asdict(msg), recipient="doctor")
+                    dict(asdict(msg), recipient=strings.text("demo.doctor", page_language(request)))
                     for msg in screen_messages(conn, cid, after_id)
                     if msg.pending_signup_id == pid
                 ]
             )
         )
+
+
+class LinkStatus(Input):
+    url: Annotated[str, Field(max_length=200)]
+    qr: bool = False
+
+
+@router.post("/telegram/link-status")
+def telegram_status(request: Request, body: LinkStatus, origin: Origin) -> JSONResponse:
+    try:
+        with request.app.state.engine.connect() as conn:
+            data = telegram_tokens.link_status(conn, request.app.state.clock, body.url)
+    except ValueError:
+        raise HTTPException(422) from None
+    if body.qr:
+        data["qr"] = "data:image/svg+xml;base64," + base64.b64encode(svg_for(body.url)).decode()
+    return JSONResponse(data, headers=PRIVATE_HEADERS)

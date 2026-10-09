@@ -6,19 +6,27 @@ from sqlalchemy import select
 from sqlalchemy.engine import Connection
 
 from nowa import schema as s
+from nowa.core.display import patient_display_name
+from nowa.core.text_norm import greeting_name
 
 
-def booking_names(conn: Connection, clinic_id: int) -> dict[int, dict[str, Any]]:
+def booking_names(conn: Connection, clinic_id: int, lang: str = "ar") -> dict[int, dict[str, Any]]:
     return {
         row.id: {
             "booking_id": row.id,
             "queue_number": row.queue_number,
-            "first_name": row.name.split()[0] if row.name else None,
+            "first_name": greeting_name(patient_display_name(row._mapping, lang))
+            if row.name
+            else None,
             "source": row.source,
         }
         for row in conn.execute(
             select(
-                s.bookings.c.id, s.bookings.c.queue_number, s.bookings.c.source, s.patients.c.name
+                s.bookings.c.id,
+                s.bookings.c.queue_number,
+                s.bookings.c.source,
+                s.patients.c.name,
+                s.patients.c.name_en,
             )
             .outerjoin(
                 s.patients,
@@ -30,16 +38,30 @@ def booking_names(conn: Connection, clinic_id: int) -> dict[int, dict[str, Any]]
     }
 
 
-def tap_state(conn: Connection, clinic_id: int, evening_id: int | None) -> dict[str, Any]:
-    doctor: dict[str, Any] = {"on_way_at": None, "arrived_at": None}
+def tap_state(
+    conn: Connection, clinic_id: int, evening_id: int | None, lang: str = "ar"
+) -> dict[str, Any]:
+    doctor: dict[str, Any] = {"on_way_at": None, "eta_min": None, "arrived_at": None}
     result: dict[str, Any] = {"in_room": None, "doctor": doctor}
     if evening_id is None:
         return result
-    state: str = conn.execute(
-        select(s.evenings.c.state).where(
-            s.evenings.c.clinic_id == clinic_id, s.evenings.c.id == evening_id
+    evening = (
+        conn.execute(
+            select(s.evenings).where(
+                s.evenings.c.clinic_id == clinic_id, s.evenings.c.id == evening_id
+            )
         )
-    ).scalar_one()
+        .mappings()
+        .one()
+    )
+    state = evening["state"]
+    doctor["on_way_at"] = (
+        evening["doctor_on_way_at"].isoformat() if evening["doctor_on_way_at"] else None
+    )
+    # Travel adapters return whole minutes; SQL stores the value in a Float column.
+    doctor["eta_min"] = (
+        int(evening["doctor_eta_min"]) if evening["doctor_eta_min"] is not None else None
+    )
     taps = (
         conn.execute(
             select(s.evening_taps)
@@ -53,13 +75,11 @@ def tap_state(conn: Connection, clinic_id: int, evening_id: int | None) -> dict[
         .mappings()
         .all()
     )
-    ways = [tap for tap in taps if tap["kind"] == "doctor_on_way"]
     visits = [tap for tap in taps if tap["kind"] in {"who_comes_in", "walk_in"}]
-    doctor["on_way_at"] = ways[0]["at"].isoformat() if ways else None
     doctor["arrived_at"] = visits[0]["at"].isoformat() if visits else None
     if visits and state not in {"closed", "cancelled"}:
         latest = visits[-1]
-        booking = booking_names(conn, clinic_id).get(latest["booking_id"])
+        booking = booking_names(conn, clinic_id, lang).get(latest["booking_id"])
         if booking is not None:
             result["in_room"] = {
                 key: booking[key] for key in ("booking_id", "queue_number", "first_name")
@@ -67,7 +87,7 @@ def tap_state(conn: Connection, clinic_id: int, evening_id: int | None) -> dict[
     return result
 
 
-def timeline(conn: Connection, clinic_id: int) -> list[dict[str, Any]]:
+def timeline(conn: Connection, clinic_id: int, lang: str = "ar") -> list[dict[str, Any]]:
     actions = [
         dict(row)
         for row in conn.execute(
@@ -81,7 +101,7 @@ def timeline(conn: Connection, clinic_id: int) -> list[dict[str, Any]]:
             .order_by(s.action_record.c.id)
         ).mappings()
     ]
-    names = booking_names(conn, clinic_id)
+    names = booking_names(conn, clinic_id, lang)
     taps = {
         row["idempotency_key"]: row
         for row in conn.execute(

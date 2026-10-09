@@ -171,22 +171,19 @@ def test_day(offset, ar, en, lang):
     ],
 )
 def test_time(hour, minute, second, expected):
-    assert format_time(NOW.replace(hour=hour, minute=minute, second=second), "ar") == expected
-    assert (
-        format_time(
-            NOW.replace(hour=hour, minute=minute, second=second).astimezone(
-                __import__("datetime").UTC
-            ),
-            "en",
-        )
-        == expected
+    assert format_time(NOW.replace(hour=hour, minute=minute, second=second), "ar") == expected + (
+        " ص" if hour in (0, 23) else " م"
     )
+    assert format_time(
+        NOW.replace(hour=hour, minute=minute, second=second).astimezone(__import__("datetime").UTC),
+        "en",
+    ) == expected + (" AM" if hour in (0, 23) else " PM")
 
 
 def test_render_boundaries():
     text = render("1", "ar", BLANKS)
     assert text == (
-        "كريم محمود: حجزك مع د. هشام مصطفى الثلاثاء 6/10، رقمك 7، معادك حوالي 8:20 "
+        "كريم محمود: حجزك مع د. هشام مصطفى الثلاثاء 6/10، رقمك 7، معادك حوالي 8:20 م "
         "وممكن يتأخر. هنقولك على تليجرام امتى تتحرك. التفاصيل والعنوان: "
         "http://127.0.0.1:8000/l/fictional تليفون العيادة 01000000000"
     )
@@ -806,9 +803,9 @@ def test_legacy_queued_rows_fail_without_dispatch_or_rewriting_history(prepared,
     oid = enqueue(p)
     # Simulate a queued pre-slice-15 row; the upgrade keeps historical columns intact.
     with write_tx(p.engine) as conn:
-        conn.execute(s.outbox.update().where(s.outbox.c.id == oid).values(
-            channel="sms", adapter=adapter
-        ))
+        conn.execute(
+            s.outbox.update().where(s.outbox.c.id == oid).values(channel="sms", adapter=adapter)
+        )
     assert not handle(p, send_retry, oid).after_commit
     failed = row(p, oid)
     assert failed["status"] == "failed" and failed["channel"] == "sms"

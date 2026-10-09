@@ -34,7 +34,7 @@ def test_seed_golden_idempotency_and_health(engine, monkeypatch, caplog):
         )
         assert clinic["slug"] == "dr-hesham"
         assert (clinic["max_per_evening"], clinic["usual_visit_min"], clinic["clock_offset_s"]) == (
-            30,
+            None,
             15,
             0,
         )
@@ -74,7 +74,7 @@ def test_reference_migration_idempotency_and_registered_loader(engine):
 
     def loader(db):
         with db.connect() as conn:
-            assert len(conn.execute(select(s.areas)).all()) == 12
+            assert len(conn.execute(select(s.areas)).all()) == 72
         calls.append(db)
 
     REFERENCE_LOADERS.append(loader)
@@ -108,7 +108,7 @@ def test_reference_in_production_and_seed_refused(engine, monkeypatch):
     monkeypatch.setenv("PUBLIC_BASE_URL", "https://nowa.example")
     # The migration helper operates on the supplied test engine; production config is active.
     migrate(engine)
-    assert counts(engine)["areas"] == 12
+    assert counts(engine)["areas"] == 72
     with pytest.raises(ValueError, match="DEMO_MODE"):
         seed(engine)
     assert counts(engine)["clinics"] == 1

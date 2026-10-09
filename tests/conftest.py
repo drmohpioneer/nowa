@@ -18,6 +18,16 @@ from nowa.schema import clinics
 @pytest.fixture(autouse=True)
 def settings_env(monkeypatch, tmp_path):
     for name in (
+        "AGREEMENT_PARTY_COMPANY_NAME",
+        "AGREEMENT_PARTY_COMPANY_ADDRESS",
+        "AGREEMENT_PARTY_COMMERCIAL_REGISTER_NUMBER",
+        "AGREEMENT_PARTY_PRIVACY_EMAIL",
+        "AGREEMENT_PARTY_DPO_NAME",
+        "AGREEMENT_PARTY_RENDER_REGION",
+        "AGREEMENT_PARTY_BACKUP_WINDOW_DAYS",
+        "AGREEMENT_PARTY_PILOT_END_DATE",
+        "AGREEMENT_PARTY_LIABILITY_CAP_EGP",
+        "AGREEMENT_PARTY_NOTICE_DAYS",
         "WORKER_IN_PROCESS",
         "RENDER",
         "DATABASE_URL",

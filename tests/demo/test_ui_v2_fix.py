@@ -26,7 +26,7 @@ def test_stage_room_timeline_labels_and_replay_bounds(
     active = demo_client.post(
         url + "/advance", json={"token": run["token"], "to_minute": 250}, headers=HEADERS
     ).json()
-    assert active["in_room"]["first_name"] == "Nour"
+    assert active["in_room"]["first_name"] == "نور حسن"
     response = demo_client.get("/d/api/tonight", headers={"Cookie": "nowa_session=" + run["token"]})
     assert response.status_code == 200, response.text
     board = response.json()

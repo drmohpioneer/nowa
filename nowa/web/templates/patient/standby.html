@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="{{ 'ar' if lang == 'ar' else 'en' }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t('standby_title') }} · {{ t('brand') }}</title><link rel="icon" href="/favicon.ico" type="image/svg+xml"><link rel="stylesheet" href="/static/nowa.css"></head>
+<body><main class="page patient"><h1>{{ t('standby_title') }}</h1><div class="card">
+{% if taken %}<p role="status">{{ t('standby_taken') }}</p>
+{% elif active %}<p>{{ day }}</p><p>{{ t('expected') }} · <span class="num">{{ expected }}</span></p><p>{{ t('standby_valid') }}</p>
+<form method="post" action="/s/{{ code }}/take"><input type="hidden" name="form_token" value="{{ form.value }}"><input type="hidden" name="exp" value="{{ form.exp }}"><button class="btn btn-main" name="action" value="take">{{ t('standby_take') }}</button><button class="btn btn-ghost" name="action" value="decline">{{ t('standby_decline') }}</button></form>
+{% else %}<p role="status">{{ t('standby_expired') }}</p><a class="btn btn-main" href="{{ next_link }}">{{ t('rebook') }}</a>{% endif %}
+<div class="emg">{{ t('emergency') }}</div></div><footer class="legal"><a href="/privacy?lang={{ 'ar' if lang == 'ar' else 'en' }}">{{ ui_text('privacy', 'ar' if lang == 'ar' else 'en') }}</a></footer></main></body></html>

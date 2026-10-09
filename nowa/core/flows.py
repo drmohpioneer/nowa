@@ -5,7 +5,7 @@ from sqlalchemy.engine import Connection, Engine
 
 from nowa import schema as s
 from nowa.clock import Clock
-from nowa.core import booking, timing
+from nowa.core import booking, standby, timing
 from nowa.core.booking import (
     BookingOk,
     BookingRefused,
@@ -112,6 +112,7 @@ def cancel_in_tx(
     if isinstance(result, CancelResult) and not result.repeated:
         _message(conn, clock, result.booking_id, "3", f"cancel:{result.booking_id}")
         timing.recompute(conn, clock, result.evening_id)
+        standby.offer_next(conn, clock, result.evening_id)
     return result
 
 
@@ -136,6 +137,7 @@ def change_day_in_tx(
             select(s.bookings.c.evening_id).where(s.bookings.c.id == result.old_booking_id)
         ).scalar_one()
         timing.recompute(conn, clock, old_evening)
+        standby.offer_next(conn, clock, old_evening)
         timing.recompute(conn, clock, result.new_evening_id)
     return result
 
@@ -166,7 +168,7 @@ def rebook_in_tx(
     if cancelled is None:
         return BookingRefused("invalid_input")
     identity = conn.execute(
-        select(s.patients.c.name, s.contacts.c.phone_e164)
+        select(s.patients.c.name, s.patients.c.name_en, s.contacts.c.phone_e164)
         .select_from(s.patients.join(s.contacts, s.contacts.c.id == row["contact_id"]))
         .where(s.patients.c.id == row["patient_id"])
     ).one()
@@ -184,6 +186,8 @@ def rebook_in_tx(
         row["area_id"],
         ConsentInput(consent["version"], consent["text_hash"], consent["booking_for"]),
         f"rebook:{cancelled_booking_id}",
+        patient_name_en=identity.name_en,
+        origin_text=row["origin_text"],
     )
     result = booking.book_in_tx(conn, clock, req)
     _booked(conn, clock, result)

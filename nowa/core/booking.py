@@ -6,7 +6,7 @@ import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from sqlalchemy import func, select, text
 from sqlalchemy.engine import Connection, Engine, RowMapping
@@ -17,15 +17,19 @@ from nowa import schema as s
 from nowa.clock import CAIRO, Clock
 from nowa.config import get_settings
 from nowa.core import ratelimit
+from nowa.core.display import clinic_address, patient_display_name
 from nowa.core.projection import (
     WAITING_STATES,
     current_pace,
     expected_time,
     load_snapshot,
+    no_show_rate,
     paper_hours,
     people_ahead_of_new_booking,
 )
+from nowa.core.text_norm import greeting_name, origin_text
 from nowa.db import write_tx
+from nowa.web.strings import doctor_label
 
 RefusalReason = Literal[
     "full", "booking_closed", "closed_day", "already_booked", "phone_cap", "invalid_input"
@@ -50,6 +54,8 @@ class BookingRequest:
     consent: ConsentInput
     idempotency_key: str
     actor: Literal["patient", "system"] = "patient"
+    patient_name_en: str | None = None
+    origin_text: str | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True)
@@ -133,6 +139,14 @@ def _display_name(raw: str) -> str:
     return " ".join(raw.split())
 
 
+def display_name(raw: str) -> str:
+    """Presentation only; matching continues to use normalize_name."""
+    return " ".join(
+        word.title() if any("LATIN" in unicodedata.name(c, "") for c in word) else word
+        for word in raw.split()
+    )
+
+
 def normalize_name(raw: str) -> str:
     words = _display_name(raw).casefold().replace("ى", "ي").split()
     return " ".join(word[:-1] + "ه" if word.endswith("ة") else word for word in words)
@@ -157,12 +171,23 @@ def valid_name(raw: str) -> bool:
 def normalize_phone(raw: str) -> str | None:
     if not isinstance(raw, str):
         return None
+    raw = "".join(str(unicodedata.decimal(c)) if c.isdecimal() else c for c in raw)
     phone = re.sub(r"[\s-]", "", raw)
     if phone.startswith("00"):
         phone = "+" + phone[2:]
     elif phone.startswith("01"):
         phone = "+2" + phone
     return phone if re.fullmatch(r"\+201[0125][0-9]{8}", phone) else None
+
+
+def local_phone(phone: str) -> str:
+    """The form patients read and type: an Egyptian E.164 number shown as 01xxxxxxxxx."""
+    return "0" + phone[3:] if phone.startswith("+20") else phone
+
+
+def phone_problem(raw: str) -> str:
+    """Digit count for a localized validation message, never echo the phone."""
+    return str(sum(c.isdecimal() for c in raw))
 
 
 def link_code_for(booking_id: int) -> str:
@@ -258,9 +283,19 @@ def _day_status(
     if now > hours[1] - timedelta(minutes=60):
         return "booking_closed", None
     evening_id = None if evening is None else evening["id"]
+    reserved = conn.execute(
+        select(func.count())
+        .select_from(s.standbys)
+        .where(
+            s.standbys.c.clinic_id == clinic_id,
+            s.standbys.c.date == day,
+            s.standbys.c.state == "offered",
+            s.standbys.c.expires_at > now,
+        )
+    ).scalar_one()
     projected = expected_time(
         load_snapshot(conn, clinic_id, day, now),
-        people_ahead_of_new_booking(conn, evening_id),
+        people_ahead_of_new_booking(conn, evening_id) + reserved,
         current_pace(conn, clinic_id, evening_id),
         now,
     )
@@ -276,7 +311,8 @@ def _day_status(
             s.bookings.c.state != "cancelled",
         )
     ).scalar_one()
-    if projected > hours[1] or (maximum is not None and count >= maximum):
+    allowance = (hours[1] - hours[0]) * no_show_rate(conn, clinic_id)
+    if projected > hours[1] + allowance or (maximum is not None and count + reserved >= maximum):
         return "full", projected
     return None, projected
 
@@ -324,6 +360,7 @@ def _valid_request(conn: Connection, req: BookingRequest) -> bool:
         and valid_name(req.patient_name)
         and normalize_phone(req.contact_phone) is not None
         and req.lang in ("ar", "en", "franco")
+        and (req.origin_text is None or isinstance(req.origin_text, str))
         and isinstance(req.consent, ConsentInput)
         and req.consent.booking_for in ("self", "other")
         and isinstance(req.consent.version, str)
@@ -342,6 +379,31 @@ def _valid_request(conn: Connection, req: BookingRequest) -> bool:
             )
         )
     )
+
+
+def active_for_phone(conn: Connection, clock: Clock, clinic_id: int, contact_id: int) -> int:
+    today = clock.now(clinic_id).astimezone(CAIRO).date()
+    booked = conn.execute(
+        select(func.count())
+        .select_from(s.bookings.join(s.evenings))
+        .where(
+            s.bookings.c.clinic_id == clinic_id,
+            s.bookings.c.contact_id == contact_id,
+            s.bookings.c.state != "cancelled",
+            s.evenings.c.date >= today,
+        )
+    ).scalar_one()
+    waiting = conn.execute(
+        select(func.count())
+        .select_from(s.standbys)
+        .where(
+            s.standbys.c.clinic_id == clinic_id,
+            s.standbys.c.contact_id == contact_id,
+            s.standbys.c.state.in_(("waiting", "offered")),
+            s.standbys.c.date >= today,
+        )
+    ).scalar_one()
+    return int(booked + waiting)
 
 
 def _book(
@@ -381,7 +443,13 @@ def _book(
     contact_id: int | None = conn.execute(contact_query).scalar_one_or_none()
     histories: Sequence[RowMapping] = (
         conn.execute(
-            select(s.patients.c.id, s.patients.c.name, s.bookings.c.evening_id, s.bookings.c.state)
+            select(
+                s.patients.c.id,
+                s.patients.c.name,
+                s.patients.c.name_en,
+                s.bookings.c.evening_id,
+                s.bookings.c.state,
+            )
             .select_from(s.bookings.join(s.patients, s.bookings.c.patient_id == s.patients.c.id))
             .where(s.bookings.c.clinic_id == req.clinic_id, s.bookings.c.contact_id == contact_id)
         )
@@ -391,23 +459,15 @@ def _book(
         else []
     )
     matching = [
-        row for row in histories if normalize_name(row["name"]) == normalize_name(req.patient_name)
+        row
+        for row in histories
+        if normalize_name(req.patient_name)
+        in {normalize_name(row["name"]), normalize_name(row["name_en"] or row["name"])}
     ]
     if any(row["evening_id"] == evening_id and row["state"] != "cancelled" for row in matching):
         return BookingRefused("already_booked")
     active = (
-        conn.execute(
-            select(func.count())
-            .select_from(s.bookings.join(s.evenings, s.bookings.c.evening_id == s.evenings.c.id))
-            .where(
-                s.bookings.c.clinic_id == req.clinic_id,
-                s.bookings.c.contact_id == contact_id,
-                s.bookings.c.state != "cancelled",
-                s.evenings.c.date >= now.astimezone(CAIRO).date(),
-            )
-        ).scalar_one()
-        if contact_id is not None
-        else 0
+        active_for_phone(conn, clock, req.clinic_id, contact_id) if contact_id is not None else 0
     )
     if not exempt_phone_cap and active >= 3:
         return BookingRefused("phone_cap")
@@ -426,12 +486,39 @@ def _book(
             contact_id = conn.execute(contact_query).scalar_one_or_none()
             if contact_id is None:
                 raise
+    standby_patients = (
+        conn.execute(
+            select(s.patients)
+            .join(s.standbys)
+            .where(
+                s.standbys.c.clinic_id == req.clinic_id,
+                s.standbys.c.contact_id == contact_id,
+            )
+        )
+        .mappings()
+        .all()
+    )
+    prior_patient = next(
+        (
+            r["id"]
+            for r in standby_patients
+            if normalize_name(req.patient_name)
+            in {normalize_name(r["name"]), normalize_name(r["name_en"] or r["name"])}
+        ),
+        None,
+    )
     patient_id = (
         matching[0]["id"]
         if matching
+        else prior_patient
+        if prior_patient is not None
         else conn.execute(
             s.patients.insert()
-            .values(clinic_id=req.clinic_id, name=_display_name(req.patient_name))
+            .values(
+                clinic_id=req.clinic_id,
+                name=display_name(req.patient_name),
+                name_en=req.patient_name_en,
+            )
             .returning(s.patients.c.id)
         ).scalar_one()
     )
@@ -455,6 +542,7 @@ def _book(
                 state="booked",
                 lang=req.lang,
                 area_id=req.area_id,
+                origin_text=origin_text(req.origin_text, req.area_id),
                 expected_shown=projected,
                 expected_frozen=False,
                 created_at=now,
@@ -617,7 +705,7 @@ def change_day_in_tx(
             change.rollback()
             return cancelled
         identity = conn.execute(
-            select(s.patients.c.name, s.contacts.c.phone_e164)
+            select(s.patients.c.name, s.patients.c.name_en, s.contacts.c.phone_e164)
             .select_from(s.patients.join(s.contacts, s.contacts.c.id == verified["contact_id"]))
             .where(s.patients.c.id == verified["patient_id"])
         ).one()
@@ -635,6 +723,8 @@ def change_day_in_tx(
             verified["area_id"],
             ConsentInput(consent["version"], consent["text_hash"], consent["booking_for"]),
             idempotency_key,
+            patient_name_en=identity.name_en,
+            origin_text=verified["origin_text"],
         )
         booked = _book(conn, clock, req, exempt_phone_cap=True, remember=False)
         if isinstance(booked, BookingRefused):
@@ -666,14 +756,23 @@ def change_day(
         return change_day_in_tx(conn, clock, link_code, last4, new_date, idempotency_key)
 
 
-def booking_view(engine: Engine, link_code: str) -> BookingView | None:
+def booking_view(engine: Engine, link_code: str, lang: str | None = None) -> BookingView | None:
     with engine.connect() as conn:
         row = _lookup(conn, link_code)
         if row is None:
             return None
-        patient = conn.execute(
-            select(s.patients.c.name).where(s.patients.c.id == row["patient_id"])
-        ).scalar_one_or_none()
+        selected_lang = cast(
+            Literal["ar", "en", "franco"], lang if lang in {"ar", "en"} else row["lang"]
+        )
+        patient = (
+            conn.execute(
+                select(s.patients.c.name, s.patients.c.name_en).where(
+                    s.patients.c.id == row["patient_id"]
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
         clinic = (
             conn.execute(select(s.clinics).where(s.clinics.c.id == row["clinic_id"]))
             .mappings()
@@ -712,17 +811,17 @@ def booking_view(engine: Engine, link_code: str) -> BookingView | None:
         return BookingView(
             row["id"],
             row["clinic_id"],
-            row["lang"],
+            selected_lang,
             evening.state,
             reason,
             clinic["is_sandbox"],
-            "" if patient is None else patient.split()[0],
-            doctor["name_ar" if row["lang"] == "ar" else "name_en"],
+            "" if patient is None else greeting_name(patient_display_name(patient, selected_lang)),
+            doctor_label(doctor["name_ar" if selected_lang == "ar" else "name_en"], selected_lang),
             evening.date,
             row["queue_number"],
             row["expected_shown"],
             row["state"],
-            clinic["address"],
+            clinic_address(clinic, selected_lang),
             clinic["phone"],
             clinic["lat"],
             clinic["lng"],

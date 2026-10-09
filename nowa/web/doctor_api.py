@@ -17,7 +17,7 @@ from nowa.core import auth, booking, clinic_settings, timing
 from nowa.core.clinic_settings import Input
 from nowa.core.travel import LatLng
 from nowa.db import write_tx
-from nowa.web.doctor_auth import CommandSession, Session
+from nowa.web.doctor_auth import CommandSession, Session, doctor_language
 from nowa.web.evening_view import tap_state
 
 router = APIRouter(prefix="/d/api")
@@ -120,8 +120,9 @@ def save(
 def tonight(request: Request, session: Session) -> dict[str, Any]:
     with request.app.state.engine.connect() as conn:
         eid = evening(conn, request, session)
+        lang = doctor_language(request, conn, session)
         board = (
-            timing.tonight_board(conn, session.clinic_id, eid)
+            timing.tonight_board(conn, session.clinic_id, eid, lang)
             if eid is not None
             else timing.Board([])
         )
@@ -131,8 +132,20 @@ def tonight(request: Request, session: Session) -> dict[str, Any]:
                 select(s.areas.c.id, s.areas.c.name_ar, s.areas.c.name_en)
             ).mappings()
         ]
+        from nowa.core.standby import count
+
         return {
-            **tap_state(conn, session.clinic_id, eid),
+            "standby_count": count(conn, session.clinic_id, eid),
+            **tap_state(conn, session.clinic_id, eid, lang),
+            "can_undo": eid is not None
+            and conn.execute(
+                select(s.evening_taps.c.id).where(
+                    s.evening_taps.c.clinic_id == session.clinic_id,
+                    s.evening_taps.c.evening_id == eid,
+                    s.evening_taps.c.undone_at.is_(None),
+                )
+            ).first()
+            is not None,
             "latest_report_id": conn.execute(
                 select(s.evenings.c.id)
                 .where(
@@ -286,7 +299,18 @@ def cancel_confirm(request: Request, body: Cancel, session: CommandSession) -> J
 @router.get("/settings")
 def settings(request: Request, session: Session) -> dict[str, Any]:
     with request.app.state.engine.connect() as conn:
-        return clinic_settings.read(conn, session.clinic_id, session.doctor_id)
+        data = clinic_settings.read(conn, session.clinic_id, session.doctor_id)
+        from nowa.messaging.templates import format_day
+
+        for override in data["overrides"]:
+            override["date_display"] = format_day(
+                override["date"], doctor_language(request, conn, session)
+            ) + (
+                f"/{override['date'].year}"
+                if override["date"].year != request.app.state.clock.now(session.clinic_id).year
+                else ""
+            )
+        return data
 
 
 SETTING_MODELS: dict[str, type[Input]] = {
@@ -340,6 +364,8 @@ def change_settings(
             affected, eid = clinic_settings.update(
                 conn, request.app.state.clock, session.clinic_id, session.doctor_id, kind, value
             )
+        except clinic_settings.InvalidSetting as exc:
+            return JSONResponse({"ok": False, "reason": str(exc)}, status_code=422)
         except clinic_settings.BookingsOutside:
             data = {"ok": False, "reason": "bookings_outside"}
             save(conn, request, session, key, "settings/" + kind, data, 422)
@@ -479,7 +505,7 @@ def own_question(conn: Connection, session: auth.Session, question_id: int) -> N
 @router.get("/report/{evening_id}")
 def evening_report(request: Request, evening_id: RowId, session: Session) -> dict[str, Any]:
     from nowa.core.report import build_report
-    from nowa.messaging.templates import format_time
+    from nowa.messaging.templates import format_doctor_time
 
     with request.app.state.engine.connect() as conn:
         own(conn, session, Command(idempotency_key="read", evening_id=evening_id))
@@ -490,14 +516,25 @@ def evening_report(request: Request, evening_id: RowId, session: Session) -> dic
             != "closed"
         ):
             raise HTTPException(404)
-        value = build_report(conn, request.app.state.clock, session.clinic_id, evening_id)
-        lang = conn.execute(
-            select(s.doctors.c.lang).where(s.doctors.c.id == session.doctor_id)
-        ).scalar_one()
+        lang = doctor_language(request, conn, session)
+        value = build_report(conn, request.app.state.clock, session.clinic_id, evening_id, lang)
         data = asdict(value)
+        from nowa.web.strings import health_source_label
+
         for answer in data["health_answers"]:
-            answer["at_display"] = format_time(answer["at"], lang)
-        return dict(data, health_q_count=value.health_q_count, text=value.text(lang))
+            answer["at_display"] = format_doctor_time(answer["at"])
+            answer["source_label"] = health_source_label(
+                answer["source_title"], answer["source_url"], lang
+            )
+        return dict(
+            data,
+            health_q_count=value.health_q_count,
+            text=value.text(lang),
+            doctor_arrival_display=format_doctor_time(value.doctor_arrival)
+            if value.doctor_arrival
+            else None,
+            clinic_start_display=format_doctor_time(value.clinic_start),
+        )
 
 
 @router.get("/questions")
@@ -505,7 +542,8 @@ def pending_questions(request: Request, session: Session) -> list[dict[str, Any]
     from nowa.core.report import pending_questions
 
     with request.app.state.engine.connect() as conn:
-        return pending_questions(conn, session.clinic_id)
+        lang = doctor_language(request, conn, session)
+        return pending_questions(conn, session.clinic_id, lang)
 
 
 def question_action(

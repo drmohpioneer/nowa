@@ -66,7 +66,9 @@ def test_phone_limit_survives_completion_third_allowed_fourth_refused(engine, of
         assert conn.execute(select(s.outbox.c.pending_signup_id)).scalar_one() is None
         acceptance = conn.execute(select(s.agreement_acceptances)).mappings().one()
         assert acceptance["version"] == "0.1"
-        assert acceptance["text_hash"] == hashlib.sha256(agreement.text.encode()).hexdigest()
+        assert (
+            acceptance["text_hash"] == hashlib.sha256(agreement.display["ar"].encode()).hexdigest()
+        )
     assert signup.request_code(engine, offset_clock, agreement, PHONE, "fictional-ip", "ar").allowed
     assert signup.request_code(engine, offset_clock, agreement, PHONE, "fictional-ip", "ar").allowed
     with engine.connect() as conn:
@@ -235,7 +237,7 @@ def test_decision062_reused_pending_signup_gets_own_purge_deadline(
         ("name_ar", "<كريم>", "invalid_name"),
         ("price_egp", -1, "invalid_input"),
         ("agree", False, "agreement_required"),
-        ("hours", [], "invalid_input"),
+        ("hours", [], "no_working_days"),
     ],
 )
 def test_refused_completion_rolls_back_clinic_creation(engine, offset_clock, field, value, reason):
@@ -375,13 +377,20 @@ def test_unsupported_map_links_have_fixed_refusal(engine, link):
         signup.coordinates(conn, body)
 
 
-def test_area_rough_pin_overnight_hours_and_price_boundaries(engine, offset_clock):
+def test_area_rough_pin_rejects_overnight_hours_and_checks_price_boundaries(engine, offset_clock):
     record.configure(offset_clock)
     agreement = signup.load_agreement()
     signup.request_code(engine, offset_clock, agreement, PHONE, "fictional-ip", "ar")
     token = signup.verify_code(engine, offset_clock, PHONE, code_for(engine))
     with engine.connect() as conn:
         area = conn.execute(select(s.areas).limit(1)).mappings().one()
+    with pytest.raises(signup.Refused, match="invalid_input"):
+        signup.complete(
+            engine,
+            offset_clock,
+            agreement,
+            payload(token, hours=[dict(weekday=0, start="19:00", end="01:00")]),
+        )
     result = signup.complete(
         engine,
         offset_clock,
@@ -393,7 +402,7 @@ def test_area_rough_pin_overnight_hours_and_price_boundaries(engine, offset_cloc
             lng=None,
             area_id=area["id"],
             price_egp=100000,
-            hours=[dict(weekday=0, start="19:00", end="01:00")],
+            hours=[dict(weekday=0, start="19:00", end="23:00")],
         ),
     )
     with engine.connect() as conn:
@@ -423,7 +432,7 @@ def test_area_rough_pin_overnight_hours_and_price_boundaries(engine, offset_cloc
             .mappings()
             .one()
         )
-        assert hour["start"].hour == 19 and hour["end"].hour == 1
+        assert hour["start"].hour == 19 and hour["end"].hour == 23
     assert signup.Complete.model_validate(payload("candidate", price_egp=0)).price_egp == 0
 
 
@@ -637,7 +646,9 @@ def test_hosted_readiness_requires_bot_and_filled_agreement(engine, offset_clock
     settings.telegram_bot_username = "fixture_bot"
     with pytest.raises(signup.Refused, match="not open yet"):
         signup.real_ready(signup.load_agreement())
-    filled = signup.Agreement("Fictional filled agreement", "0.1", "fictional-hash")
+    for key in signup.AGREEMENT_DEFAULTS:
+        monkeypatch.setattr(settings, "agreement_party_" + key.lower(), "Fictional value")
+    filled = signup.load_agreement()
     settings.telegram_bot_username = ""
     with pytest.raises(signup.Refused, match="not open yet"):
         signup.real_ready(filled)
@@ -648,3 +659,33 @@ def test_hosted_readiness_requires_bot_and_filled_agreement(engine, offset_clock
     with engine.connect() as conn:
         assert not conn.execute(select(s.outbox)).first()
         assert conn.execute(select(s.link_tokens.c.kind)).scalar_one() == "signup_telegram"
+
+
+@pytest.mark.parametrize("prefix", ["Dr ", "Dr.", "DR ", "Doctor", "د. ", "د", "دكتور ", "الدكتور"])
+def test_doctor_honorific_stripped_before_storage(engine, offset_clock, prefix):
+    record.configure(offset_clock)
+    agreement = signup.load_agreement()
+    signup.request_code(engine, offset_clock, agreement, PHONE, "fictional-ip", "ar")
+    token = signup.verify_code(engine, offset_clock, PHONE, code_for(engine))
+    result = signup.complete(
+        engine,
+        offset_clock,
+        agreement,
+        payload(token, name_en=prefix + "Hesham Mostafa", name_ar=prefix + "هشام مصطفى"),
+    )
+    assert result.tokens is not None
+    with engine.connect() as conn:
+        clinic = (
+            conn.execute(select(s.clinics).where(s.clinics.c.slug == result.data["slug"]))
+            .mappings()
+            .one()
+        )
+        doctor = (
+            conn.execute(select(s.doctors).where(s.doctors.c.clinic_id == clinic["id"]))
+            .mappings()
+            .one()
+        )
+        assert clinic["slug"] == "dr-hesham-mostafa"
+        assert clinic["name"] == "عيادة د. هشام مصطفى"
+        assert doctor["name_en"] == "Hesham Mostafa"
+        assert doctor["name_ar"] == "هشام مصطفى"

@@ -2,7 +2,7 @@
 
 import re
 from collections.abc import Mapping, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
@@ -13,10 +13,11 @@ from sqlalchemy.engine import Connection
 from nowa import schema as s
 from nowa.clock import CAIRO, Clock
 from nowa.core import booking, projection
+from nowa.core.display import origin_label, patient_display_name
 from nowa.core.timers import TimerContext
 from nowa.db import conflict_insert
 from nowa.messaging.outbox import clinic_lock, doctor_row, enqueue_message, telegram_chat
-from nowa.messaging.templates import render
+from nowa.messaging.templates import format_day, render
 
 
 def display_text(value: str, patient_names: Sequence[str] = ()) -> str:
@@ -26,6 +27,7 @@ def display_text(value: str, patient_names: Sequence[str] = ()) -> str:
         if len(parts) > 1:
             pattern = r"(?<!\w)" + r"\s+".join(re.escape(part) for part in parts) + r"(?!\w)"
             value = re.sub(pattern, lambda match: parts[0], value, flags=re.IGNORECASE)
+
     def mask(match: re.Match[str]) -> str:
         digits = "".join(char for char in match[0] if char.isdecimal())
         return digits[:3] + "*" * (len(digits) - 3)
@@ -39,6 +41,8 @@ class Report:
     day_date: date
     booked: int
     came: int
+    seen_booked: int
+    cancelled: int
     walk_ins: int
     no_show_count: int
     no_show_names: list[str]
@@ -51,6 +55,13 @@ class Report:
     next_day: date | None
     next_day_bookings: int
     questions: list[dict[str, Any]]
+    cancelled_at_close: int = 0
+    standby_taken: int = 0
+    origins: list[dict[str, Any]] = field(default_factory=list)
+
+    @property
+    def total_seen(self) -> int:
+        return self.seen_booked + self.walk_ins
 
     @property
     def health_q_count(self) -> int:
@@ -58,9 +69,17 @@ class Report:
 
     def blanks(self) -> dict[str, Any]:
         values = asdict(self)
-        for key in ("evening_id", "health_answers", "questions"):
+        for key in (
+            "evening_id",
+            "health_answers",
+            "questions",
+            "came",
+            "standby_taken",
+            "origins",
+        ):
             del values[key]
         values["health_q_count"] = self.health_q_count
+        values["total_seen"] = self.total_seen
         for key in ("no_show_names", "failed_names"):
             if values[key]:
                 values[key] = ", ".join(values[key])
@@ -87,7 +106,47 @@ def _patient_names(conn: Connection, clinic_id: int) -> list[str]:
     )
 
 
-def pending_questions(conn: Connection, clinic_id: int) -> list[dict[str, Any]]:
+def question_askers(
+    conn: Connection, clinic_id: int, question_id: int, lang: str
+) -> list[dict[str, Any]]:
+    query = (
+        select(
+            s.patients.c.name, s.patients.c.name_en, s.bookings.c.queue_number, s.evenings.c.date
+        )
+        .select_from(
+            s.question_askers.outerjoin(
+                s.patients,
+                (s.patients.c.id == s.question_askers.c.patient_id)
+                & (s.patients.c.clinic_id == clinic_id),
+            )
+            .outerjoin(
+                s.bookings,
+                (s.bookings.c.id == s.question_askers.c.booking_id)
+                & (s.bookings.c.clinic_id == clinic_id),
+            )
+            .outerjoin(
+                s.evenings,
+                (s.evenings.c.id == s.bookings.c.evening_id)
+                & (s.evenings.c.clinic_id == clinic_id),
+            )
+        )
+        .where(
+            s.question_askers.c.clinic_id == clinic_id,
+            s.question_askers.c.question_id == question_id,
+        )
+        .order_by(s.question_askers.c.asked_at, s.question_askers.c.id)
+    )
+    return [
+        dict(
+            name=patient_display_name(r._mapping, lang) if r.name else None,
+            queue_number=r.queue_number,
+            day=format_day(r.date, lang) if r.date else None,
+        )
+        for r in conn.execute(query)
+    ]
+
+
+def pending_questions(conn: Connection, clinic_id: int, lang: str = "ar") -> list[dict[str, Any]]:
     names = _patient_names(conn, clinic_id)
     return [
         {
@@ -104,6 +163,7 @@ def pending_questions(conn: Connection, clinic_id: int) -> list[dict[str, Any]]:
                 )
             },
             "text_display": display_text(row["text_display"] or "", names),
+            "askers": question_askers(conn, clinic_id, row["id"], lang),
         }
         for row in conn.execute(
             select(s.questions)
@@ -131,7 +191,9 @@ def _paper_window(
     return hours
 
 
-def build_report(conn: Connection, clock: Clock, clinic_id: int, evening_id: int) -> Report:
+def build_report(
+    conn: Connection, clock: Clock, clinic_id: int, evening_id: int, lang: str = "ar"
+) -> Report:
     evening = (
         conn.execute(
             select(s.evenings).where(
@@ -144,7 +206,7 @@ def build_report(conn: Connection, clock: Clock, clinic_id: int, evening_id: int
     paper_start, _ = _paper_window(conn, clinic_id, evening)
     bookings = (
         conn.execute(
-            select(s.bookings, s.patients.c.name)
+            select(s.bookings, s.patients.c.name, s.patients.c.name_en)
             .outerjoin(
                 s.patients,
                 (s.patients.c.id == s.bookings.c.patient_id)
@@ -201,7 +263,8 @@ def build_report(conn: Connection, clock: Clock, clinic_id: int, evening_id: int
             failed.add(by_booking[bid]["patient_id"])
 
     def first_name(row: Mapping[Any, Any]) -> str:
-        return display_text(row["name"].split()[0]) if row["name"] else ""
+        name = patient_display_name(row, lang)
+        return display_text(name if row["name_en"] else name.split()[0]) if name else ""
 
     failed_names = []
     seen_patients = set()
@@ -252,16 +315,30 @@ def build_report(conn: Connection, clock: Clock, clinic_id: int, evening_id: int
             )
         ).scalar_one()
     )
-    no_shows = [row for row in bookings if row["state"] == "didnt_come"]
+    no_shows = [row for row in bookings if row["source"] == "chat" and row["state"] == "didnt_come"]
+    from nowa.core.standby import count
+
     return Report(
         evening_id,
         evening["date"],
         sum(row["source"] == "chat" and row["state"] != "cancelled" for row in bookings),
         sum(row["state"] == "seen" for row in bookings),
+        sum(row["source"] == "chat" and row["state"] == "seen" for row in bookings),
+        sum(row["source"] == "chat" and row["state"] == "cancelled" for row in bookings),
         sum(row["source"] == "walkin_tap" for row in bookings),
         len(no_shows),
         [name for row in no_shows if (name := first_name(row))],
-        visits[0]["started_at"] if visits else None,
+        conn.execute(
+            select(s.evening_taps.c.at)
+            .where(
+                s.evening_taps.c.clinic_id == clinic_id,
+                s.evening_taps.c.evening_id == evening_id,
+                s.evening_taps.c.kind.in_(("who_comes_in", "walk_in")),
+                s.evening_taps.c.undone_at.is_(None),
+            )
+            .order_by(s.evening_taps.c.at, s.evening_taps.c.id)
+            .limit(1)
+        ).scalar_one_or_none(),
         paper_start,
         _mean(lengths),
         _mean(waits),
@@ -269,7 +346,22 @@ def build_report(conn: Connection, clock: Clock, clinic_id: int, evening_id: int
         health,
         next_day,
         int(next_count),
-        pending_questions(conn, clinic_id),
+        pending_questions(conn, clinic_id, lang),
+        conn.execute(
+            select(func.count())
+            .select_from(s.action_record)
+            .where(
+                s.action_record.c.clinic_id == clinic_id,
+                s.action_record.c.kind == "close_untold",
+                s.action_record.c.booking_id.in_(by_booking),
+            )
+        ).scalar_one(),
+        standby_taken=count(conn, clinic_id, evening_id, taken=True),
+        origins=[
+            {"queue_number": row["queue_number"], "origin_display": label}
+            for row in bookings
+            if (label := origin_label(row, lang))
+        ],
     )
 
 
@@ -419,7 +511,8 @@ def evening_report(ctx: TimerContext, payload: dict[str, Any]) -> None:
         )
         .values(resolved_at=ctx.clock.now(ctx.clinic_id), resolved_reason="superseded")
     )
-    report = build_report(ctx.conn, ctx.clock, ctx.clinic_id, eid)
+    doctor = doctor_row(ctx.conn, ctx.clinic_id)
+    report = build_report(ctx.conn, ctx.clock, ctx.clinic_id, eid, doctor["lang"])
     for position, question in enumerate(report.questions, 1):
         ctx.conn.execute(
             conflict_insert(ctx.conn, s.report_questions)
@@ -453,3 +546,41 @@ def evening_report(ctx: TimerContext, payload: dict[str, Any]) -> None:
             channel="telegram",
         )
         send_next(ctx.conn, ctx.clock, ctx.clinic_id, eid)
+
+
+def daily_totals(conn: Connection, clinic_id: int, evening_id: int) -> None:
+    """Persist anonymous closed-day counts; came here counts chat patients only."""
+    evening = (
+        conn.execute(
+            select(s.evenings).where(
+                s.evenings.c.clinic_id == clinic_id,
+                s.evenings.c.id == evening_id,
+                s.evenings.c.state == "closed",
+            )
+        )
+        .mappings()
+        .one()
+    )
+    rows = list(
+        conn.execute(
+            select(s.bookings.c.source, s.bookings.c.state).where(
+                s.bookings.c.clinic_id == clinic_id, s.bookings.c.evening_id == evening_id
+            )
+        ).mappings()
+    )
+    chat = [r for r in rows if r["source"] == "chat"]
+    values = dict(
+        booked=sum(r["state"] != "cancelled" for r in chat),
+        came=sum(r["state"] == "seen" for r in chat),
+        didnt_come=sum(r["state"] == "didnt_come" for r in chat),
+        cancelled=sum(r["state"] == "cancelled" for r in chat),
+        walkins=sum(r["source"] == "walkin_tap" for r in rows),
+    )
+    conn.execute(
+        conflict_insert(conn, s.daily_totals)
+        .values(clinic_id=clinic_id, date=evening["date"], **values)
+        .on_conflict_do_update(
+            index_elements=[s.daily_totals.c.clinic_id, s.daily_totals.c.date],
+            set_=values,
+        )
+    )

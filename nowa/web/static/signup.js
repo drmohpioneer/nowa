@@ -3,26 +3,30 @@
   const labels = Object.fromEntries([...document.querySelectorAll("#signup-translations [data-key]")].map(el => [el.dataset.key, el.textContent]));
   const t = key => labels[key];
   const status = text => { document.getElementById("signup-message").textContent = text; };
-  let token = "", mobile = "", pin = null, stopPhone = null;
+  let token = "", mobile = "", pin = null, stopPhone = null, linking = null;
+  window.NowaFeedback.counters(document, labels);
   const completionKey = crypto.randomUUID();
   async function post(path, body) {
-    const response = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+    const response = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)}).catch(() => { throw new Error(t("error")); });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.reason === "not open yet" ? t("not_open") : data.reason === "paste the full link or pick the area" ? t("map_error") : t("error"));
+    if (!response.ok) {
+      const detail = data.detail || data;
+      const specific = {invalid_mobile: t("invalid_mobile"), wrong_code: t("wrong_code"), no_working_days: t("no_working_days")}[detail.reason];
+      const generic = specific || (detail.reason === "not open yet" ? t("not_open") : detail.reason === "paste the full link or pick the area" ? t("map_error") : t("error"));
+      throw window.NowaFeedback.requestError(response, data, labels, generic);
+    }
     return data;
   }
   function bind(id, action) {
     const form = document.getElementById(id);
     if (!form) return;
     form.addEventListener("submit", async event => {
-      event.preventDefault(); const button = form.querySelector("button");
-      if (button.disabled) return; button.disabled = true;
-      try { await action(form, Object.fromEntries(new FormData(form))); }
-      catch (error) { status(error.message); }
-      finally { button.disabled = false; }
+      event.preventDefault(); status(""); const button = form.querySelector('button[type="submit"], button:not([type])');
+      await window.NowaFeedback.pending(button, () => { window.NowaFeedback.validate(form, labels); return action(form, Object.fromEntries(new FormData(form))); }, document.getElementById("signup-message"), {adjacent: true});
     });
   }
   function ready(value) {
+    linking?.destroy();
     token = value;
     document.getElementById("verification").hidden = true;
     document.getElementById("complete-form").hidden = false;
@@ -35,16 +39,26 @@
   bind("code-form", async (_, data) => {
     mobile = data.mobile;
     const result = await post("/signup/code", {...data, lang: document.documentElement.lang});
+    linking?.destroy();
     document.getElementById("signup-telegram")?.remove();
     document.getElementById("code-form").hidden = Boolean(result.telegram_url);
     if (result.telegram_url) {
-      const a = document.createElement("a"); a.id = "signup-telegram"; a.href = result.telegram_url;
-      a.textContent = t("request_code"); a.className = "btn btn-main"; a.target = "_blank"; a.rel = "noopener";
-      document.getElementById("verify-form").before(a);
+      const card = document.createElement("div"); card.id = "signup-telegram";
+      document.getElementById("why-telegram").before(card);
+      linking = window.NowaTelegramLink(card, result.telegram_url, labels, {
+        openLabel: t("request_code"), linkedLabel: t("telegram_linked"),
+        renew: async () => (await post("/signup/code", {mobile, lang: document.documentElement.lang})).telegram_url,
+        edit: () => {
+          card.remove(); document.getElementById("code-form").hidden = false;
+          document.getElementById("verify-form").hidden = true;
+          document.getElementById("code-form").elements.mobile.focus();
+          status("");
+        },
+      });
     }
     document.getElementById("verify-form").hidden = false; status(t("sent"));
     const phone = document.getElementById("signup-phone");
-    if (phone && !result.telegram_url) { if (stopPhone) stopPhone(); phone.replaceChildren(); phone.hidden = false; stopPhone = window.NowaPhone(phone, "/signup/phone", () => status(t("error"))); }
+    if (phone && !result.telegram_url) { if (stopPhone) stopPhone(); phone.replaceChildren(); phone.hidden = false; stopPhone = window.NowaPhone(phone, "/signup/phone?lang=" + document.documentElement.lang, () => status(t("error"))); }
   });
   bind("verify-form", async (_, data) => { ready((await post("/signup/verify", {...data, mobile})).signup_token); });
   const pinKind = document.getElementById("pin-kind");
@@ -52,22 +66,26 @@
     pin = null;
     for (const kind of ["area", "here", "link"]) document.getElementById("pin-" + kind).hidden = pinKind.value !== kind;
   });
-  document.getElementById("locate").addEventListener("click", () => {
-    if (!navigator.geolocation) { status(t("location_error")); return; }
-    navigator.geolocation.getCurrentPosition(position => {
-      pin = {lat: position.coords.latitude, lng: position.coords.longitude};
-      document.getElementById("location-status").textContent = t("here");
-    }, () => status(t("location_error")), {timeout: 10000, maximumAge: 0});
-  });
+  const locate = document.getElementById("locate");
+  locate.addEventListener("click", () => window.NowaFeedback.pending(locate, async () => {
+    if (!navigator.geolocation) throw new Error(t("location_error"));
+    const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error(t("location_error"))), {timeout: 10000, maximumAge: 0}));
+    pin = {lat: position.coords.latitude, lng: position.coords.longitude};
+    return t("here");
+  }, document.getElementById("location-status")));
   bind("complete-form", async (form, data) => {
-    const hours = [...form.querySelectorAll("fieldset")].filter(row => row.querySelector('[name="enabled"]').checked).map(row => ({weekday: Number(row.dataset.weekday), start: row.querySelector('[name="start"]').value, end: row.querySelector('[name="end"]').value}));
+    const hours = window.NowaHours.values(form);
     const body = {signup_token: token, mobile, hours, idempotency_key: completionKey};
-    for (const key of ["name_ar", "name_en", "specialty", "address", "pin_kind", "map_link", "clinic_phone", "password", "agreement_version"]) body[key] = data[key];
-    body.price_egp = Number(data.price_egp); body.agree = form.elements.agree.checked;
+    for (const key of ["name_ar", "name_en", "specialty", "address", "address_en", "pin_kind", "map_link", "clinic_phone", "password", "agreement_version"]) body[key] = data[key];
+    body.price_egp = Number(window.NowaFeedback.digits(data.price_egp)); body.agree = form.elements.agree.checked;
     if (data.pin_kind === "area") body.area_id = Number(data.area_id);
     if (data.pin_kind === "here" && pin) Object.assign(body, pin);
     const result = await post("/signup/complete", body);
-    if (stopPhone) stopPhone();
+    if (stopPhone) { stopPhone(); stopPhone = null; }
+    const phone = document.getElementById("signup-phone");
+    if (phone) { phone.replaceChildren(); const final = document.createElement("p"); final.textContent = t("phone_complete"); phone.append(final); }
+    linking?.destroy();
+    document.getElementById("signup-telegram")?.remove();
     form.hidden = true; document.getElementById("signup-success").hidden = false;
     document.getElementById("chat-url").href = result.chat_url;
     document.getElementById("poster-url").href = result.poster_url;

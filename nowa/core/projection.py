@@ -161,3 +161,12 @@ def people_ahead_of_new_booking(conn: Connection, evening_id: int | None) -> int
             .where(s.bookings.c.evening_id == evening_id, s.bookings.c.state.in_(WAITING_STATES))
         ).scalar_one()
     )
+
+
+def no_show_rate(conn: Connection, clinic_id: int) -> float:
+    rate = conn.execute(
+        select(s.learned_no_show.c.rate).where(
+            s.learned_no_show.c.clinic_id == clinic_id, s.learned_no_show.c.n >= 3
+        )
+    ).scalar_one_or_none()
+    return 0.10 if rate is None else min(float(rate), 0.20)

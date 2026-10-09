@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib.parse import urlsplit
 
 import pytest
 from sqlalchemy import func, select
@@ -23,8 +24,8 @@ def test_start_replay_isolation_state_dashboard(demo_client, engine):
     repeated = start(demo_client)
     assert repeated["run_id"] == first["run_id"]
     assert repeated["token"] != first["token"]
-    assert "nowa_session" in demo_client.cookies and "nowa_csrf" in demo_client.cookies
-    dashboard = demo_client.get("/d")
+    assert "nowa_session" not in demo_client.cookies and "nowa_demo_session" in demo_client.cookies
+    dashboard = demo_client.get("/d", headers={"Cookie": "nowa_session=" + repeated["token"]})
     assert dashboard.status_code == 200
     with engine.connect() as conn:
         assert conn.execute(select(func.count()).select_from(s.demo_runs)).scalar_one() == 1
@@ -41,7 +42,7 @@ def test_start_replay_isolation_state_dashboard(demo_client, engine):
         )
         assert response.status_code == 403
     url = "/demo/evening/" + first["run_id"]
-    assert demo_client.get(url + "/state", params={"token": first["token"]}).json()["minute"] == 0
+    assert demo_client.get(url + "/state", params={"token": first["token"]}).json()["minute"] == 140
     response = demo_client.post(
         url + "/advance", json={"token": first["token"], "to_minute": 600}, headers=HEADERS
     )
@@ -87,7 +88,7 @@ def test_gets_create_nothing_and_public_booking(
         assert conn.execute(select(func.count()).select_from(s.clinics)).scalar_one() == 1
     response = demo_client.post("/demo/book", headers=HEADERS, follow_redirects=False)
     assert response.status_code == 303
-    chat = response.headers["location"]
+    chat = urlsplit(response.headers["location"]).path
     html = demo_client.get(chat).text
     assert "لو حالة طارئة اتصل بـ 123" in html
     assert "<input" not in html and "<textarea" not in html
@@ -115,13 +116,25 @@ def test_gets_create_nothing_and_public_booking(
         )
     draft = tap("none", {"identity": 0}, "identity").json()
     assert draft["telegram_url"] is None
-    day = next(b for b in draft["buttons"] if b["action"]["kind"] == "book_day")
+    assert len(draft["buttons"]) == 4
+    more = tap("more_days", {}, "more-days").json()
+    assert len(more["buttons"]) == 7
+    assert {b["id"] for b in draft["buttons"] if b["id"] != "more_days"} <= {
+        b["id"] for b in more["buttons"]
+    }
+    assert "more_days" not in {b["id"] for b in more["buttons"]}
+    day = next(b for b in draft["buttons"] if b["action"]["kind"] == "book")
     payload = day["action"]["payload"]
-    payload["area_id"] = 1
-    booked = tap("book_day", payload, "book")
+    area_step = tap("book", payload, "day").json()
+    assert len(area_step["buttons"]) == 13
+    assert tap("book", payload, "day").json() == area_step
+    assert all(b["id"] != "location" for b in area_step["buttons"])
+    confirmed = tap("set_area", {"area_id": 1}, "area").json()
+    payload = confirmed["buttons"][0]["action"]["payload"]
+    booked = tap("confirm", payload, "book")
     assert booked.status_code == 200 and "/l/" not in booked.json()["reply"]
     assert bool(booked.json()["telegram_url"]) == bool(bot_username)
-    assert tap("book_day", payload, "book").json() == booked.json()
+    assert tap("confirm", payload, "book").json() == booked.json()
     with engine.connect() as conn:
         assert len(conn.execute(select(s.link_tokens)).all()) == int(bool(bot_username))
     with engine.connect() as conn:
@@ -131,7 +144,7 @@ def test_gets_create_nothing_and_public_booking(
     worker.drain(engine, demo_clock, worker.build_registry(), only_clinic_id=cid)
     phone = demo_client.get(chat + "/demo/phone", params={"session": session}).json()
     assert len(phone) == 1 and phone[0]["status"] == "delivered" and "/l/" in phone[0]["body"]
-    assert phone[0]["recipient_name"] == "ahmed" and phone[0]["channel"] == "telegram"
+    assert phone[0]["recipient_name"] == "أحمد علي" and phone[0]["channel"] == "telegram"
     if bot_username:
         from nowa.core import timing
         from nowa.db import write_tx
@@ -151,8 +164,17 @@ def test_gets_create_nothing_and_public_booking(
             bid = conn.execute(
                 select(s.bookings.c.id).where(s.bookings.c.clinic_id == cid)
             ).scalar_one()
-            oid = enqueue_message(conn, demo_clock, cid, "2", "ar", "patient", bid,
-                                  timing.patient_blanks(conn, bid, "2"), "public-linked-leave")
+            oid = enqueue_message(
+                conn,
+                demo_clock,
+                cid,
+                "2",
+                "ar",
+                "patient",
+                bid,
+                timing.patient_blanks(conn, bid, "2"),
+                "public-linked-leave",
+            )
             sent = conn.execute(select(s.outbox).where(s.outbox.c.id == oid)).mappings().one()
             assert sent["channel"] == sent["adapter"] == "telegram"
     second_session = demo_client.post(chat + "/session").json()["session"]
@@ -174,7 +196,7 @@ def test_gets_create_nothing_and_public_booking(
 
 def test_public_expiry_uses_system_clock_and_410(demo_client, engine, demo_clock):
     response = demo_client.post("/demo/book", headers=HEADERS, follow_redirects=False)
-    chat = response.headers["location"]
+    chat = urlsplit(response.headers["location"]).path
     with engine.connect() as conn:
         cid = conn.execute(
             select(s.clinics.c.id).where(s.clinics.c.slug == chat.split("/")[-1])
@@ -336,3 +358,51 @@ def test_lifecycle_timer_after_expiry_and_reused_clinic_id(engine, demo_clock):
     worker.drain(engine, demo_clock, worker.build_registry())
     with engine.connect() as conn:
         assert not conn.execute(select(s.clinics.c.id).where(s.clinics.c.id == second)).first()
+
+
+@pytest.mark.parametrize(
+    "lang,last_line",
+    [
+        ("ar", "جاي من: خارج القايمة"),
+        ("en", "Coming from: not on the list"),
+        ("franco", "Gay men: khareg el kayma"),
+    ],
+)
+def test_public_unlisted_area_summary_uses_neutral_list_note(
+    demo_client, engine, lang, last_line
+):
+    from nowa.ai.sessions import session_hash
+    from nowa.db import write_tx
+
+    response = demo_client.post("/demo/book", headers=HEADERS, follow_redirects=False)
+    chat = urlsplit(response.headers["location"]).path
+    session = demo_client.post(chat + "/session").json()["session"]
+    with write_tx(engine) as conn:
+        conn.execute(
+            s.chat_sessions.update()
+            .where(s.chat_sessions.c.session_key_hash == session_hash(session))
+            .values(lang=lang)
+        )
+
+    def tap(action, payload, key):
+        response = demo_client.post(
+            chat + "/tap",
+            json=dict(
+                session=session,
+                action=action,
+                payload=payload,
+                idempotency_key=key,
+            ),
+        )
+        assert response.status_code == 200, response.text
+        return response.json()
+
+    days = tap("none", {"identity": 0}, "identity")
+    payload = next(b["action"]["payload"] for b in days["buttons"] if b["action"]["kind"] == "book")
+    tap("book", payload, "day")
+    summary = tap("set_area", {"area_id": None}, "area")
+    assert len(summary["reply"].splitlines()) == 4
+    assert summary["reply"].splitlines()[-2] == last_line
+    assert "(" not in summary["reply"] and ")" not in summary["reply"]
+    assert "برة القايمة" not in summary["reply"] and "Outside the list" not in summary["reply"]
+    assert summary["buttons"][0]["action"]["kind"] == "confirm"

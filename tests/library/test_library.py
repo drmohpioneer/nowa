@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import json
 from contextlib import contextmanager
+from pathlib import Path
 
 import httpx
 import pytest
@@ -90,7 +91,7 @@ def answer_output(**changes):
         dict(
             answer="General information: " + SENTENCE,
             source_url=URL,
-            supporting_sentence=SENTENCE,
+            evidence=SENTENCE,
             why="Exercise passage",
         )
         | changes
@@ -265,12 +266,11 @@ def test_retrieval_defaults_keep_twelve_passages(engine, tmp_path, frozen_clock)
 @pytest.mark.parametrize(
     "changes",
     [
-        dict(supporting_sentence=SENTENCE.replace("healthy", "strong")),
-        dict(supporting_sentence=SENTENCE + " Invented second sentence."),
+        dict(evidence=SENTENCE.replace("healthy", "strong")),
+        dict(evidence=SENTENCE + " Invented second sentence."),
         dict(source_url="https://evil.example/p"),
-        dict(supporting_sentence="Regular exercise helps."),
-        dict(answer="Advice without a quote"),
-        dict(answer="You have heart failure", supporting_sentence="You have heart failure"),
+        dict(evidence="Regular exercise helps."),
+        dict(answer="You have heart failure", evidence="You have heart failure"),
     ],
 )
 def test_support_rejects(engine, tmp_path, frozen_clock, changes):
@@ -299,7 +299,7 @@ def test_answerer_usage_no_writes_and_schema(engine, tmp_path, frozen_clock, mon
     for raw in [
         answer_output(source_url="https://evil.example/p"),
         answer_output(
-            supporting_sentence="Fabricated supporting sentence with more than eight words here."
+            evidence="Fabricated supporting sentence with more than eight words here."
         ),
         answer_output() | {"action": "book"},
     ]:
@@ -347,7 +347,7 @@ def test_output_extra_fields_and_shapes():
             HealthOutput.model_validate(raw)
 
     answer_schema, refusal_schema = HealthOutput.model_json_schema()["anyOf"]
-    assert set(answer_schema["required"]) == {"answer", "source_url", "supporting_sentence", "why"}
+    assert set(answer_schema["required"]) == {"answer", "source_url", "evidence", "why"}
     assert "no_answer" not in answer_schema["properties"]
     assert answer_schema["additionalProperties"] is False
     assert refusal_schema["required"] == ["no_answer"]
@@ -802,3 +802,24 @@ def test_recorded_replay_rechecks_explicit_required_lines(
         assert isinstance(result, Answered)
     else:
         assert result == NoAnswer("unsupported")
+
+
+def test_evidence_separate_from_patient_answer(engine, tmp_path, frozen_clock):
+    build(tmp_path, engine, frozen_clock)
+    output = HealthOutput(**answer_output(
+        answer="معلومات عامة عن صحة القلب.", why="المصدر بيوضح دور الرياضة."
+    ))
+    assert SENTENCE not in output.answer
+    assert supported(output, read_passages(engine, "fixture")) is not None
+
+
+def test_clean_recorded_answers_and_verbatim_evidence():
+    path = Path(__file__).resolve().parents[2] / "nowa/library/data/cardiology_recorded.json"
+    rows = json.loads(path.read_text())
+    import re
+    for row in rows:
+        assert not re.search(r"[A-Za-z]|https?://", row["answer"])
+        assert not re.search(r"[A-Za-z]", row["why"])
+        assert len(row["evidence"].split()) >= 8
+        assert row["model"] == "gemini-3.8-flash"
+        assert row["evidence"] not in row["answer"]

@@ -2,7 +2,7 @@
 
 Version: 0.1
 
-**v0.1, draft.** This text has not been reviewed by a lawyer yet. It is shown in the demo so the sign-up flow is complete, and it is not offered to a real clinic before legal review.
+Pilot text, version 0.1. A lawyer's review and the Law 151 licences precede the first real clinic; the placeholders are filled at signing.
 
 
 Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_REGISTER_NUMBER], [PRIVACY_EMAIL], [DPO_NAME], [RENDER_REGION], [BACKUP_WINDOW_DAYS], [PILOT_END_DATE], [LIABILITY_CAP_EGP], [NOTICE_DAYS].
@@ -23,6 +23,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 ---
 
 ## النص العربي
+<!-- display:ar -->
 
 ### 1. الأطراف والتعريفات
 
@@ -111,18 +112,16 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 ### 7. مدد الاحتفاظ
 
-| البيانات | من المتحكم | المدة | عند انتهاء المدة |
-|---|---|---|---|
-| نص المحادثة ورسائل تليجرام | الطبيب | 30 يومًا من تاريخ كل رسالة | تُحذف نهائيًا |
-| سجل السلامة (ما قالته نوا عن الصحة ورسالة المريض التي أدت إليه)، بدون اسم، مرتبط برمز مشفر لرقم الهاتف | نوا | 3 سنوات من وقت الرد | يُحذف. ويرى الطبيب الأسئلة بدون أسماء في تقريره المسائي |
-| الأحداث التشغيلية (حجز، تغيير، إلغاء، ضغطات الطبيب، إرسال رسالة) بدون اسم أو رقم أو نص | الطبيب | 90 يومًا | تُحذف، ويبقى المجموع اليومي فقط |
-| ملف المريض (الاسم، والرقم، والمنطقة، وسجل الزيارات، وعدد مرات عدم الحضور، وسجل الموافقة) | الطبيب | طوال نشاط المريض، ثم 3 سنوات بعد آخر زيارة، أو حتى يترك الطبيب نوا، أيهما أقرب | يُحذف بعد 3 سنوات من آخر زيارة. وإذا ترك الطبيب نوا يُصدَّر له ثم يُحذف |
-| ربط رقم الهاتف بحساب تليجرام | نوا | طالما الربط قائم ويوجد ملف مريض أو حجز نشط بهذا الرقم في أي عيادة | يُحذف عند "وقف الرسايل هنا" أو عند عدم وجود أي ملف بهذا الرقم |
-| الموقع الجغرافي (نقطة الطبيب عند "في الطريق"، وموقع المريض لمرة واحدة) | لا ينطبق | لا يُحفظ إطلاقًا | لا شيء يُحذف |
-| الأرقام المتعلَّمة (متوسط مدة الكشف، وتأخر بداية الطبيب، وزمن الطريق لكل منطقة وساعة) | لا تخص شخصًا | بدون حد زمني | لا ينطبق |
-| المجموع اليومي لكل عيادة (بدون أسماء أو أرقام داخلية) | لا يخص شخصًا | بدون حد زمني | لا ينطبق. واليوم الذي فيه أقل من 3 مرضى لا يخرج خارج نوا إلا مدمجًا في مجموع الأسبوع |
-| بيانات الطبيب وحسابه | نوا | طوال التعاقد، ثم المدة اللازمة لسجلات العقود والضرائب | تُحذف بعد هذه المدة |
-| سجل طلبات المرضى وردود نوا عليها | نوا | 3 سنوات من الرد | يُحذف |
+- **البيانات:** نص المحادثة ورسائل تليجرام، **من المتحكم:** الطبيب، **المدة:** 30 يومًا من تاريخ كل رسالة، **عند انتهاء المدة:** تُحذف نهائيًا
+- **البيانات:** سجل السلامة (ما قالته نوا عن الصحة ورسالة المريض التي أدت إليه)، بدون اسم، مرتبط برمز مشفر لرقم الهاتف، **من المتحكم:** نوا، **المدة:** 3 سنوات من وقت الرد، **عند انتهاء المدة:** يُحذف. ويرى الطبيب الأسئلة بدون أسماء في تقريره المسائي
+- **البيانات:** الأحداث التشغيلية (حجز، تغيير، إلغاء، ضغطات الطبيب، إرسال رسالة) بدون اسم أو رقم أو نص، **من المتحكم:** الطبيب، **المدة:** 90 يومًا، **عند انتهاء المدة:** تُحذف، ويبقى المجموع اليومي فقط
+- **البيانات:** ملف المريض (الاسم، والرقم، والمنطقة، وسجل الزيارات، وعدد مرات عدم الحضور، وسجل الموافقة)، **من المتحكم:** الطبيب، **المدة:** طوال نشاط المريض، ثم 3 سنوات بعد آخر زيارة، أو حتى يترك الطبيب نوا، أيهما أقرب، **عند انتهاء المدة:** يُحذف بعد 3 سنوات من آخر زيارة. وإذا ترك الطبيب نوا يُصدَّر له ثم يُحذف
+- **البيانات:** ربط رقم الهاتف بحساب تليجرام، **من المتحكم:** نوا، **المدة:** طالما الربط قائم ويوجد ملف مريض أو حجز نشط بهذا الرقم في أي عيادة، **عند انتهاء المدة:** يُحذف عند "وقف الرسايل هنا" أو عند عدم وجود أي ملف بهذا الرقم
+- **البيانات:** الموقع الجغرافي (نقطة الطبيب عند "في الطريق"، وموقع المريض لمرة واحدة)، **من المتحكم:** لا ينطبق، **المدة:** لا يُحفظ إطلاقًا، **عند انتهاء المدة:** لا شيء يُحذف
+- **البيانات:** الأرقام المتعلَّمة (متوسط مدة الكشف، وتأخر بداية الطبيب، وزمن الطريق لكل منطقة وساعة)، **من المتحكم:** لا تخص شخصًا، **المدة:** بدون حد زمني، **عند انتهاء المدة:** لا ينطبق
+- **البيانات:** المجموع اليومي لكل عيادة (بدون أسماء أو أرقام داخلية)، **من المتحكم:** لا يخص شخصًا، **المدة:** بدون حد زمني، **عند انتهاء المدة:** لا ينطبق. واليوم الذي فيه أقل من 3 مرضى لا يخرج خارج نوا إلا مدمجًا في مجموع الأسبوع
+- **البيانات:** بيانات الطبيب وحسابه، **من المتحكم:** نوا، **المدة:** طوال التعاقد، ثم المدة اللازمة لسجلات العقود والضرائب، **عند انتهاء المدة:** تُحذف بعد هذه المدة
+- **البيانات:** سجل طلبات المرضى وردود نوا عليها، **من المتحكم:** نوا، **المدة:** 3 سنوات من الرد، **عند انتهاء المدة:** يُحذف
 
 النسخ الاحتياطية لقاعدة البيانات تُحفظ لفترة قصيرة متجددة مدتها [BACKUP_WINDOW_DAYS] يومًا، ثم يختفي منها أي شيء محذوف.
 
@@ -140,14 +139,12 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 9.1 يوافق الطبيب على أن تستعين نوا بالشركات التالية لتشغيل الخدمة. كل شركة تتلقى فقط الجزء الذي تحتاجه:
 
-| الفئة | المقدم الحالي | ما يصله | المكان |
-|---|---|---|---|
-| استضافة التطبيق | Render | كل ما يمر عبر الخادم أثناء التشغيل | [RENDER_REGION] |
-| قاعدة البيانات | Supabase | كل البيانات المحفوظة | فرانكفورت، ألمانيا |
-| توصيل رسائل المرضى والطبيب | Telegram | رقم تليجرام ونص الرسالة، للمرضى الذين فعلوا الربط وللطبيب | خارج مصر |
-| الذكاء الاصطناعي (الأساسي) | Google (نموذج Gemini) | نص المحادثة كما كتبه المريض، وقد يتضمن اسمًا أو سؤالًا صحيًا | خارج مصر |
-| الذكاء الاصطناعي (احتياطي عند تعطل الأساسي فقط) | OpenRouter، ومن خلاله نموذج Claude من Anthropic | نص المحادثة | خارج مصر |
-| الخرائط وزمن الطريق | Mapbox | إحداثيات لحساب طريق واحد، بدون اسم | خارج مصر |
+- **الفئة:** استضافة التطبيق، **المقدم الحالي:** Render، **ما يصله:** كل ما يمر عبر الخادم أثناء التشغيل، **المكان:** [RENDER_REGION]
+- **الفئة:** قاعدة البيانات، **المقدم الحالي:** Supabase، **ما يصله:** كل البيانات المحفوظة، **المكان:** فرانكفورت، ألمانيا
+- **الفئة:** توصيل رسائل المرضى والطبيب، **المقدم الحالي:** Telegram، **ما يصله:** رقم تليجرام ونص الرسالة، للمرضى الذين فعلوا الربط وللطبيب، **المكان:** خارج مصر
+- **الفئة:** الذكاء الاصطناعي (الأساسي)، **المقدم الحالي:** Google (نموذج Gemini)، **ما يصله:** نص المحادثة كما كتبه المريض، وقد يتضمن اسمًا أو سؤالًا صحيًا، **المكان:** خارج مصر
+- **الفئة:** الذكاء الاصطناعي (احتياطي عند تعطل الأساسي فقط)، **المقدم الحالي:** OpenRouter، ومن خلاله نموذج Claude من Anthropic، **ما يصله:** نص المحادثة، **المكان:** خارج مصر
+- **الفئة:** الخرائط وزمن الطريق، **المقدم الحالي:** Mapbox، **ما يصله:** إحداثيات لحساب طريق واحد، بدون اسم، **المكان:** خارج مصر
 
 9.2 تستخدم نوا هذه الخدمات بشروطها التجارية المعلنة.
 
@@ -161,7 +158,6 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 10.3 مهلة توفيق الأوضاع مع القانون تنتهي في 1 نوفمبر 2026. تلتزم نوا بإبلاغ الطبيب كتابيًا بكل ترخيص تحصل عليه، وبأي تغيير في مكان حفظ البيانات، مثل نقل قاعدة البيانات إلى مصر.
 
-10.4 لا تبدأ نوا معالجة بيانات مرضى حقيقيين قبل الحصول على التراخيص التي يتطلبها القانون.
 
 ### 11. طلبات المرضى
 
@@ -248,9 +244,13 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 17.4 إذا بطل أي بند، تبقى البنود الأخرى سارية.
 
+
+<!-- /display -->
+
 ---
 
 ## English text
+<!-- display:en -->
 
 ### 1. Parties and definitions
 
@@ -299,7 +299,7 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 4.1 **Accurate information:** the Doctor confirms that he is a physician licensed to practise in Egypt. He confirms that his name, specialty, address, hours, fee and clinic page are accurate, and he keeps them up to date. Nowa does not check syndicate cards; the Doctor is responsible for what he enters.
 
-4.2 **One queue, by queue number:** the Doctor sees patients in queue-number order, not in order of arrival. A walk-in is booked by the secretary in the normal chat and gets the next number. Someone the Doctor takes in directly is recorded with his "walk-in" button. The "leave now" timing is only correct if this rule is kept.
+4.2 **One queue, by queue number:** the Doctor sees patients in queue-number order, not in order of arrival. A patient without a booking is booked by the secretary in the normal chat and gets the next number. Someone the Doctor takes in directly is recorded with his "without a booking" button. The "leave now" timing is only correct if this rule is kept.
 
 4.3 **The secretary:** the Doctor tells his secretary to refresh the chat page before every new caller, so that one patient's details never mix with another's. If the Doctor switches on secretary alerts on Telegram, he is responsible for who holds that link, and he switches it off as soon as she stops working for him.
 
@@ -339,18 +339,16 @@ Placeholders to fill before use: [COMPANY_NAME], [COMPANY_ADDRESS], [COMMERCIAL_
 
 ### 7. Retention periods
 
-| Data | Controller | Kept for | At the end |
-|---|---|---|---|
-| Chat and Telegram message text | Doctor | 30 days from each message | Permanently deleted |
-| Safety record (what Nowa said about health and the patient message that led to it), no name, linked to a keyed hash of the phone number | Nowa | 3 years from the reply | Deleted. The Doctor sees the questions, without names, in his evening report |
-| Operational events (booking, change, cancellation, Doctor taps, message sends), with no name, number or text | Doctor | 90 days | Deleted. Only the daily totals remain |
-| Patient file (name, number, area, visit history, no-show count, consent record) | Doctor | While the patient is active, then 3 years after the last visit, or until the Doctor leaves Nowa, whichever comes first | Deleted 3 years after the last visit. If the Doctor leaves, exported to him and then deleted |
-| Link between a phone number and a Telegram account | Nowa | While linked and while any clinic still holds a patient file or active booking with that number | Deleted on "stop messages here", or when no file with that number remains |
-| Location (the Doctor's point at "on my way", a patient's one-time location) | Not applicable | Never stored | Nothing to delete |
-| Learned numbers (average visit length, the Doctor's start delay, travel time per area and hour) | Identifies nobody | No time limit | Not applicable |
-| Daily totals per clinic (no names, no internal ids) | Identifies nobody | No time limit | Not applicable. A day with fewer than 3 patients leaves Nowa only merged into its week's total |
-| The Doctor's own data and account | Nowa | For the length of the contract, then the period needed for contract and tax records | Deleted after that period |
-| Log of patient requests and Nowa's answers | Nowa | 3 years from the answer | Deleted |
+- **Data:** Chat and Telegram message text; **Controller:** Doctor; **Kept for:** 30 days from each message; **At the end:** Permanently deleted
+- **Data:** Safety record (what Nowa said about health and the patient message that led to it), no name, linked to a keyed hash of the phone number; **Controller:** Nowa; **Kept for:** 3 years from the reply; **At the end:** Deleted. The Doctor sees the questions, without names, in his evening report
+- **Data:** Operational events (booking, change, cancellation, Doctor taps, message sends), with no name, number or text; **Controller:** Doctor; **Kept for:** 90 days; **At the end:** Deleted. Only the daily totals remain
+- **Data:** Patient file (name, number, area, visit history, no-show count, consent record); **Controller:** Doctor; **Kept for:** While the patient is active, then 3 years after the last visit, or until the Doctor leaves Nowa, whichever comes first; **At the end:** Deleted 3 years after the last visit. If the Doctor leaves, exported to him and then deleted
+- **Data:** Link between a phone number and a Telegram account; **Controller:** Nowa; **Kept for:** While linked and while any clinic still holds a patient file or active booking with that number; **At the end:** Deleted on "stop messages here", or when no file with that number remains
+- **Data:** Location (the Doctor's point at "on my way", a patient's one-time location); **Controller:** Not applicable; **Kept for:** Never stored; **At the end:** Nothing to delete
+- **Data:** Learned numbers (average visit length, the Doctor's start delay, travel time per area and hour); **Controller:** Identifies nobody; **Kept for:** No time limit; **At the end:** Not applicable
+- **Data:** Daily totals per clinic (no names, no internal ids); **Controller:** Identifies nobody; **Kept for:** No time limit; **At the end:** Not applicable. A day with fewer than 3 patients leaves Nowa only merged into its week's total
+- **Data:** The Doctor's own data and account; **Controller:** Nowa; **Kept for:** For the length of the contract, then the period needed for contract and tax records; **At the end:** Deleted after that period
+- **Data:** Log of patient requests and Nowa's answers; **Controller:** Nowa; **Kept for:** 3 years from the answer; **At the end:** Deleted
 
 Database backups are kept only for a short rolling window of [BACKUP_WINDOW_DAYS] days. After that window, anything deleted is gone from the backups too.
 
@@ -368,14 +366,12 @@ Database backups are kept only for a short rolling window of [BACKUP_WINDOW_DAYS
 
 9.1 The Doctor agrees that Nowa may use the following companies to run the service. Each one receives only the part it needs:
 
-| Category | Current provider | What it receives | Where |
-|---|---|---|---|
-| Application hosting | Render | Everything that passes through the server while it runs | [RENDER_REGION] |
-| Database | Supabase | All stored data | Frankfurt, Germany |
-| Patient and Doctor message delivery | Telegram | The Telegram chat id and the message text, for patients who linked Telegram and for the Doctor | Outside Egypt |
-| AI (primary) | Google (Gemini model) | The chat text as the patient typed it, which may contain a name or a health question | Outside Egypt |
-| AI (fallback, only when the primary is down) | OpenRouter, reaching Anthropic's Claude model | The chat text | Outside Egypt |
-| Maps and travel time | Mapbox | Coordinates for one route calculation, with no name | Outside Egypt |
+- **Category:** Application hosting; **Current provider:** Render; **What it receives:** Everything that passes through the server while it runs; **Where:** [RENDER_REGION]
+- **Category:** Database; **Current provider:** Supabase; **What it receives:** All stored data; **Where:** Frankfurt, Germany
+- **Category:** Patient and Doctor message delivery; **Current provider:** Telegram; **What it receives:** The Telegram chat id and the message text, for patients who linked Telegram and for the Doctor; **Where:** Outside Egypt
+- **Category:** AI (primary); **Current provider:** Google (Gemini model); **What it receives:** The chat text as the patient typed it, which may contain a name or a health question; **Where:** Outside Egypt
+- **Category:** AI (fallback, only when the primary is down); **Current provider:** OpenRouter, reaching Anthropic's Claude model; **What it receives:** The chat text; **Where:** Outside Egypt
+- **Category:** Maps and travel time; **Current provider:** Mapbox; **What it receives:** Coordinates for one route calculation, with no name; **Where:** Outside Egypt
 
 9.2 Nowa uses these services on their published commercial terms.
 
@@ -389,7 +385,6 @@ Database backups are kept only for a short rolling window of [BACKUP_WINDOW_DAYS
 
 10.3 The Law's compliance grace period ends on 1 November 2026. Nowa will tell the Doctor in writing about each licence it obtains, and about any change in where the data is stored, such as moving the database to Egypt.
 
-10.4 Nowa does not process real patient data before the licences required by the Law are obtained.
 
 ### 11. Patient requests
 
@@ -475,5 +470,8 @@ Database backups are kept only for a short rolling window of [BACKUP_WINDOW_DAYS
 17.3 If the Arabic and English texts differ, the Arabic text prevails.
 
 17.4 If any clause is held invalid, the other clauses remain in force.
+
+
+<!-- /display -->
 
 ---

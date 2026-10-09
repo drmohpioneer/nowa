@@ -72,7 +72,7 @@ def test_populated_head09_upgrade_preserves_rows_and_foreign_keys(tmp_path):
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "15"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "31"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
@@ -81,6 +81,12 @@ def test_populated_head09_upgrade_preserves_rows_and_foreign_keys(tmp_path):
                 if table == "evenings":
                     assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in rows]
                     assert all(tuple(row[-2:]) == (None, None) for row in after)
+                elif table == "outbox":
+                    assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in rows]
+                    assert all(tuple(row[-2:]) == (None, None) for row in after)
+                elif table in {"patients", "bookings"}:
+                    assert [tuple(row[:-1]) for row in after] == [tuple(row) for row in rows]
+                    assert all(row[-1] is None for row in after)
                 else:
                     assert after == rows
             assert conn.exec_driver_sql("SELECT created_at FROM clinics WHERE id=1").scalar_one()
@@ -107,7 +113,7 @@ def test_dangling_foreign_key_upgrade_rolls_back_and_restores_enforcement(tmp_pa
         (scripts / "versions" / "11_broken.py").write_text("""from alembic import op
 import sqlalchemy as sa
 revision = "11_broken"
-down_revision = "15"
+down_revision = "31"
 branch_labels = None
 depends_on = None
 
@@ -142,7 +148,6 @@ def upgrade():
         engine.dispose()
 
 
-
 def test_populated_head10_evening_upgrade_through_runner(tmp_path):
     engine = create_db_engine(f"sqlite:///{tmp_path / 'populated-10.db'}")
     try:
@@ -163,34 +168,85 @@ def test_populated_head10_evening_upgrade_through_runner(tmp_path):
             conn.exec_driver_sql(
                 "INSERT INTO contacts(clinic_id,phone_e164) VALUES (2,'+201000002000')"
             )
-            conn.exec_driver_sql("INSERT INTO evenings(clinic_id,date,state,closed_at,closed_by) "
-                                 "VALUES (2,'2026-10-01','closed',CURRENT_TIMESTAMP,'doctor')")
+            conn.exec_driver_sql(
+                "INSERT INTO evenings(clinic_id,date,state,closed_at,closed_by) "
+                "VALUES (2,'2026-10-01','closed',CURRENT_TIMESTAMP,'doctor')"
+            )
             conn.exec_driver_sql(
                 "INSERT INTO bookings(clinic_id,evening_id,patient_id,contact_id,queue_number,"
                 "order_key,source,lang,created_at) "
                 "VALUES (2,1,1,1,1,1,'chat','ar',CURRENT_TIMESTAMP)"
             )
-            before = {table: conn.exec_driver_sql(f"SELECT * FROM {table}").all()
-                      for table in ("clinics", "doctors", "patients", "contacts", "bookings")}
+            before = {
+                table: conn.exec_driver_sql(f"SELECT * FROM {table}").all()
+                for table in ("clinics", "doctors", "patients", "contacts", "bookings")
+            }
             evening = conn.exec_driver_sql("SELECT * FROM evenings").one()
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "15"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "31"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
             for table, original in before.items():
-                assert conn.exec_driver_sql(f"SELECT * FROM {table}").all() == original
+                after = conn.exec_driver_sql(f"SELECT * FROM {table}").all()
+                if table in {"clinics", "patients", "bookings"}:
+                    assert [tuple(row[:-1]) for row in after] == [tuple(row) for row in original]
+                    if table == "clinics":
+                        assert all(row[-1] == row[4] for row in after)
+                    else:
+                        assert all(row[-1] is None for row in after)
+                else:
+                    assert after == original
             upgraded = conn.exec_driver_sql("SELECT * FROM evenings").one()
             assert tuple(upgraded[:-2]) == tuple(evening)
             assert tuple(upgraded[-2:]) == (None, None)
             columns = {r[1]: r for r in conn.exec_driver_sql("PRAGMA table_info(evenings)")}
-            assert all(columns[name][2] == "TIME" and columns[name][3] == 0
-                       for name in ("paper_start", "paper_end"))
+            assert all(
+                columns[name][2] == "TIME" and columns[name][3] == 0
+                for name in ("paper_start", "paper_end")
+            )
             conn.exec_driver_sql("UPDATE evenings SET paper_start='23:00:00',paper_end='01:00:00'")
             assert conn.exec_driver_sql("SELECT paper_start,paper_end FROM evenings").one() == (
-                "23:00:00", "01:00:00",
+                "23:00:00",
+                "01:00:00",
             )
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "legacy,expected",
+    [("عنوان عربي", "عنوان عربي"), ("", "English Address"), ("   ", "English Address")],
+)
+def test_audit_30_populated_address_upgrade(tmp_path, legacy, expected):
+    engine = create_db_engine(f"sqlite:///{tmp_path / 'address-16.db'}")
+    try:
+        config = cli.migration_config()
+        with engine.begin() as conn:
+            config.attributes["connection"] = conn
+            command.upgrade(config, "16")
+            conn.exec_driver_sql(
+                "INSERT INTO clinics(slug,name,specialty,address,lat,lng,phone) "
+                "VALUES ('address','Fictional','cardiology','English Address',30,31,'')"
+            )
+            conn.exec_driver_sql(
+                "INSERT INTO clinic_info(clinic_id,key,text) "
+                "SELECT id,'address',? FROM clinics WHERE slug='address'",
+                (legacy,),
+            )
+        cli.migrate(engine)
+        with engine.connect() as conn:
+            assert conn.exec_driver_sql(
+                "SELECT address,address_en FROM clinics WHERE slug='address'"
+            ).one() == (expected, "English Address")
+            assert (
+                conn.exec_driver_sql(
+                    "SELECT count(*) FROM clinic_info WHERE key='address'"
+                ).scalar_one()
+                == 0
+            )
+            assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
     finally:
         engine.dispose()

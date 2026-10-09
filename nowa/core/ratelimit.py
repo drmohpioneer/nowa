@@ -51,3 +51,22 @@ def hit(conn: Connection, clock: Clock, scope: str, key: str, window_s: int, lim
         .returning(rate_counters.c.count)
     )
     return bool(conn.execute(statement).scalar_one() <= limit)
+
+
+def exhausted(
+    conn: Connection, clock: Clock, scope: str, key: str, window_s: int, limit: int
+) -> bool:
+    from sqlalchemy import select
+
+    start = datetime.fromtimestamp(floor(clock.base_now().timestamp() / window_s) * window_s, UTC)
+    key_hash = hmac.new(
+        get_settings().server_secret.encode(), f"{scope}|{key}".encode(), hashlib.sha256
+    ).hexdigest()
+    count = conn.execute(
+        select(rate_counters.c.count).where(
+            rate_counters.c.scope == scope,
+            rate_counters.c.key_hash == key_hash,
+            rate_counters.c.window_start == start,
+        )
+    ).scalar_one_or_none()
+    return count is not None and count >= limit

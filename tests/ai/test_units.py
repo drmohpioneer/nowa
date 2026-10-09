@@ -45,7 +45,9 @@ def test_faq_labels_are_arabic(engine, clinic_id) -> None:
             [dict(clinic_id=clinic_id, key=key, text="FAQ answer") for key in expected],
         )
         buttons = faq(conn, clinic_id)
-    assert {b.action.payload["faq"]: b.label for b in buttons} == expected
+    assert {b.action.payload["faq"]: b.label for b in buttons} == expected | {
+        "hours": "مواعيد العيادة",
+    }
     assert all(b.label != b.action.payload["faq"] for b in buttons)
     assert all(b.id == "faq:" + b.action.payload["faq"] for b in buttons)
     assert all(b.action.kind == "none" for b in buttons)

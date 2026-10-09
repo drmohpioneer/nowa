@@ -1,0 +1,19 @@
+"use strict";
+window.NowaHours = {
+  sync(row) {
+    const closed = !row.querySelector('[name="enabled"]').checked;
+    row.classList.toggle("is-closed", closed);
+    row.querySelector(".hours-times").hidden = closed;
+  },
+  values(root) {
+    return [...root.querySelectorAll("[data-weekday]")]
+      .filter(row => row.querySelector('[name="enabled"]').checked)
+      .map(row => ({weekday: Number(row.dataset.weekday),
+        start: window.NowaFeedback.digits(row.querySelector('[name="start"]').value),
+        end: window.NowaFeedback.digits(row.querySelector('[name="end"]').value)}));
+  }
+};
+for (const row of document.querySelectorAll("[data-weekday]")) {
+  row.querySelector('[name="enabled"]').addEventListener("change", () => window.NowaHours.sync(row));
+  window.NowaHours.sync(row);
+}

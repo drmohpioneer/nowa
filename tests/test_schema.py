@@ -24,8 +24,8 @@ def check_migration(engine):
             )
             == []
         )
-        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "15"
-        assert len(conn.execute(select(s.areas)).all()) == 12
+        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "31"
+        assert len(conn.execute(select(s.areas)).all()) == 72
         assert list(conn.execute(select(s.clinics.c.slug)).scalars()) == ["_nowa"]
         assert not conn.execute(select(s.clinic_hours)).all()
         assert not conn.execute(select(s.doctors)).all()
@@ -53,6 +53,7 @@ def test_postgres_migration(postgres_engine):
 
 def test_clinic_ownership_and_identity_columns():
     exempt = {
+        "geocode_cache",
         "telegram_pending",
         "clinics",
         "telegram_links",
@@ -65,6 +66,7 @@ def test_clinic_ownership_and_identity_columns():
     }
     allowed = {
         ("patients", "name"),
+        ("patients", "name_en"),
         ("contacts", "phone_e164"),
         ("doctors", "name_ar"),
         ("doctors", "name_en"),
@@ -309,8 +311,12 @@ def test_migration_postgres_ddl_portability():
                     str(column.server_default.arg.compile(dialect=postgresql.dialect())) == "false"
                 )
     assert set(captured.tables) == set(metadata.tables) - {
+        "geocode_cache",
+        "standbys",
+        "learned_no_show",
         "telegram_pending",
         "evening_taps",
+        "question_askers",
         "report_questions",
         "demo_runs",
         "doctor_sessions",
@@ -429,6 +435,34 @@ def test_migration_postgres_ddl_portability():
     telegram_spec.loader.exec_module(telegram_module)
     telegram_module.op = CaptureTravel
     telegram_module.upgrade()
+    conversation_spec = importlib.util.spec_from_file_location(
+        "conversation_migration", ROOT / "migrations/versions/16_conversation.py"
+    )
+    conversation_module = importlib.util.module_from_spec(conversation_spec)
+    conversation_spec.loader.exec_module(conversation_module)
+    conversation_module.op = CaptureTiming
+    conversation_module.upgrade()
+    no_show_spec = importlib.util.spec_from_file_location(
+        "no_show_migration", ROOT / "migrations/versions/28_learned_no_show.py"
+    )
+    no_show_module = importlib.util.module_from_spec(no_show_spec)
+    no_show_spec.loader.exec_module(no_show_module)
+    no_show_module.op = CaptureMigration
+    no_show_module.upgrade()
+    standby_spec = importlib.util.spec_from_file_location(
+        "standby_migration", ROOT / "migrations/versions/29_standbys.py"
+    )
+    standby_module = importlib.util.module_from_spec(standby_spec)
+    standby_spec.loader.exec_module(standby_module)
+    standby_module.op = CaptureTravel
+    standby_module.upgrade()
+    geocode_spec = importlib.util.spec_from_file_location(
+        "geocode_migration", ROOT / "migrations/versions/31_geocoded_areas.py"
+    )
+    geocode_module = importlib.util.module_from_spec(geocode_spec)
+    geocode_spec.loader.exec_module(geocode_module)
+    geocode_module.op = CaptureSignup
+    geocode_module.upgrade()
     assert set(captured.tables) == set(metadata.tables)
     for table in captured.sorted_tables:
         assert str(CreateTable(table).compile(dialect=postgresql.dialect()))

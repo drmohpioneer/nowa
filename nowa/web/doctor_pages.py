@@ -1,12 +1,16 @@
 from typing import Annotated
+from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Path, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 
 from nowa import schema as s
+from nowa.config import get_settings
 from nowa.core import auth
+from nowa.core.display import clinic_address
 from nowa.web import strings
+from nowa.web.doctor_auth import csrf_cookie_name, doctor_language, session_token
 from nowa.web.logging import PRIVATE_HEADERS
 from nowa.web.templates import environment
 
@@ -23,11 +27,12 @@ def render(
     clinic_now = None
     doctor_name = None
     doctor_day = None
+    evening_label = None
     if mode in {"tonight", "settings", "report"}:
         session = auth.session_for(
             request.app.state.engine,
             request.app.state.clock,
-            request.cookies.get("nowa_session", ""),
+            session_token(request),
             touch=False,
         )
         if session is None:
@@ -40,9 +45,12 @@ def render(
                     ).first()
                 ):
                     raise HTTPException(410)
-            return RedirectResponse("/d/login", status_code=303, headers=PRIVATE_HEADERS)
+            return RedirectResponse(
+                "/d/login?lang=" + lang + "&next=" + quote(request.url.path, safe=""),
+                status_code=303,
+                headers=PRIVATE_HEADERS,
+            )
         with request.app.state.engine.connect() as conn:
-            from nowa.config import get_settings
             from nowa.core import booking, projection
 
             if (
@@ -80,26 +88,37 @@ def render(
                 .mappings()
                 .one()
             )
-            doctor_name = doctor["name_en"] if doctor["lang"] == "en" else doctor["name_ar"]
+            lang = doctor_language(request, conn, session)
+            doctor_name = doctor["name_en"] if lang == "en" else doctor["name_ar"]
             from nowa.messaging.templates import format_day
 
-            doctor_day = format_day(
-                tonight.evening_date if tonight else clinic_now.date(), doctor["lang"]
+            chosen_date = tonight.evening_date if tonight else clinic_now.date()
+            doctor_day = format_day(chosen_date, lang)
+            evening_label = (
+                strings.text("doctor.tonight", lang)
+                if evening_id is not None and chosen_date == clinic_now.date()
+                else doctor_day
+                if evening_id is not None
+                else strings.text("doctor.no_evening", lang)
             )
-            lang = conn.execute(
-                select(s.doctors.c.lang).where(
-                    s.doctors.c.id == session.doctor_id, s.doctors.c.clinic_id == session.clinic_id
-                )
-            ).scalar_one()
+            clinic = dict(
+                clinic,
+                display_address=clinic_address(clinic, lang),
+                display_name=strings.text("identity.clinic", lang).format(name=doctor_name),
+            )
     return HTMLResponse(
         environment.get_template("doctor/page.html").render(
             evening_id=evening_id,
             doctor_name=doctor_name,
             doctor_day=doctor_day,
+            evening_label=evening_label,
+            switch_url=request.url.path + ("?lang=ar" if lang == "en" else "?lang=en"),
             clinic=clinic,
             chat_url=chat_url,
             clinic_now=clinic_now,
             paper_start=paper_start,
+            telegram_enabled=bool(get_settings().telegram_bot_username),
+            csrf_cookie=csrf_cookie_name(request),
             signup_t=lambda key: strings.text("signup." + key, lang),
             mode=mode,
             lang=lang,

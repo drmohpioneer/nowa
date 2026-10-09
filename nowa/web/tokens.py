@@ -13,7 +13,7 @@ from fastapi import HTTPException, Request
 
 from nowa.config import get_settings
 
-Purpose = Literal["omw", "form"]
+Purpose = Literal["omw", "form", "standby"]
 
 
 @dataclass(frozen=True)

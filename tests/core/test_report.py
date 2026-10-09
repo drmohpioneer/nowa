@@ -113,6 +113,18 @@ def fixture_evening(engine):
                     accepted=accepted,
                 )
             )
+        conn.execute(
+            s.evening_taps.insert().values(
+                clinic_id=cid,
+                evening_id=eid,
+                kind="who_comes_in",
+                booking_id=ids[0],
+                at=BASE,
+                prior_json={},
+                after_json={},
+                idempotency_key="fixture-first-visit",
+            )
+        )
         for bid, minute in [(ids[0], -15), (ids[1], -10), (ids[2], 21)]:
             conn.execute(
                 s.bookings.update()
@@ -755,32 +767,48 @@ def test_snapshot_paper_window_survives_hours_change(engine, fixture_evening, re
     cid, eid, clock, _, _ = fixture_evening
     with write_tx(engine) as conn:
         if remove == "override":
-            conn.execute(s.clinic_day_overrides.insert().values(
-                clinic_id=cid, date=DAY, closed=False,
-                start=BASE.time().replace(hour=23), end=BASE.time().replace(hour=1),
-            ))
+            conn.execute(
+                s.clinic_day_overrides.insert().values(
+                    clinic_id=cid,
+                    date=DAY,
+                    closed=False,
+                    start=BASE.time().replace(hour=23),
+                    end=BASE.time().replace(hour=1),
+                )
+            )
         report.evening_report(context(conn, clock, cid, eid), {"evening_id": eid})
         expected = report.build_report(conn, clock, cid, eid)
-        conn.execute(s.clinic_hours.delete().where(
-            s.clinic_hours.c.clinic_id == cid, s.clinic_hours.c.weekday == DAY.weekday(),
-        ))
-        conn.execute(s.clinic_day_overrides.delete().where(
-            s.clinic_day_overrides.c.clinic_id == cid, s.clinic_day_overrides.c.date == DAY,
-        ))
+        conn.execute(
+            s.clinic_hours.delete().where(
+                s.clinic_hours.c.clinic_id == cid,
+                s.clinic_hours.c.weekday == DAY.weekday(),
+            )
+        )
+        conn.execute(
+            s.clinic_day_overrides.delete().where(
+                s.clinic_day_overrides.c.clinic_id == cid,
+                s.clinic_day_overrides.c.date == DAY,
+            )
+        )
         # Replay must use the durable window and must not change it.
         report.evening_report(context(conn, clock, cid, eid), {"evening_id": eid})
         actual = report.build_report(conn, clock, cid, eid)
         assert actual == expected
         start, end = report._paper_window(
-            conn, cid,
+            conn,
+            cid,
             conn.execute(select(s.evenings).where(s.evenings.c.id == eid)).mappings().one(),
         )
         assert end > start
         if remove == "override":
             assert end.date() == DAY + timedelta(days=1)
     with TestClient(create_app(engine, clock=clock), base_url="http://127.0.0.1:8000") as client:
-        assert client.post("/d/login", json={"mobile": "01000000001", "password": "demo1234"},
-                           headers=ORIGIN).status_code == 200
+        assert (
+            client.post(
+                "/d/login", json={"mobile": "01000000001", "password": "demo1234"}, headers=ORIGIN
+            ).status_code
+            == 200
+        )
         response = client.get(f"/d/api/report/{eid}")
         assert response.status_code == 200
         data = response.json()
@@ -803,27 +831,50 @@ def test_new_snapshot_supersedes_old_queue_and_only_latest_advances(engine):
         link(conn, cid, clock)
         q1 = question(conn, clock, cid, eid, "first", count=2)
         q2 = question(conn, clock, cid, eid, "second")
-        conn.execute(s.evenings.update().where(s.evenings.c.id == eid).values(
-            state="closed", closed_at=clock.now(cid), closed_by="doctor",
-        ))
+        conn.execute(
+            s.evenings.update()
+            .where(s.evenings.c.id == eid)
+            .values(
+                state="closed",
+                closed_at=clock.now(cid),
+                closed_by="doctor",
+            )
+        )
         report.evening_report(context(conn, clock, cid, eid), {"evening_id": eid})
         second = booking.get_or_create_evening(conn, cid, DAY + timedelta(days=2))
-        conn.execute(s.evenings.update().where(s.evenings.c.id == second).values(
-            state="closed", closed_at=clock.now(cid), closed_by="doctor",
-        ))
+        conn.execute(
+            s.evenings.update()
+            .where(s.evenings.c.id == second)
+            .values(
+                state="closed",
+                closed_at=clock.now(cid),
+                closed_by="doctor",
+            )
+        )
         report.evening_report(context(conn, clock, cid, second), {"evening_id": second})
-        old = conn.execute(select(s.report_questions).where(
-            s.report_questions.c.evening_id == eid,
-        )).mappings().all()
+        old = (
+            conn.execute(
+                select(s.report_questions).where(
+                    s.report_questions.c.evening_id == eid,
+                )
+            )
+            .mappings()
+            .all()
+        )
         assert all(
             r["resolved_at"] is not None and r["resolved_reason"] == "superseded" for r in old
         )
         assert conn.execute(select(s.questions.c.status)).scalars().all() == ["open", "open"]
         report.send_next(conn, clock, cid, eid)
         report.evening_report(context(conn, clock, cid, eid), {"evening_id": eid})
+
     def cards():
-        return [r["idempotency_key"] for r in rows(engine, s.outbox)
-                if r["template_id"] == "op:question_card"]
+        return [
+            r["idempotency_key"]
+            for r in rows(engine, s.outbox)
+            if r["template_id"] == "op:question_card"
+        ]
+
     assert cards() == [f"report:{eid}:q:{q1}", f"report:{second}:q:{q1}"]
     router = Router(engine, clock, FakeTelegramAPI())
     tap(router, 800, "qlater", arg=str(q1))
@@ -834,23 +885,32 @@ def test_new_snapshot_supersedes_old_queue_and_only_latest_advances(engine):
     with write_tx(engine) as conn:
         conn.execute(s.questions.update().where(s.questions.c.id == q1).values(status="dismissed"))
         third = booking.get_or_create_evening(conn, cid, DAY + timedelta(days=5))
-        conn.execute(s.evenings.update().where(s.evenings.c.id == third).values(
-            state="closed", closed_at=clock.now(cid), closed_by="doctor",
-        ))
+        conn.execute(
+            s.evenings.update()
+            .where(s.evenings.c.id == third)
+            .values(
+                state="closed",
+                closed_at=clock.now(cid),
+                closed_by="doctor",
+            )
+        )
         report.evening_report(context(conn, clock, cid, third), {"evening_id": third})
         report.send_next(conn, clock, cid, second)
     assert len(cards()) == 3
 
 
-@pytest.mark.parametrize("raw,masked", [
-    ("010 1234 5678", "010********"),
-    ("010-1234-5678", "010********"),
-    ("+20 101 234 5678", "+201*********"),
-    ("(010) 1234-5678", "(010********"),
-    ("١٢٣ ٤٥٦", "١٢٣***"),
-    ("۱۲۳-۴۵۶", "۱۲۳***"),
-    ("１２３(４５６)", "１２３***)"),
-])
+@pytest.mark.parametrize(
+    "raw,masked",
+    [
+        ("010 1234 5678", "010********"),
+        ("010-1234-5678", "010********"),
+        ("+20 101 234 5678", "+201*********"),
+        ("(010) 1234-5678", "(010********"),
+        ("١٢٣ ٤٥٦", "١٢٣***"),
+        ("۱۲۳-۴۵۶", "۱۲۳***"),
+        ("１２３(４５６)", "１２３***)"),
+    ],
+)
 def test_display_masks_separated_digits(raw, masked):
     assert report.display_text("literal <b>" + raw + "</b>") == "literal <b>" + masked + "</b>"
     assert report.display_text("12345 / 12345") == "12345 / 12345"
@@ -888,11 +948,44 @@ def test_qedit_retains_draft_replaces_with_next_text_and_can_save_without_edit(e
 def test_report_health_time_cairo_display(engine, fixture_evening):
     cid, eid, clock, _, _ = fixture_evening
     with TestClient(create_app(engine, clock=clock), base_url="http://127.0.0.1:8000") as client:
-        assert client.post("/d/login", json={"mobile": "01000000001", "password": "demo1234"},
-                           headers=ORIGIN).status_code == 200
+        assert (
+            client.post(
+                "/d/login", json={"mobile": "01000000001", "password": "demo1234"}, headers=ORIGIN
+            ).status_code
+            == 200
+        )
         health = client.get(f"/d/api/report/{eid}").json()["health_answers"]
         # SQLite returns UTC: 03:00/10:30 UTC are 06:00/13:30 in Cairo on this date.
-        assert [a["at_display"] for a in health] == ["6:00", "1:30"]
+        assert [a["at_display"] for a in health] == ["06:00", "13:30"]
         assert [a["at"] for a in health] == ["2026-10-06T03:00:00Z", "2026-10-06T10:30:00Z"]
     script = (Path(__file__).resolve().parents[2] / "nowa/web/static/dashboard.js").read_text()
-    assert '["question", "answer", "why", "at_display", "model"]' in script
+    assert "question.textContent = answer.question" in script
+    assert "time.textContent = answer.at_display" in script
+    assert "link.textContent = answer.source_label" in script
+    assert '["question", "answer", "why", "at_display", "model"]' not in script
+
+
+def test_question_askers_identity_grouping_and_clinic_scope(engine):
+    cid, eid, clock, ids = setup(engine, count=1)
+    with write_tx(engine) as conn:
+        booked = conn.execute(select(s.bookings).where(s.bookings.c.id == ids[0])).mappings().one()
+        conn.execute(
+            s.patients.update()
+            .where(s.patients.c.id == booked["patient_id"])
+            .values(name="أميرة محمود")
+        )
+        asker = questions.Asker(booked["patient_id"], booked["id"], "known-session")
+        questions.log_question(conn, clock, cid, "هل فيه تحضير؟", "known", asker)
+        questions.log_question(conn, clock, cid, "هل فيه تحضير؟", "repeat", asker)
+        questions.log_question(
+            conn, clock, cid, "هل فيه تحضير؟", "anon", questions.Asker(None, None, "anonymous")
+        )
+        pending = report.pending_questions(conn, cid)
+        assert len(pending) == 1
+        assert pending[0]["count"] == 3
+        assert len(pending[0]["askers"]) == 2
+        assert pending[0]["askers"][0]["name"] == "أميرة محمود"
+        assert pending[0]["askers"][0]["queue_number"] == 1
+        assert pending[0]["askers"][0]["day"]
+        assert pending[0]["askers"][1] == dict(name=None, queue_number=None, day=None)
+        assert report.pending_questions(conn, cid + 999) == []

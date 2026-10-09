@@ -6,10 +6,11 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from sqlalchemy import select
 
 from nowa import schema as s
-from tests.web.test_doctor_web import post
+from tests.web.test_doctor_web import headers, post
 from tests.web.test_doctor_web import web as shared_web
 
 
@@ -27,9 +28,10 @@ def test_room_latest_undo_walkin_close_and_doctor_state(web, engine):
         return response.json()
 
     assert state()["in_room"] is None
-    assert state()["doctor"] == {"on_way_at": None, "arrived_at": None}
+    assert state()["doctor"] == {"on_way_at": None, "eta_min": None, "arrived_at": None}
     assert post(client, "on-my-way", {"area_id": 1}).json()["ok"]
     assert datetime.fromisoformat(state()["doctor"]["on_way_at"]) == clock.now(cid)
+    assert isinstance(state()["doctor"]["eta_min"], int)
     assert state()["doctor"]["arrived_at"] is None
     clock.advance(minutes=12)
     assert post(client, "who-comes-in", {"booking_id": ids[0]}, "first").json()["ok"]
@@ -37,7 +39,7 @@ def test_room_latest_undo_walkin_close_and_doctor_state(web, engine):
     assert first == {
         "booking_id": ids[0],
         "queue_number": 1,
-        "first_name": "Fictional",
+        "first_name": "Fictional Patient",
         "since": state()["doctor"]["arrived_at"],
     }
     assert datetime.fromisoformat(first["since"]) == clock.now(cid)
@@ -66,7 +68,9 @@ def test_doctor_state_restores_button_after_undo(web):
     client, _, _, _, _ = web
     assert post(client, "on-my-way", {"area_id": 1}).json()["ok"]
     assert post(client, "undo").json()["ok"]
-    assert client.get("/d/api/tonight").json()["doctor"] == {"on_way_at": None, "arrived_at": None}
+    assert client.get("/d/api/tonight").json()["doctor"] == {
+        "on_way_at": None, "eta_min": None, "arrived_at": None
+    }
 
 
 def test_doctor_board_renders_real_state_and_undo(web):
@@ -94,3 +98,30 @@ def test_doctor_board_renders_real_state_and_undo(web):
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("lang", ["ar", "en"])
+def test_telegram_settings_has_demo_explanation_or_inline_fallback(web, lang):
+    from nowa.config import get_settings
+    from nowa.web.strings import text
+
+    client, *_ = web
+    assert client.put(
+        "/d/api/settings/lang",
+        json={"lang": lang, "idempotency_key": "telegram-test-language"},
+        headers=headers(client),
+    ).status_code == 200
+    settings = get_settings()
+    settings.telegram_bot_username = ""
+    page = BeautifulSoup(client.get("/d/settings?lang=" + lang).text, "html.parser")
+    card = page.select_one("#telegram-card")
+    assert text("doctor.telegram_demo", lang) in card.get_text()
+    assert not card.select("#telegram")
+    settings.telegram_bot_username = "nowa_test_bot"
+    page = BeautifulSoup(client.get("/d/settings?lang=" + lang).text, "html.parser")
+    card = page.select_one("#telegram-card")
+    assert card.select_one("#telegram")
+    link = card.select_one("#telegram-url")
+    assert link["class"] == ["btn", "btn-main"] and link["target"] == "_blank"
+    assert link.text == text("doctor.telegram_launch", lang)
+    assert card.select_one("#telegram-status")["role"] == "status"

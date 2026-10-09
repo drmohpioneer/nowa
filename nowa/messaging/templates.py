@@ -1,10 +1,14 @@
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass
 from datetime import date, datetime, timedelta
 from string import Formatter
 from typing import Any
 
 from nowa.clock import CAIRO
 from nowa.config import get_settings
+from nowa.core.display import patient_display_name
+from nowa.core.text_norm import western_digits
+from nowa.web.strings import STRINGS, doctor_label
 
 
 @dataclass(frozen=True)
@@ -24,7 +28,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "1",
         "ar",
     ): (
-        "{patient_name}: حجزك مع د. {doctor_name} {day}، رقمك "
+        "{patient_name}: حجزك مع {doctor_name} {day}، رقمك "
         "{queue_number}، معادك حوالي {expected_time} وممكن يتأخر. هنقولك على تليجرام "
         "امتى تتحرك. التفاصيل والعنوان: {link} تليفون العيادة "
         "{clinic_phone}"
@@ -33,7 +37,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "2",
         "ar",
     ): (
-        "{patient_name}: اتحرك دلوقتي لعيادة د. {doctor_name}، دورك قرب "
+        "{patient_name}: اتحرك دلوقتي لعيادة {doctor_name}، دورك قرب "
         "(رقم {queue_number}). لما تتحرك اضغط هنا: {on_my_way_link} "
         "للاستفسار {clinic_phone}"
     ),
@@ -41,14 +45,14 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "3",
         "ar",
     ): (
-        "{patient_name}: اتلغى حجزك مع د. {doctor_name} يوم {day} (رقم "
+        "{patient_name}: اتلغى حجزك مع {doctor_name} يوم {day} (رقم "
         "{queue_number}). لو مش إنت اللي لغيته كلم العيادة {clinic_phone}"
     ),
     (
         "4",
         "ar",
     ): (
-        "{patient_name}: د. {doctor_name} اعتذر عن عيادة النهارده، وحجزك "
+        "{patient_name}: {doctor_name} اعتذر عن عيادة {day}، وحجزك "
         "(رقم {queue_number}) اتلغى. احجز أقرب يوم فاضي من هنا: "
         "{rebook_link} للاستفسار {clinic_phone}"
     ),
@@ -56,7 +60,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "5",
         "ar",
     ): (
-        "د. {doctor_name}، العيادة المفروض تبدأ {clinic_start} ولسه ما "
+        "{doctor_name}، العيادة المفروض تبدأ {clinic_start} ولسه ما "
         'دوستش "في الطريق". عندك {booked_count} حجز النهارده. إنت في '
         "الطريق؟"
     ),
@@ -64,19 +68,29 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "6",
         "ar",
     ): (
-        "📋 تقرير عيادة النهارده ({day_date})\n\n👥 الحجوزات: {booked}\n✅ جم: "
-        "{came}\n❌ ما جوش: {no_show_count} ({no_show_names})\n🚶 من غير حجز: "
-        "{walk_ins}\n\n⏰ وصلت {doctor_arrival} (العيادة {clinic_start})\n⏱️ "
-        "متوسط الكشف: {avg_visit} دقيقة\n⌛ متوسط انتظار المريض: حوالي "
-        "{avg_wait} دقيقة\n\n📩 مريض ما وصلتلوش الرسالة: {failed_names}\n🩺 "
-        "المرضى سألوا {health_q_count} أسئلة صحية والـ AI رد عليها "
-        "[اعرض]\n\n📅 {next_day}: {next_day_bookings} حجوزات لحد دلوقتي"
+        "📋 تقرير عيادة النهارده ({day_date})\n"
+        "\n"
+        "👥 محجوزين: {booked} (غير {cancelled} اتلغى)\n"
+        "اتلغوا عند القفل: {cancelled_at_close}\n"
+        "✅ اتكشفوا من المحجوزين: {seen_booked}\n"
+        "❌ ما جوش: {no_show_count} ({no_show_names})\n"
+        "🚶 جم من غير حجز واتكشفوا: {walk_ins}\n"
+        "📊 إجمالي الكشوفات: {total_seen}\n"
+        "\n"
+        "⏰ وصلت {doctor_arrival} (العيادة {clinic_start})\n"
+        "⏱️ متوسط الكشف: {avg_visit} دقيقة\n"
+        "⌛ متوسط انتظار المريض: حوالي {avg_wait} دقيقة\n"
+        "\n"
+        "📩 مريض ما وصلتلوش الرسالة: {failed_names}\n"
+        "🩺 المرضى سألوا {health_q_count} واتجاوب عليها\n"
+        "\n"
+        "📅 {next_day}: {next_day_bookings} حجوزات لحد دلوقتي"
     ),
     (
         "1",
         "en",
     ): (
-        "{patient_name}: your booking with Dr. {doctor_name} on {day} is "
+        "{patient_name}: your booking with {doctor_name} on {day} is "
         "confirmed. Your number is {queue_number}, your time is around "
         "{expected_time} and may move later. We'll tell you on Telegram when to "
         "leave. Details & address: {link} Clinic: {clinic_phone}"
@@ -85,7 +99,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "1",
         "franco",
     ): (
-        "{patient_name}: 7agzak ma3 Dr. {doctor_name} {day_franco}, "
+        "{patient_name}: 7agzak ma3 {doctor_name} {day_franco}, "
         "rakmak {queue_number}, ma3adak 7awaly {expected_time} w momken "
         "yet2akhar. Han2ollak 3ala Telegram emta tet7arrak. El tafaseel wel 3enwan: "
         "{link} Telephone el 3eyada {clinic_phone}"
@@ -94,7 +108,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "2",
         "en",
     ): (
-        "{patient_name}: leave now for Dr. {doctor_name}'s clinic, your "
+        "{patient_name}: leave now for {doctor_name}'s clinic, your "
         "turn (number {queue_number}) is close. When you leave, tap here: "
         "{on_my_way_link} Questions: {clinic_phone}"
     ),
@@ -102,7 +116,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "2",
         "franco",
     ): (
-        "{patient_name}: et7arrak dilwa2ty le 3eyadet Dr. {doctor_name}, "
+        "{patient_name}: et7arrak dilwa2ty le 3eyadet {doctor_name}, "
         "dorak korrab (rakm {queue_number}). Lama tet7arrak edghat hena: "
         "{on_my_way_link} lel estefsar {clinic_phone}"
     ),
@@ -110,7 +124,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "3",
         "en",
     ): (
-        "{patient_name}: your booking with Dr. {doctor_name} on {day} "
+        "{patient_name}: your booking with {doctor_name} on {day} "
         "(number {queue_number}) is cancelled. If you didn't cancel it, "
         "call the clinic: {clinic_phone}"
     ),
@@ -118,7 +132,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "3",
         "franco",
     ): (
-        "{patient_name}: et2alagha 7agzak ma3 Dr. {doctor_name} yom "
+        "{patient_name}: et2alagha 7agzak ma3 {doctor_name} yom "
         "{day_franco} (rakm {queue_number}). Law mesh enta elly laghetoh "
         "kallem el 3eyada {clinic_phone}"
     ),
@@ -126,7 +140,7 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "4",
         "en",
     ): (
-        "{patient_name}: Dr. {doctor_name} apologises, tonight's clinic "
+        "{patient_name}: {doctor_name} apologises, the clinic on {day} "
         "is cancelled and your booking (number {queue_number}) is "
         "cancelled. Book the nearest free day here: {rebook_link} "
         "Questions: {clinic_phone}"
@@ -135,15 +149,15 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "4",
         "franco",
     ): (
-        "{patient_name}: Dr. {doctor_name} e3tazar 3an 3eyadet el "
-        "naharda, w 7agzak (rakm {queue_number}) et2alagha. E7gez akrab "
+        "{patient_name}: {doctor_name} e3tazar 3an 3eyadet el "
+        "yom {day_franco}, w 7agzak (rakm {queue_number}) et2alagha. E7gez akrab "
         "yom fady men hena: {rebook_link} lel estefsar {clinic_phone}"
     ),
     (
         "5",
         "en",
     ): (
-        "Dr. {doctor_name}, the clinic was due to start at {clinic_start} "
+        "{doctor_name}, the clinic was due to start at {clinic_start} "
         'and you haven\'t tapped "on my way" yet. You have {booked_count} '
         "bookings tonight. Are you on your way?"
     ),
@@ -151,18 +165,29 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "6",
         "en",
     ): (
-        "📋 Tonight's clinic report ({day_date})\n\n👥 Bookings: {booked}\n✅ "
-        "Came: {came}\n❌ Didn't come: {no_show_count} ({no_show_names})\n🚶 "
-        "Walk-ins: {walk_ins}\n\n⏰ You arrived {doctor_arrival} (clinic "
-        "start {clinic_start})\n⏱️ Average visit: {avg_visit} min\n⌛ "
-        "Average patient wait: about {avg_wait} min\n\n📩 Patients whose "
-        "message failed: {failed_names}\n🩺 Patients asked {health_q_count} "
-        "health questions, answered by the AI [View]\n\n📅 {next_day}: "
-        "{next_day_bookings} bookings so far"
+        "📋 Tonight's clinic report ({day_date})\n"
+        "\n"
+        "👥 Booked: {booked} ({cancelled} cancelled)\n"
+        "Cancelled at close: {cancelled_at_close}\n"
+        "✅ Seen, of the booked: {seen_booked}\n"
+        "❌ Did not come: {no_show_count} ({no_show_names})\n"
+        "🚶 Came without a booking, seen: {walk_ins}\n"
+        "📊 Total seen: {total_seen}\n"
+        "\n"
+        "⏰ You arrived {doctor_arrival} (clinic start {clinic_start})\n"
+        "⏱️ Average visit: {avg_visit} min\n"
+        "⌛ Average patient wait: about {avg_wait} min\n"
+        "\n"
+        "📩 Patients whose message failed: {failed_names}\n"
+        "🩺 Patients asked {health_q_count}, answered\n"
+        "\n"
+        "📅 {next_day}: {next_day_bookings} bookings so far"
     ),
 }
 
 OPERATIONAL: dict[str, dict[str, Any]] = {
+    "standby_offer": {"texts": STRINGS["message.standby_offer"], "status": "PENDING"},
+    "standby_closed": {"texts": STRINGS["message.standby_closed"], "status": "PENDING"},
     "question_card": {
         "texts": {"ar": 'سؤال {n} من {total}: "{text}"', "en": 'Question {n} of {total}: "{text}"'},
         "status": "APPROVED",
@@ -184,19 +209,23 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
     "doctor_alert_brake": {
         "texts": {
             "ar": (
-                "وقف إرسال رسايل {channel_label} النهارده بعد {count} رسالة، في "
-                "حاجة غلط. راجع اللوحة."
+                "إرسال رسايل {channel_label} اتوقف النهارده بعد {count} رسالة "
+                "عشان حد الأمان. راجع لوحة العيادة."
             ),
             "en": (
-                "{channel_label} messages stopped for tonight after {count} "
-                "messages, something's wrong. Check the dashboard."
+                "{channel_label} messages stopped for today after {count} "
+                "messages because the safety limit was reached. Check the clinic "
+                "dashboard."
             ),
         },
         "status": "APPROVED",
     },
     "reset_code": {
         "texts": {
-            "ar": "كود إعادة التعيين: {code}. صالح 10 دقايق. لو مش إنت تجاهل الرسالة.",
+            "ar": (
+                "كود تغيير كلمة السر في نوا: {code}. صالح 10 دقايق. لو ما طلبتش "
+                "التغيير، تجاهل الرسالة."
+            ),
             "en": (
                 "Your Nowa password reset code: {code}. Valid for 10 minutes. If "
                 "this wasn't you, ignore this message."
@@ -214,33 +243,46 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
     "secretary_link": {
         "texts": {
             "ar": (
-                "دي لينك تنبيهات عيادة د. {doctor_name} على تليجرام. ابعتيها "
-                "لمراسلتك على تليجرام وافتحيها: {secretary_link}"
-            )
+                "ده لينك تنبيهات عيادة {doctor_name} على تليجرام. افتحيه "
+                "لتفعيل التنبيهات: {secretary_link}"
+            ),
+            "en": (
+                "Open this link to receive Telegram alerts for "
+                "{doctor_name}'s clinic: {secretary_link}"
+            ),
         },
         "status": "APPROVED",
     },
     "secretary_linked": {
-        "texts": {"ar": "اتفعل! هتوصلك تنبيهات لو رسالة لمريض من عيادة د. {doctor_name} ما وصلتش."},
+        "texts": {
+            "ar": "تنبيهات عيادة {doctor_name} اتفعلت. لو رسالة لمريض ما وصلتش، هنبلغك هنا.",
+            "en": (
+                "Alerts for {doctor_name}'s clinic are linked. We will tell "
+                "you here if a patient message is not delivered."
+            ),
+        },
         "status": "APPROVED",
     },
     "secretary_unlinked": {
         "texts": {
             "ar": (
-                "اتوقفت تنبيهات عيادة د. {doctor_name} عندك. لو الدكتور حب يفعلها "
-                "تاني هيبعتلك لينك جديد."
-            )
+                "تنبيهات عيادة {doctor_name} اتوقفت عندك. لو الدكتور فعّلها تاني، هيبعتلك لينك جديد."
+            ),
+            "en": (
+                "Alerts for {doctor_name}'s clinic have stopped here. The "
+                "doctor can send a new link to enable them again."
+            ),
         },
         "status": "APPROVED",
     },
     "doctor_linked": {
         "texts": {
             "ar": (
-                "اتفعل بوت نوا لعيادة د. {doctor_name}. من هنا هتوصلك تنبيهات "
-                "الليلة وتقرير آخر اليوم."
+                "تليجرام اتربط بعيادة {doctor_name}. تذكير في الطريق، تنبيهات "
+                "الرسايل وتقرير الليلة هيوصلوك هنا."
             ),
             "en": (
-                "Nowa's bot is now linked to Dr. {doctor_name}'s clinic. You'll "
+                "Nowa's bot is now linked to {doctor_name}'s clinic. You'll "
                 "get tonight's alerts and the evening report here."
             ),
         },
@@ -248,10 +290,14 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
     },
     "patient_linked": {
         "texts": {
-            "ar": "اتفعل! هتوصلك تنبيهات حجوزاتك على الرقم اللي ينتهي بـ {last_4}.",
-            "en": "Linked! You'll get updates on your bookings for the number ending in {last_4}.",
-            ("franco"): (
-                "Et3amel el link! Hayewsalak updates 3ala 7agzak lel ra2m elly by5las be {last_4}."
+            "ar": "تمام، تليجرام اتربط. رسايل حجوزاتك على الرقم اللي آخره {last_4} هتوصلك هنا.",
+            "en": (
+                "Telegram linked. Booking messages for the phone ending in "
+                "{last_4} will reach you here."
+            ),
+            "franco": (
+                "Tamam, Telegram etrabat. Rasayel 7ogozatak lel rakam elly akhro "
+                "{last_4} hatewsalak hena."
             ),
         },
         "status": "APPROVED",
@@ -263,15 +309,15 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
     "bookings_line": {
         "texts": {
             "ar": (
-                "د. {doctor_name}، {day}، رقمك {queue_number}، معادك حوالي "
+                "{doctor_name}، {day}، رقمك {queue_number}، معادك حوالي "
                 "{expected_time}، {status_label}"
             ),
             "en": (
-                "Dr. {doctor_name}, {day}, your number {queue_number}, around "
+                "{doctor_name}, {day}, your number {queue_number}, around "
                 "{expected_time}, {status_label}"
             ),
             "franco": (
-                "Dr. {doctor_name}, {day}, rakmak {queue_number}, 7awaly "
+                "{doctor_name}, {day}, rakmak {queue_number}, 7awaly "
                 "{expected_time}, {status_label}"
             ),
         },
@@ -281,7 +327,7 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
         "texts": {
             "ar": "مفيش حجوزات نشطة على الرقم ده دلوقتي.",
             "en": "No active bookings on this number right now.",
-            "franco": "Mafeesh 7agzat nashta 3ala el ra2m da dlwa2ty.",
+            "franco": "Mafeesh 7agzat nashta 3ala el rakam da dlwa2ty.",
         },
         "status": "APPROVED",
     },
@@ -328,48 +374,82 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
     },
     "triage_unclear": {
         "texts": {
-            "ar": "لو الأعراض شديدة اتصل بـ 123، أو اكتب لنا تاني.",
-            "en": "If your symptoms are severe, call 123, or write to us again.",
-            "franco": "Law el a3rad shadeeda ettesel be 123, aw ekteblena tany.",
+            "ar": (
+                "لو الأعراض شديدة اتصل بـ 123، أو اكتب لنا تاني. تقدر تحجز كشف أو تسأل سؤال تاني."
+            ),
+            "en": (
+                "If your symptoms are severe, call 123, or write to us "
+                "again. You can book a visit or ask another question."
+            ),
+            "franco": (
+                "Law el a3rad shadeeda ettesel be 123, aw ekteblena tany. "
+                "Te2dar te7gez kashf aw tes2al so2al tany."
+            ),
         },
         "status": "APPROVED",
     },
+    "chain_fallback": {
+        "texts": {
+            "ar": (
+                "مش قادر أفهم رسالتك دلوقتي، اكتب تاني بكلمات تانية. لو حالة طارئة اتصل "
+                "بـ 123. تقدر تحجز كشف أو تسأل سؤال تاني."
+            ),
+            "en": (
+                "I could not understand your message just now, write it again in other "
+                "words. In an emergency, call 123. You can book a visit or ask another "
+                "question."
+            ),
+            "franco": (
+                "Mesh 2ader afham resaltak delwa2ty, ekteb tany be kelmat tanya. Law "
+                "7ala tare2a ettesel be 123. Te2dar te7gez kashf aw tes2al so2al tany."
+            ),
+        },
+        "status": "DRAFT",
+    },
     "health_no_answer": {
         "texts": {
-            "ar": "السؤال ده هيوصل للدكتور نفسه، وهيرد عليك في أقرب فرصة.",
+            "ar": (
+                "السؤال ده هيوصل للدكتور نفسه، وهيرد عليك في أقرب فرصة. تقدر "
+                "تحجز كشف أو تسأل سؤال تاني."
+            ),
             "en": (
                 "This question will go straight to the doctor, and he'll answer "
-                "you as soon as he can."
+                "you as soon as he can. You can book a visit or ask another question."
             ),
-            "franco": "El so2al da hayewsal lel doctor nafso, w hayrod 3alek fi a2rab forsa.",
+            "franco": (
+                "El so2al da hayewsal lel doctor nafso, w hayrod 3alek fi "
+                "a2rab forsa. Te2dar te7gez kashf aw tes2al so2al tany."
+            ),
         },
         "status": "APPROVED",
     },
     "out_of_specialty": {
         "texts": {
             ("ar"): (
-                "السؤال ده خارج تخصص د. {doctor_name} ({specialty}). جرب تسأل دكتور في التخصص ده."
+                "ده مش تخصص {doctor_name} ({specialty}). بس لو حابب تحجز كشف "
+                "أو عندك سؤال تاني عن {specialty}، أنا معاك."
             ),
             "en": (
-                "This is outside Dr. {doctor_name}'s specialty ({specialty}). "
-                "Please ask a doctor in that specialty."
+                "This is outside {doctor_name}'s specialty ({specialty}). "
+                "You can book a visit or ask another question about {specialty}."
             ),
             "franco": (
-                "El so2al da khareg takhasos Dr. {doctor_name} ({specialty}). "
-                "Garrab tes2al doctor fel takhasos da."
+                "El so2al da khareg takhasos {doctor_name} ({specialty}). "
+                "Te2dar te7gez kashf aw tes2al so2al tany 3an {specialty}."
             ),
         },
         "status": "APPROVED",
     },
     "phone_cap": {
         "texts": {
-            "ar": "الرقم ده عليه ٣ حجوزات شغالة في العيادة. الغي واحد الأول وبعدين احجز.",
+            "ar": "الرقم ده عليه ٣ حجوزات نشطة في العيادة. الغي حجز منهم الأول، وبعدها احجز.",
             "en": (
                 "This phone already has 3 active bookings at this clinic. Cancel "
                 "one first, then book."
             ),
-            ("franco"): (
-                "El ra2m da 3aleh 3 7agzat sha8ala fel 3eyada. El8y wa7ed el awel w ba3den e7gez."
+            "franco": (
+                "El rakam da 3aleh 3 7ogozat nashta fel 3eyada. Elghi 7agz menhom "
+                "el awel, ba3den e7gez."
             ),
         },
         "status": "APPROVED",
@@ -485,7 +565,18 @@ def format_time(dt: datetime, lang: str) -> str:
     local = dt.astimezone(CAIRO)
     start = local.replace(hour=0, minute=0, second=0, microsecond=0)
     rounded = start + timedelta(minutes=int((local - start).total_seconds() / 300 + 0.5) * 5)
-    return f"{rounded.hour % 12 or 12}:{rounded.minute:02d}"
+    suffix = (
+        ("ص" if rounded.hour < 12 else "م")
+        if lang == "ar"
+        else ("AM" if rounded.hour < 12 else "PM")
+    )
+    return f"{rounded.hour % 12 or 12}:{rounded.minute:02d} {suffix}"
+
+
+def format_doctor_time(dt: datetime) -> str:
+    if not isinstance(dt, datetime) or dt.utcoffset() is None:
+        raise ValueError("An aware datetime is required")
+    return dt.astimezone(CAIRO).strftime("%H:%M")
 
 
 def _fill(text: str, lang: str, blanks: dict[str, Any]) -> str:
@@ -496,22 +587,31 @@ def _fill(text: str, lang: str, blanks: dict[str, Any]) -> str:
     for name, value in blanks.items():
         if value is None or value == "":
             raise ValueError(f"Empty blank: {name}")
-        if name == "doctor_name":
+        if name == "patient_name" and isinstance(value, Mapping):
+            value = patient_display_name(value, lang)
+        elif name == "health_q_count":
+            from nowa.web.strings import health_question_count
+
+            value = health_question_count(int(value), lang)
+        elif name == "doctor_name":
             if not isinstance(value, DoctorNames):
                 raise ValueError("doctor_name requires DoctorNames")
             value = value.name_ar if lang == "ar" else value.name_en
             if not value:
                 raise ValueError("Missing doctor name in message language")
+            value = doctor_label(value, lang)
         elif name in {"day", "day_franco", "day_date", "next_day"}:
             value = format_day(value, lang)
-        elif name in {"expected_time", "clinic_start", "doctor_arrival"}:
+        elif name == "expected_time":
             value = format_time(value, lang)
+        elif name in {"clinic_start", "doctor_arrival"}:
+            value = format_doctor_time(value)
         elif name == "link" or name.endswith(("_link", "_url")):
             if not isinstance(value, str) or not value.startswith("/"):
                 raise ValueError("Link blanks require an absolute path")
             value = get_settings().public_base_url + value
         values[name] = str(value)
-    return text.format_map(values)
+    return western_digits(text.format_map(values))
 
 
 def render(template_id: str, lang: str, blanks: dict[str, Any]) -> str:
@@ -573,3 +673,46 @@ def render_emergency(kind: str | None, lang: str) -> str:
     if lang == "franco" and kind != "general":
         lang = "en"
     return EMERGENCY[kind, lang]
+
+
+def save_values(blanks: dict[str, Any]) -> dict[str, Any]:
+    """JSON representation of original values; never reconstruct from mutable rows."""
+
+    def encode(value: Any) -> Any:
+        if isinstance(value, DoctorNames):
+            return {"_type": "doctor", "value": asdict(value)}
+        if isinstance(value, datetime):
+            return {"_type": "datetime", "value": value.isoformat()}
+        if isinstance(value, date):
+            return {"_type": "date", "value": value.isoformat()}
+        if isinstance(value, dict):
+            return {key: encode(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [encode(item) for item in value]
+        return value
+
+    return {key: encode(value) for key, value in blanks.items()}
+
+
+def render_saved(template_id: str, lang: str, values: dict[str, Any]) -> str:
+    def decode(value: Any) -> Any:
+        if isinstance(value, dict):
+            if value.get("_type") == "doctor":
+                return DoctorNames(**value["value"])
+            if value.get("_type") == "datetime":
+                return datetime.fromisoformat(value["value"])
+            if value.get("_type") == "date":
+                return date.fromisoformat(value["value"])
+            return {key: decode(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [decode(item) for item in value]
+        return value
+
+    blanks = {key: decode(value) for key, value in values.items()}
+    if lang != "franco" and "day_franco" in blanks:
+        blanks["day"] = blanks.pop("day_franco")
+    return (
+        render_operational(template_id[3:], lang, blanks).text
+        if template_id.startswith("op:")
+        else render(template_id, lang, blanks)
+    )

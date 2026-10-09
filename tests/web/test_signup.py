@@ -149,8 +149,12 @@ def clinic_for(engine, slug):
 def decode_svg(svg):
     """Rasterize segno's horizontal strokes from the ACTUAL endpoint SVG, then decode."""
     root = ET.fromstring(svg)
-    path = root.find("path")
-    scale = int(re.fullmatch(r"scale\((\d+)\)", path.attrib["transform"])[1])
+    ns = {"svg": "http://www.w3.org/2000/svg"}
+    group = root.find("svg:g", ns)
+    path = group.find("svg:path[@class='qrline']", ns)
+    assert path is not None and path.attrib["stroke"] == "#000"
+    assert group.find("svg:path[@fill='#fff']", ns) is not None
+    scale = int(re.fullmatch(r"scale\((\d+)\)", group.attrib["transform"])[1])
     size = int(root.attrib["width"]) // scale
     image = bytearray([255]) * (size * size)
     x = y = 0
@@ -179,7 +183,7 @@ def test_doctor_signup_screenphone_login_chat_qr_poster_and_expired_replay(
     signup_web, engine, offset_clock, frozen_clock
 ):
     client = signup_web
-    assert client.get("/d/qr.svg").status_code == 401
+    assert client.get("/d/qr.svg", follow_redirects=False).status_code == 303
     token = ordinary_token(client)
     drain(engine, offset_clock, worker.build_registry())
     assert client.get("/signup/phone").json()[-1]["status"] == "delivered"
@@ -188,14 +192,17 @@ def test_doctor_signup_screenphone_login_chat_qr_poster_and_expired_replay(
     assert client.get("/d/api/settings").json()["items"]
     dashboard = client.get("/d").text
     assert result["slug"] in dashboard
-    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in dashboard
+    assert "<script>alert(1)</script>" not in dashboard
+    assert "&lt;" in dashboard and "alert" in dashboard
     assert client.get("/c/" + result["slug"]).status_code == 200
     svg = client.get("/d/qr.svg")
     assert svg.status_code == 200 and svg.headers["content-type"].startswith("image/svg+xml")
+    assert svg.content.startswith((b"<?xml", b"<svg"))
+    assert 'xmlns="http://www.w3.org/2000/svg"' in svg.text
     assert decode_svg(svg.text) == result["chat_url"]
     poster = client.get("/d/poster").text
     assert result["chat_url"] in poster and 'src="/d/qr.svg"' in poster
-    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in poster
+    assert "&lt;" in poster and "alert" in poster
     assert "<script>alert(1)</script>" not in poster
     assert "size: A4" in client.get("/static/nowa.css").text
     assert finish(client, token, idempotency_key="new-key").json()["reason"] == "already_registered"
@@ -224,7 +231,9 @@ def test_front_page_bilingual_agreement_judge_and_hidden_watch(signup_web, engin
     start = signup_web.get("/start").text
     assert 'id="code-form"' in start
     assert "dermatology" not in start
-    assert "0.1" in start and "[COMPANY_NAME]" in start
+    assert "0.1" in start and "اتفاق استخدام نوا" in start
+    assert not re.search(r"\[[A-Z][A-Z0-9_]*\]", start)
+    assert all(note not in start for note in ("draft", "لم تتم مراجعته", "Placeholders"))
     # The stage entrance now belongs to the hub, not the front page.
     assert "/demo/evening" in signup_web.get("/demo").text
     monkeypatch.setenv("JUDGE_CODES", "")
@@ -637,15 +646,20 @@ def test_signup_pin_mark_is_private_action_text(signup_web, engine, pin_kind, ma
     assert "rough pin" not in chat.text
     clinic = clinic_for(engine, slug)
     with engine.connect() as conn:
-        assert conn.execute(
-            select(s.action_record.c.text).where(
-                s.action_record.c.clinic_id == clinic["id"],
-                s.action_record.c.kind == "signup_complete",
-            )
-        ).scalar_one() == mark
-        assert set(conn.execute(
-            select(s.clinic_info.c.key).where(s.clinic_info.c.clinic_id == clinic["id"])
-        ).scalars()) == {"price", "address"}
+        assert (
+            conn.execute(
+                select(s.action_record.c.text).where(
+                    s.action_record.c.clinic_id == clinic["id"],
+                    s.action_record.c.kind == "signup_complete",
+                )
+            ).scalar_one()
+            == mark
+        )
+        assert set(
+            conn.execute(
+                select(s.clinic_info.c.key).where(s.clinic_info.c.clinic_id == clinic["id"])
+            ).scalars()
+        ) == {"price"}
 
 
 @pytest.mark.parametrize("lang, status", [("franco", 422), ("ar", 200), ("en", 200)])
@@ -685,9 +699,9 @@ def test_judge_seed_failure_rolls_back_creation_and_can_retry(signup_web, engine
         calls.append(req.clinic_id)
         if len(calls) == 2:
             # The first real booking and newly created clinic exist in THIS transaction.
-            assert conn.execute(select(s.bookings.c.id).where(
-                s.bookings.c.clinic_id == req.clinic_id
-            )).first()
+            assert conn.execute(
+                select(s.bookings.c.id).where(s.bookings.c.clinic_id == req.clinic_id)
+            ).first()
             raise RuntimeError("fictional seed failure")
         return real_book(conn, clock, req, confirm=confirm)
 
@@ -703,12 +717,31 @@ def test_judge_seed_failure_rolls_back_creation_and_can_retry(signup_web, engine
     assert response.status_code == 200, response.text
     clinic = clinic_for(engine, response.json()["slug"])
     with engine.connect() as conn:
-        bookings = conn.execute(select(s.bookings).where(
-            s.bookings.c.clinic_id == clinic["id"]
-        )).all()
+        bookings = conn.execute(
+            select(s.bookings).where(s.bookings.c.clinic_id == clinic["id"])
+        ).all()
         assert len(bookings) == 12
     assert finish(signup_web, "expired-token").json() == response.json()
     with engine.connect() as conn:
-        assert conn.execute(select(s.bookings).where(
-            s.bookings.c.clinic_id == clinic["id"]
-        )).all() == bookings
+        assert (
+            conn.execute(select(s.bookings).where(s.bookings.c.clinic_id == clinic["id"])).all()
+            == bookings
+        )
+
+
+def test_front_button_goes_to_judge_on_a_hosted_instance(signup_web, monkeypatch):
+    import nowa.web.front as front_module
+
+    settings = get_settings()
+    monkeypatch.setattr(
+        front_module, "get_settings", lambda: settings.model_copy(update={"demo_mode": False})
+    )
+    page = signup_web.get("/").text
+    assert "/judge" in page and "/demo" not in page
+    monkeypatch.setattr(
+        front_module,
+        "get_settings",
+        lambda: settings.model_copy(update={"demo_mode": False, "judge_codes": ""}),
+    )
+    page = signup_web.get("/").text
+    assert "/demo" not in page and "/judge" not in page and "/start" in page

@@ -1,7 +1,7 @@
 from datetime import date, time
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sqlalchemy import select
 from sqlalchemy.engine import Connection
 
@@ -9,16 +9,41 @@ from nowa import record
 from nowa import schema as s
 from nowa.clock import CAIRO, Clock
 from nowa.core import booking, projection
+from nowa.core.text_norm import western_digits
 
 
 class Input(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
 
 
+def numeric_input(value: Any) -> Any:
+    if isinstance(value, str):
+        value = western_digits(value.strip())
+        if value.isdecimal():
+            return int(value)
+    return value
+
+
 class HoursRow(Input):
     weekday: Annotated[int, Field(strict=True, ge=0, le=6)]
     start: Annotated[str, Field(pattern=r"^(?:[01][0-9]|2[0-3]):[0-5][0-9]$")]
     end: Annotated[str, Field(pattern=r"^(?:[01][0-9]|2[0-3]):[0-5][0-9]$")]
+
+    @field_validator("weekday", mode="before")
+    @classmethod
+    def digits(cls, value: Any) -> Any:
+        return numeric_input(value)
+
+    @field_validator("start", "end", mode="before")
+    @classmethod
+    def time_digits(cls, value: Any) -> Any:
+        return western_digits(value) if isinstance(value, str) else value
+
+    @model_validator(mode="after")
+    def ordered(self) -> "HoursRow":
+        if self.end <= self.start:
+            raise ValueError("hours_order")
+        return self
 
 
 class Hours(Input):
@@ -41,7 +66,19 @@ class Override(Input):
     def open_times(self) -> "Override":
         if not self.closed and (self.start is None or self.end is None):
             raise ValueError("start, end: required when open")
+        if (
+            not self.closed
+            and self.start is not None
+            and self.end is not None
+            and self.end <= self.start
+        ):
+            raise ValueError("hours_order")
         return self
+
+    @field_validator("start", "end", mode="before")
+    @classmethod
+    def time_digits(cls, value: Any) -> Any:
+        return western_digits(value) if isinstance(value, str) else value
 
 
 class Timing(Input):
@@ -50,17 +87,47 @@ class Timing(Input):
     safe_drive_min: Annotated[int, Field(strict=True, ge=10, le=120)]
     max_per_evening: Annotated[int | None, Field(strict=True, ge=1, le=100)]
 
+    @field_validator(
+        "usual_visit_min", "cushion_min", "safe_drive_min", "max_per_evening", mode="before"
+    )
+    @classmethod
+    def digits(cls, value: Any) -> Any:
+        return numeric_input(value)
+
 
 class InfoRow(Input):
-    key: Literal["price", "address", "what_to_bring", "other"]
+    key: Literal["price", "what_to_bring", "other"]
     text: Annotated[str, Field(max_length=500)]
+
+    @field_validator("text")
+    @classmethod
+    def meaningful(cls, value: str, info: Any) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("text_required")
+        return western_digits(value) if info.data.get("key") == "price" else value
 
 
 class Info(Input):
+    address: Annotated[str | None, Field(max_length=500)] = None
+    address_en: Annotated[str | None, Field(max_length=500)] = None
+
+    @field_validator("address", "address_en")
+    @classmethod
+    def address_text(cls, value: str | None, info: Any) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value and info.field_name == "address":
+            raise ValueError("text_required")
+        return value
+
     items: list[InfoRow]
 
     @model_validator(mode="after")
     def distinct(self) -> "Info":
+        if self.address_en is not None and self.address is None:
+            raise ValueError("address_required")
         if len({r.key for r in self.items}) != len(self.items):
             raise ValueError("items: duplicate key")
         return self
@@ -72,6 +139,10 @@ class Language(Input):
 
 class Alerts(Input):
     on: Annotated[bool, Field(strict=True)]
+
+
+class InvalidSetting(Exception):
+    pass
 
 
 class BookingsOutside(Exception):
@@ -96,6 +167,9 @@ def read(conn: Connection, clinic_id: int, doctor_id: int) -> dict[str, Any]:
         .order_by(s.clinic_day_overrides.c.date)
     ).mappings()
     return {
+        "learned": learned_values(conn, clinic_id),
+        "address": clinic["address"],
+        "address_en": clinic["address_en"] or "",
         "hours": [
             {
                 "weekday": r["weekday"],
@@ -155,6 +229,8 @@ def update(
         .one()
     )
     now = clock.now(clinic_id)
+    if isinstance(value, Override) and value.date < now.astimezone(CAIRO).date():
+        raise InvalidSetting("past_date")
     tonight_before = booking.tonight_evening(conn, clinic_id, now)
     tonight_date = tonight_before.evening_date if tonight_before else None
     changes_projection = False
@@ -244,6 +320,12 @@ def update(
                 s.clinics.update().where(s.clinics.c.id == clinic_id).values(**value.model_dump())
             )
         elif isinstance(value, Info):
+            if value.address is not None:
+                conn.execute(
+                    s.clinics.update()
+                    .where(s.clinics.c.id == clinic_id)
+                    .values(address=value.address, address_en=value.address_en or value.address)
+                )
             conn.execute(s.clinic_info.delete().where(s.clinic_info.c.clinic_id == clinic_id))
             for item in value.items:
                 conn.execute(
@@ -301,3 +383,24 @@ def update(
     recompute_id = tonight.evening_id if tonight and changes_projection else None
     record.write_action(conn, clinic_id, "doctor", "settings_" + kind)
     return affected, recompute_id
+
+
+def learned_values(conn: Connection, clinic_id: int) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for key, table, value_column, threshold in (
+        ("visit", s.learned_pace, s.learned_pace.c.mean_visit_min, 1),
+        ("gap", s.learned_start_gap, s.learned_start_gap.c.mean_min, 1),
+        ("no_show", s.learned_no_show, s.learned_no_show.c.rate, 3),
+    ):
+        row = conn.execute(
+            select(table.c.n, value_column).where(table.c.clinic_id == clinic_id)
+        ).first()
+        n = row[0] if row else 0
+        if key == "visit":
+            value = projection.current_pace(conn, clinic_id, None)
+        elif key == "no_show":
+            value = projection.no_show_rate(conn, clinic_id) * 100
+        else:
+            value = float(row[1]) if n >= threshold and row else 0.0
+        result[key] = {"value": value, "n": n, "still_learning": n < threshold}
+    return result
