@@ -208,7 +208,11 @@ def render(
             linking_texts={
                 key: strings.text("patient." + key, view.lang) for key in strings.LINKING_TEXTS
             }
-            | {"open_label": strings.text("patient.open_telegram", view.lang)},
+            | {
+                "open_label": strings.text("patient.open_telegram", view.lang),
+                "verify_failed": strings.text("patient.verify_failed", view.lang),
+                "locked": strings.text("patient.locked", view.lang),
+            },
             active=view.evening_state not in {"closed", "cancelled"}
             and view.state in {"booked", "told_to_leave", "on_my_way"},
         )

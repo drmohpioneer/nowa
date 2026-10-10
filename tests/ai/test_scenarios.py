@@ -524,9 +524,9 @@ def test_chain_failure_answers_plainly_with_buttons_and_records_attempts(chat, e
     ]
     key = session(client)
     data = turn(client, key, text="hi")
-    line = render_operational("chain_fallback", "en", {}).text
+    line = render_operational("chain_fallback", "en", {"clinic_phone": "01000000000"}).text
     assert data["reply"].startswith(line), data["reply"]
-    assert ui("clinic_phone", "en", phone="01000000000") in data["reply"]
+    assert "call the clinic on 01000000000" in data["reply"]
     assert "123" not in data["reply"].split(".")[0]
     assert [b["label"] for b in data["buttons"]] == [ui("visit_chip", "en")]
     attempts = [r for r in rows(engine, s.action_record) if r["kind"] == "ai_attempts"]

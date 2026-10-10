@@ -7,6 +7,11 @@
     await window.NowaFeedback.pending(button, async () => {
       const response = await fetch("/judge/start", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({code: form.elements.code.value})}).catch(() => { throw new Error(labels.error); });
       const data = await response.json();
+      if (!response.ok && (data.detail || data).reason === "wrong_code" && labels.judge_wrong_code) {
+        form.elements.code.value = "";
+        const error = new Error(labels.judge_wrong_code); error.fieldEls = [form.elements.code];
+        throw error;
+      }
       if (!response.ok) throw window.NowaFeedback.requestError(response, data, labels, labels.error);
       if (!data.signup_token) throw new Error(labels.error);
       sessionStorage.setItem("nowa-judge-signup", data.signup_token);

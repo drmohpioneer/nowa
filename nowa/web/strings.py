@@ -759,7 +759,7 @@ SIGNUP_TEXTS = {
         "افتح لينك حجزك من رسالة تليجرام اللي وصلتك",
         "Open your booking link in the Telegram message you received",
     ),
-    "doctor_door": ("أنا دكتور", "I am a doctor"),
+    "doctor_door": ("سجّل عيادتك", "Register your clinic"),
     "doctor_start": ("افتح عيادتك على نوا في ٥ دقايق", "Open your clinic on Nowa in 5 minutes"),
     "how": ("إزاي بيشتغل", "How it works"),
     "step1": (
@@ -982,7 +982,7 @@ UI_TEXTS = {
         "arrive just before their turn, not two hours early.",
     ),
     "front_see_nowa_working": ("شوف نوا شغالة", "See Nowa working"),
-    "front_i_m_a_doctor": ("أنا دكتور", "I'm a doctor"),
+    "front_i_m_a_doctor": ("سجّل عيادتك", "Register your clinic"),
     "front_mahmoud_number": ("· محمود، رقم", "· Mahmoud, number"),
     "front_got_leave_now": ('، وصلته "انزل دلوقتي"', ', got "leave now"'),
     "front_how_it_works": ("نوا بيشتغل إزاي", "How it works"),
@@ -1664,6 +1664,29 @@ for _key, _values in {
     "phone_label": ("تليجرام المريض", "Patient Telegram", "Telegram el mareed"),
 }.items():
     STRINGS["chat." + _key] = dict(zip(("ar", "en", "franco"), _values, strict=True))
+for _key, _values in {
+    "refused_already_booked": (
+        "إنت حاجز في اليوم ده بالفعل. تقدر تشوف حجزك.",
+        "You already have a booking that day. You can view it.",
+        "Enta 7agez fel yom da already. Te2dar tshoof 7agzak.",
+    ),
+    "refused_closed_day": (
+        "العيادة مقفولة في اليوم ده. اختار يوم تاني.",
+        "The clinic is closed that day. Choose another day.",
+        "El 3eyada ma2fula fel yom da. Ekhtar yom tany.",
+    ),
+    "refused_booking_closed": (
+        "الحجز لليوم ده اتقفل. اختار يوم تاني.",
+        "Booking for that day has closed. Choose another day.",
+        "El 7agz lel yom da et2afal. Ekhtar yom tany.",
+    ),
+    "refused_invalid_input": (
+        "بياناتك مش مظبوطة. راجعها وجرّب تاني.",
+        "Some of your details are not valid. Check them and try again.",
+        "Bayanatak mesh madbouta. Rag3ha w garrab tany.",
+    ),
+}.items():
+    STRINGS["chat." + _key] = dict(zip(("ar", "en", "franco"), _values, strict=True))
 _add("book_again", "احجز تاني", "Book again", "E7gez tany")
 _add("back", "رجوع للرئيسية", "Back to home", "Regoo3 lel ra2iseya")
 _add("error_title", "الصفحة مش متاحة", "Page unavailable", "El saf7a mesh mota7a")
@@ -1859,6 +1882,46 @@ for _key in ("required_field", "invalid_field", "hours_order", "limit_counter"):
     STRINGS["demo." + _key] = STRINGS["doctor." + _key].copy()
     STRINGS["chat." + _key] = dict(STRINGS["doctor." + _key], franco=_AUDIT_DOCTOR[_key][1])
 
+# Field errors name the field and the rule. "{field}" is the label text.
+_FIELD_ERRORS = {
+    "field_required": ("{field}: لازم تكمّله.", "{field}: this is required."),
+    "field_min": ("{field}: اكتب {min} حرف على الأقل.", "{field}: use at least {min} characters."),
+    "field_max": ("{field}: أقصى حد {max} حرف.", "{field}: no more than {max} characters."),
+    "field_range": (
+        "{field}: اكتب رقم من {min} لـ {max}.",
+        "{field}: enter a number from {min} to {max}.",
+    ),
+    "field_time": ("{field}: اكتب الوقت زي 19:00.", "{field}: enter a time like 19:00."),
+    "field_digits": ("{field}: اكتب {n} أرقام.", "{field}: enter {n} digits."),
+    "field_mobile": (
+        "{field}: اكتب رقم موبايل مصري صحيح.",
+        "{field}: enter a valid Egyptian mobile number.",
+    ),
+    "field_invalid": ("{field}: القيمة مش مظبوطة.", "{field}: this value is not valid."),
+    "field_agree": (
+        "لازم توافق على الاتفاقية عشان تكمل.",
+        "You need to accept the agreement to continue.",
+    ),
+    "field_hours_order": (
+        "{field}: الميعاد ده لازم يبقى بعد البداية.",
+        "{field}: this must be later than the start.",
+    ),
+}
+for _key, _pair in _FIELD_ERRORS.items():
+    DOCTOR_TEXTS[_key] = _pair
+    STRINGS["doctor." + _key] = dict(zip(("ar", "en"), _pair, strict=True))
+    SIGNUP_TEXTS[_key] = _pair
+    STRINGS["signup." + _key] = dict(zip(("ar", "en"), _pair, strict=True))
+for _key, _pair in {"hours_closed": ("مقفول", "Closed")}.items():
+    DOCTOR_TEXTS[_key] = _pair
+    STRINGS["doctor." + _key] = dict(zip(("ar", "en"), _pair, strict=True))
+    SIGNUP_TEXTS[_key] = _pair
+    STRINGS["signup." + _key] = dict(zip(("ar", "en"), _pair, strict=True))
+SIGNUP_TEXTS["judge_wrong_code"] = ("الكود غلط.", "Wrong code.")
+STRINGS["signup.judge_wrong_code"] = dict(
+    zip(("ar", "en"), SIGNUP_TEXTS["judge_wrong_code"], strict=True)
+)
+
 
 for _key, _pair in {
     "learned_title": ("اللي نوا اتعلمه من عيادتك", "What Nowa has learned from your clinic"),
@@ -1883,20 +1946,20 @@ for _key, _pair in {
     DOCTOR_TEXTS[_key] = _pair
     STRINGS["doctor." + _key] = dict(zip(("ar", "en"), _pair, strict=True))
 
-# patient message text is PENDING in messaging.templates.
+# patient message text, approved in messaging.templates.
 STRINGS["message.standby_offer"] = {
     "ar": (
         "{patient_name}: فضي مكان عند {doctor_name} يوم {day}، معادك المتوقع "
-        "{expected_time}. خده من هنا: {take_link} المكان محجوزلك 20 دقيقة بس."
+        "{expected_time}. احجزه من هنا: {take_link} المكان محجوزلك 20 دقيقة بس."
     ),
     "en": (
         "{patient_name}: a place with {doctor_name} is available on {day}, expected"
-        " time {expected_time}. Take it here: {take_link} This offer is valid for "
+        " time {expected_time}. Book it here: {take_link} This offer is valid for "
         "20 minutes."
     ),
     "franco": (
         "{patient_name}: fi makan fedi ma3 {doctor_name} yom {day}, el ma3ad el "
-        "motawaqqa3 {expected_time}. Khodo men hena: {take_link} El da3wa sal7a 20 "
+        "motawaqqa3 {expected_time}. E7gezo men hena: {take_link} El da3wa sal7a 20 "
         "de2i2a."
     ),
 }

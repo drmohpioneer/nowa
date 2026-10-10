@@ -282,7 +282,7 @@ def test_private_page_get_no_mutation_post_origin_token_and_take(engine, lang, c
         assert client.get("/s/invalid/take").status_code == 404
 
 
-def test_pending_templates_and_recipient_isolation(engine):
+def test_approved_standby_offer_is_sent_at_a_real_clinic_and_recipient_isolation(engine):
     from nowa.messaging.outbox import enqueue_message, recipient
     from nowa.messaging.templates import OPERATIONAL
     from nowa.telegram.keyboards import markup_for
@@ -299,8 +299,10 @@ def test_pending_templates_and_recipient_isolation(engine):
             .mappings()
             .one()
         )
-        assert row["status"] == "blocked_unapproved"
-        assert OPERATIONAL["standby_offer"]["status"] == "PENDING"
+        # The standby texts are approved, so a real (non-practice) clinic sends the offer.
+        assert row["status"] == "queued"
+        assert OPERATIONAL["standby_offer"]["status"] == "APPROVED"
+        assert OPERATIONAL["standby_closed"]["status"] == "APPROVED"
         assert recipient(conn, row)[1] == "fictional-50"
         assert urlsplit(markup_for(row)["inline_keyboard"][0][0]["url"]).path.startswith("/s/")
         with pytest.raises(ValueError, match="No recipient"):

@@ -176,6 +176,9 @@ def test_dead_end_chips(chat, kind):
     assert data["buttons"][0]["label"] == "احجز كشف"
     if kind == "out_of_scope":
         assert "القلب" in data["reply"] and "cardiology" not in data["reply"]
+    elif kind == "safe":
+        # The reply when no model answered: emergency number, then the clinic's own phone.
+        assert "123" in data["reply"] and "رقم العيادة" in data["reply"]
     else:
         assert ui("next_visit", "ar") in data["reply"]
     assert click(client, key, data, "book")["reply"] == ui("booking_for_ask", "ar")

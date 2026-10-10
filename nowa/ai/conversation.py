@@ -456,9 +456,9 @@ async def handle_turn(
                     shown.reply = ui("draft_retry", session["lang"]) + "\n" + shown.reply
                     kind, label = "safe", "safe_draft"
                 else:
-                    line = render_operational("chain_fallback", session["lang"], {}).text
-                    if result.model == "fixed":
-                        line += "\n" + ui("clinic_phone", session["lang"], phone=clinic["phone"])
+                    line = render_operational(
+                        "chain_fallback", session["lang"], {"clinic_phone": clinic["phone"]}
+                    ).text
                     shown, kind, label = response(session, line), "safe", "safe_mode"
             elif candidate.triage == "emergency":
                 update_session(

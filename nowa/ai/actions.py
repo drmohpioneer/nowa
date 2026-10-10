@@ -16,6 +16,7 @@ from nowa.ai.cards import (
     full_day,
     mark_progress,
     next_step,
+    refused_reply,
     response,
     save_draft,
     stored_draft,
@@ -164,7 +165,7 @@ def tap(
                 return response(session, render_operational("phone_cap", lang, {}).text)
             if result.reason == "full":
                 return full_day(conn, clock, session, data.draft.day)
-            return response(session, ui("refused", lang))
+            return refused_reply(conn, clock, session, result.reason)
         row = (
             conn.execute(
                 select(s.bookings).where(

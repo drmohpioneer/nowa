@@ -186,8 +186,8 @@ TEMPLATES: dict[tuple[str, str], str] = {
 }
 
 OPERATIONAL: dict[str, dict[str, Any]] = {
-    "standby_offer": {"texts": STRINGS["message.standby_offer"], "status": "PENDING"},
-    "standby_closed": {"texts": STRINGS["message.standby_closed"], "status": "PENDING"},
+    "standby_offer": {"texts": STRINGS["message.standby_offer"], "status": "APPROVED"},
+    "standby_closed": {"texts": STRINGS["message.standby_closed"], "status": "APPROVED"},
     "question_card": {
         "texts": {"ar": 'سؤال {n} من {total}: "{text}"', "en": 'Question {n} of {total}: "{text}"'},
         "status": "APPROVED",
@@ -391,20 +391,20 @@ OPERATIONAL: dict[str, dict[str, Any]] = {
     "chain_fallback": {
         "texts": {
             "ar": (
-                "مش قادر أفهم رسالتك دلوقتي، اكتب تاني بكلمات تانية. لو حالة طارئة اتصل "
-                "بـ 123. تقدر تحجز كشف أو تسأل سؤال تاني."
+                "مش قادر أفهم رسالتك دلوقتي. لو حالة طارئة اتصل بـ 123، ولو عايز تحجز "
+                "أو تسأل تقدر تكلمنا على رقم العيادة {clinic_phone}."
             ),
             "en": (
-                "I could not understand your message just now, write it again in other "
-                "words. In an emergency, call 123. You can book a visit or ask another "
-                "question."
+                "I could not understand your message just now. In an emergency, call "
+                "123. To book or ask a question, call the clinic on {clinic_phone}."
             ),
             "franco": (
-                "Mesh 2ader afham resaltak delwa2ty, ekteb tany be kelmat tanya. Law "
-                "7ala tare2a ettesel be 123. Te2dar te7gez kashf aw tes2al so2al tany."
+                "Mesh 2ader afham resaltak delwa2ty. Law 7ala tare2a ettesel be 123, "
+                "w law 3ayez te7gez aw tes2al te2dar tekallemna 3ala raqam el 3eyada "
+                "{clinic_phone}."
             ),
         },
-        "status": "DRAFT",
+        "status": "APPROVED",
     },
     "health_no_answer": {
         "texts": {

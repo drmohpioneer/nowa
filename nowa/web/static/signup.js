@@ -13,7 +13,10 @@
       const detail = data.detail || data;
       const specific = {invalid_mobile: t("invalid_mobile"), wrong_code: t("wrong_code"), no_working_days: t("no_working_days")}[detail.reason];
       const generic = specific || (detail.reason === "not open yet" ? t("not_open") : detail.reason === "paste the full link or pick the area" ? t("map_error") : t("error"));
-      throw window.NowaFeedback.requestError(response, data, labels, generic);
+      const error = window.NowaFeedback.requestError(response, data, labels, generic);
+      const target = {invalid_mobile: "#code-form [name=mobile]", wrong_code: "#verify-form [name=code]"}[detail.reason];
+      if (target && !error.fieldEls) error.fieldEls = [document.querySelector?.(target)].filter(Boolean);
+      throw error;
     }
     return data;
   }

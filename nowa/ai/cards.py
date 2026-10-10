@@ -343,3 +343,21 @@ def full_day(conn: Connection, clock: Clock, session: dict[str, Any], day: date)
         button("standby", ui("standby_join", session["lang"]), "none", standby=day.isoformat())
     )
     return response(session, ui("standby_full", session["lang"]), buttons)
+
+
+def refused_reply(
+    conn: Connection, clock: Clock, session: dict[str, Any], reason: str
+) -> ChatResponse:
+    """Say why a booking was refused, then offer the usual next steps. Mapping only."""
+    lang = session["lang"]
+    key = "refused_" + reason
+    if key not in {
+        "refused_already_booked",
+        "refused_closed_day",
+        "refused_booking_closed",
+        "refused_invalid_input",
+    }:
+        return response(session, ui("refused", lang))
+    buttons = form(lang) if reason == "already_booked" else []
+    buttons += day_buttons(conn, clock, session["clinic_id"], lang)
+    return response(session, ui(key, lang), buttons)
