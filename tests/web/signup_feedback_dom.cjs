@@ -11,8 +11,8 @@ function element(type) {
     querySelector(selector) {return this.children.find(n => selector === 'button' || n.type === 'submit' || !n.type);}};
 }
 async function check(language, width) {
-  const labels = language === 'ar' ? {invalid_mobile:'رقم غلط',wrong_code:'كود غلط',no_working_days:'اختار يوم',phone_complete:'جاهز', error: 'خطأ', sent: 'الكود اتبعت', request_code: 'استلم الكود على تليجرام'} :
-    {invalid_mobile:'Invalid mobile',wrong_code:'Wrong code',no_working_days:'Choose days',phone_complete:'Ready', error: 'Error', sent: 'Code sent', request_code: 'Get the code on Telegram'};
+  const labels = language === 'ar' ? {invalid_mobile:'رقم غلط',wrong_code:'كود غلط',no_working_days:'اختار يوم',phone_complete:'جاهز', error: 'خطأ', sent: 'الكود اتبعت', sent_telegram: 'افتح تليجرام وشارك رقمك', request_code: 'استلم الكود على تليجرام'} :
+    {invalid_mobile:'Invalid mobile',wrong_code:'Wrong code',no_working_days:'Choose days',phone_complete:'Ready', error: 'Error', sent: 'Code sent', sent_telegram: 'Open Telegram and share your number', request_code: 'Get the code on Telegram'};
   const ids = ['signup-message', 'verification', 'code-form', 'verify-form', 'complete-form', 'pin-kind',
     'locate', 'location-status', 'why-telegram', 'signup-success', 'chat-url', 'poster-url', 'success-mobile', 'signup-phone'];
   const nodes = Object.fromEntries(ids.map(id => [id, element()]));
@@ -50,7 +50,7 @@ async function check(language, width) {
   assert(nodes['code-form'].hidden); assert(!nodes['why-telegram'].hidden);
   const link = nodes['why-telegram'].beforeNode.children[0].children[0];
   assert.equal(link.href, url); assert.equal(link.target, '_blank'); assert.equal(link.rel, 'noopener');
-  assert.equal(link.textContent, labels.request_code); assert.equal(nodes['signup-message'].textContent, labels.sent);
+  assert.equal(link.textContent, labels.request_code); assert.equal(nodes['signup-message'].textContent, labels.sent_telegram);
   await new Promise(setImmediate);
   const widget=nodes['why-telegram'].beforeNode.children[0];
   assert.equal(widget.children[3].hidden,width<900);

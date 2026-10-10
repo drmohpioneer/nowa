@@ -43,7 +43,7 @@ def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypa
         )
         payload = parse_qs(urlsplit(response.json()["url"]).query)["start"][0]
     router.handle_update(message(1, text="/start " + payload))
-    # Actual slice-05 issuer; the demo clinic is a real-shaped, fictional clinic, not sandbox.
+    # Actual link-code issuer; the demo clinic is a real-shaped, fictional clinic, not sandbox.
     code = booking.link_code_for(ids[0])
     with engine.connect() as conn:
         last4 = conn.execute(

@@ -175,6 +175,7 @@ def render(
         "day_refused",
         "cancelled_done",
         "new_link",
+        "day_changed",
         "sandbox",
         "repeated",
     }
@@ -184,6 +185,13 @@ def render(
     selected_day = request.query_params.get("date")
     if selected_day not in {day.isoformat() for day in (days or [])}:
         selected_day = None
+    changed_day = None
+    if message == "day_changed":
+        try:
+            chosen = date.fromisoformat(request.query_params.get("date", ""))
+            changed_day = format_day(chosen, view.lang)
+        except ValueError:
+            message = "new_link"
     error_action = request.query_params.get("action")
     if error_action not in {"cancel", "change", "rebook", "telegram"}:
         error_action = mode
@@ -196,6 +204,7 @@ def render(
             mode=mode,
             message=message,
             selected_day=selected_day,
+            changed_day=changed_day,
             error_action=error_action,
             form=form,
             tap=tap,
@@ -326,9 +335,11 @@ def action_result(
         )
     if isinstance(result, booking.BookingRefused):
         return result_redirect(code, mode, "day_refused", day)
-    return result_redirect(
-        code, "view", "cancelled_done" if isinstance(result, booking.CancelResult) else "new_link"
-    )
+    if isinstance(result, booking.CancelResult):
+        return result_redirect(code, "view", "cancelled_done")
+    if mode == "change":
+        return result_redirect(code, "view", "day_changed", day)
+    return result_redirect(code, "view", "new_link")
 
 
 @router.post("/l/{code}/cancel")

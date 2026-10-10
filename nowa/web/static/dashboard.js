@@ -82,11 +82,17 @@ async function refresh() {
   reportLink.hidden = !data.latest_report_id;
   if (data.latest_report_id) reportLink.href = "/d/report/" + data.latest_report_id;
   const noEvening = data.evening_id == null;
+  // The newest closed evening is this one: the board shows it, but its actions no longer apply.
+  const closed = !noEvening && data.latest_report_id === data.evening_id;
+  const off = noEvening || closed;
+  document.getElementById("evening-dot").classList.toggle("live", Boolean(data.evening_id) && !closed);
+  if (closed) for (const id of ["evening-label", "progress-label"]) { const label = document.getElementById(id); if (label) label.textContent = t("tonight_closed"); }
   const undo = document.getElementById("undo");
   if (undo) { undo.disabled = !data.can_undo; undo.dataset.unavailable = String(!data.can_undo);
     undo.title = (data.can_undo ? t("undo") : t("undo_empty")); undo.setAttribute("aria-label", undo.title); }
   for (const id of ["onway", "area-form", "who", "close", "cancel", "stats", "next-hero", "undo", "room-section", "progress-section", "who-label"]) {
-    const node = document.getElementById(id); if (node && noEvening) node.hidden = true;
+    const node = document.getElementById(id);
+    if (node && (noEvening || (closed && ["onway", "area-form", "who", "who-label", "close", "cancel", "next-hero", "undo"].includes(id)))) node.hidden = true;
     else if (node && ["onway", "who", "close", "cancel", "stats", "undo", "room-section", "progress-section", "who-label"].includes(id)) node.hidden = false;
   }
   const queue = document.getElementById("queue");
@@ -101,7 +107,7 @@ async function refresh() {
   const booked = data.rows.filter(row => row.source === "chat" && row.state !== "cancelled").length;
   const withoutBooking = data.rows.filter(row => row.source === "walkin_tap").length;
   const seen = data.rows.filter(row => row.state === "seen").length;
-  const remaining = data.rows.filter(row => row.remaining);
+  const remaining = closed ? [] : data.rows.filter(row => row.remaining);
   const stats = document.getElementById("stats"); stats.replaceChildren();
   for (const [count, key] of [[booked, "booked_count"], [seen, "seen_count"], [remaining.length, "remaining_count"], [withoutBooking, "without_booking_count"]]) {
     const stat = make("div", "stat", ""); stat.append(make("b", "num", String(count)), make("span", "", t(key))); stats.append(stat);
@@ -110,8 +116,8 @@ async function refresh() {
   document.getElementById("who-heading").textContent = t(room ? "who_next" : "who_first");
   const doctor = data.doctor;
   const onWay = document.getElementById("on-way"), onWayState = document.getElementById("onway-state");
-  onWay.hidden = noEvening || Boolean(doctor.on_way_at || doctor.arrived_at);
-  onWayState.hidden = !onWay.hidden;
+  onWay.hidden = off || Boolean(doctor.on_way_at || doctor.arrived_at);
+  onWayState.hidden = off || !onWay.hidden;
   if (onWay.hidden && !noEvening) {
     document.getElementById("area-form").hidden = true;
     const at = doctor.arrived_at || doctor.on_way_at;
@@ -122,7 +128,7 @@ async function refresh() {
   document.getElementById("in-room").textContent = room ? room.queue_number + " · " + (room.first_name || t("walk_in")) : t("empty");
   const who = document.getElementById("who");
   who.querySelectorAll("button:not(.walk)").forEach(button => button.remove());
-  const hero = document.getElementById("next-hero"); hero.hidden = noEvening || !remaining.length;
+  const hero = document.getElementById("next-hero"); hero.hidden = off || !remaining.length;
   document.getElementById("next-patient").replaceChildren();
   document.getElementById("next-action").replaceChildren();
   for (const [index, row] of remaining.slice(0, 4).entries()) {
@@ -149,7 +155,7 @@ async function refresh() {
     const card = make("div", "qrow" + (["seen", "didnt_come", "cancelled"].includes(row.state) ? " done" : ""), "");
     const name = (row.patient_first_name || t("walk_in")) + (row.no_show_count > 0 ? " · " + t("didnt_come") + " ×" + row.no_show_count : "");
     const title = make(row.remaining ? "button" : "span", "name", name); title.setAttribute("dir", document.documentElement.dir);
-    if (row.remaining) bindButton(title, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
+    if (row.remaining && !closed) bindButton(title, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
     const state = make("span", "state-pill", [t(row.state === "in_room" ? "in_room" : row.state), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · "));
     if (row.state === "in_room") state.prepend(make("span", "dot live", ""));
     state.dataset.state = row.state; card.dataset.state = row.state;
@@ -232,7 +238,7 @@ if (document.body.dataset.mode === "settings") {
     const unit = (name, n) => t("unit_" + name + (few(n) ? "_few" : "_many"));
     for (const output of document.querySelectorAll("[data-learned]")) {
       const key = output.dataset.learned, learned = current.learned[key];
-      const value = Number(learned.value.toFixed(1));
+      const value = key === "no_show" ? Number(learned.value.toFixed(1)) : Math.round(learned.value);
       output.textContent = t("learned_" + key + "_value").replace("{value}", value).replace("{n}", learned.n)
         .replace("{minutes}", unit("minutes", value)).replace("{evenings}", unit("evenings", learned.n)).replace("{visits}", unit("visits", learned.n));
       if (learned.still_learning) output.textContent += " · " + t("still_learning");
@@ -361,11 +367,14 @@ if (document.body.dataset.mode === "report") {
       if (data[key] == null) continue;
       const card = document.createElement("article"); card.className = "card report-metric";
       const name = document.createElement("span"); name.textContent = t(label);
-      const value = document.createElement("b"); value.className = "num ltr"; value.dir = "ltr"; value.textContent = data[key]; card.append(name, value); summary.append(card);
+      const value = document.createElement("b"), minutes = key === "avg_visit" || key === "avg_wait";
+      value.className = minutes ? "num" : "num ltr"; if (!minutes) value.dir = "ltr";
+      value.textContent = minutes ? data[key] + " " + (data[key] >= 3 && data[key] <= 10 ? t("unit_minutes_few") : t("unit_minutes_many")) : data[key];
+            card.append(name, value); summary.append(card);
     }
     for (const [key, label] of [["no_show_names", "report_no_show"], ["failed_names", "report_failed"]]) {
       if (!data[key]?.length) continue;
-      const line = document.createElement("p"); line.textContent = t(label) + ": " + data[key].join(", "); globalThis.NowaText?.(line, line.textContent); summary.append(line);
+      const line = document.createElement("p"); line.textContent = t(label) + ": " + data[key].join(document.documentElement.lang === "ar" ? "، " : ", "); globalThis.NowaText?.(line, line.textContent); summary.append(line);
     }
     for (const row of data.origins || []) {
       const line = document.createElement("p");
@@ -373,6 +382,7 @@ if (document.body.dataset.mode === "report") {
       globalThis.NowaText?.(line, line.textContent); summary.append(line);
     }
     const list = document.getElementById("health-answers");
+    document.getElementById("health-section").hidden = !data.health_answers.length;
     for (const answer of data.health_answers) {
       const card = document.createElement("article"); card.className = "card section health-answer";
       const question = document.createElement("h3"); question.textContent = answer.question;

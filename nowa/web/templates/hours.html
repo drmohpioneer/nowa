@@ -2,7 +2,7 @@
 {% for weekday, day in [(5,'sat'),(6,'sun'),(0,'mon'),(1,'tue'),(2,'wed'),(3,'thu'),(4,'fri')] %}
 <fieldset class="hours-row{{ '' if hours_open else ' is-closed' }}" data-weekday="{{ weekday }}">
 <legend class="sr-only">{{ t(day) }}</legend><span class="hours-day" aria-hidden="true">{{ t(day) }}</span>
-<label class="hours-switch"><input type="checkbox" role="switch" name="enabled" aria-label="{{ t(day) }}: {{ t('enabled') }}" {% if hours_open %}checked{% endif %}><span data-on="{{ t('enabled') }}" data-off="{{ t('hours_closed') }}">{{ t('enabled') }}</span></label>
+<label class="hours-switch"><input type="checkbox" role="switch" name="enabled" aria-label="{{ t(day) }}: {{ t('enabled') if hours_open else t('hours_closed') }}" {% if hours_open %}checked{% endif %}><span data-on="{{ t('enabled') }}" data-off="{{ t('hours_closed') }}">{{ t('enabled') }}</span></label>
 <div class="hours-times" {% if not hours_open %}hidden{% endif %}>
 {% for key,value in [('start','19:00'),('end','23:00')] %}<label><span>{{ t(key) }}</span><input type="text" inputmode="numeric" data-time name="{{ key }}" value="{{ value }}" required></label>{% endfor %}
 </div></fieldset>

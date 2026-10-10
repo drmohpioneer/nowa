@@ -1,9 +1,17 @@
 Nowa. Copyright (c) 2026 Dr Mohamed Mostafa. All rights reserved.
 
-This repository is published so that reviewers can read and run the software for evaluation.
-No licence is granted. You may not copy, modify, distribute, sublicense, sell, host, or use this
-software or any part of it for any purpose, commercial or not, without the prior written
-permission of the copyright holder. Running it locally to review it is permitted; everything
-else is not.
+This repository is published so that reviewers, including the judges and organisers of the Agents at
+Work 2026 programme, can read the software and run it to evaluate it. For that purpose you may clone
+the repository, run it on a machine you control, and open the hosted instance linked from the README.
+
+No other licence is granted. You may not copy, modify, distribute, sublicense, sell, host for others,
+or use this software or any part of it for any other purpose, commercial or not, without the prior
+written permission of the copyright holder.
+
+Third-party material included in this repository keeps its own licence and attribution, which this
+notice does not change: area coordinates from OpenStreetMap contributors (ODbL); health passages from
+NHS (Open Government Licence v3.0), MedlinePlus and NHLBI (U.S. National Library of Medicine and
+National Heart, Lung, and Blood Institute, public domain) and CDC (public domain); fonts under the SIL
+Open Font License.
 
 The software is provided "as is", without warranty of any kind. Contact: drmoh.pioneer@gmail.com

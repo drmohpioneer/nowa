@@ -1,4 +1,4 @@
-"""Mapbox v6 contract tests: all HTTP is intercepted in-process."""
+"""Mapbox v6 response-shape tests: all HTTP is intercepted in-process."""
 
 import logging
 

@@ -61,15 +61,27 @@ const ctx2 = vm.createContext({document: {createElement: node, querySelector: s 
 vm.runInContext(fs.readFileSync('nowa/web/static/feedback.js', 'utf8'), ctx2);
 const err = ctx2.window.NowaFeedback.requestError({status: 422}, {detail: {fields: ['new_password']}}, {check_fields: 'Check: '}, 'x');
 assert.equal(err.fieldEls[0], target);
+// 7b. a clinic phone of two digits is named and marked; real numbers pass
+const mobileLabels = {...labels, field_mobile: '{field}: enter a valid Egyptian mobile number.'};
+for (const bad of ['12', '0101234567', '01312345678', '+2010123456']) {
+  const phone = field('Clinic phone', {value: bad}); phone.attrs['data-egypt-mobile'] = '';
+  assert.throws(() => feedback.validate(form(phone), mobileLabels), e => e.message === 'Clinic phone: enter a valid Egyptian mobile number.' && e.marked, bad);
+  assert.equal(phone.attrs['aria-invalid'], 'true');
+}
+for (const good of ['01012345678', '+201012345678', '00201012345678', '0101 234 5678', '٠١٠١٢٣٤٥٦٧٨']) {
+  const phone = field('Clinic phone', {value: good}); phone.attrs['data-egypt-mobile'] = '';
+  feedback.validate(form(phone), mobileLabels);
+}
 // 8. hours switch label flips live
 const hours = fs.readFileSync('nowa/web/static/hours.js', 'utf8');
 const text = node('span'); text.dataset = {on: 'Open', off: 'Closed'}; text.textContent = 'Open';
 const enabled = node('input'); enabled.checked = true; enabled.nextElementSibling = text;
 const times = node('div'), row = node('fieldset');
-row.classList.toggle = () => {}; row.querySelector = s => (s === '.hours-times' ? times : enabled); row.dataset = {weekday: '1'};
+row.classList.toggle = () => {}; const dayLabel = node('span'); dayLabel.textContent = 'Monday';
+row.querySelector = s => (s === '.hours-times' ? times : s === '.hours-day' ? dayLabel : enabled); row.dataset = {weekday: '1'};
 const hctx = vm.createContext({window: {}, document: {querySelectorAll: () => [row]}});
 vm.runInContext(hours, hctx);
-assert.equal(text.textContent, 'Open');
-enabled.checked = false; enabled.listeners.change(); assert.equal(text.textContent, 'Closed');
-enabled.checked = true; enabled.listeners.change(); assert.equal(text.textContent, 'Open');
+assert.equal(text.textContent, 'Open'); assert.equal(enabled.attrs['aria-label'], 'Monday: Open');
+enabled.checked = false; enabled.listeners.change(); assert.equal(text.textContent, 'Closed'); assert.equal(enabled.attrs['aria-label'], 'Monday: Closed');
+enabled.checked = true; enabled.listeners.change(); assert.equal(text.textContent, 'Open'); assert.equal(enabled.attrs['aria-label'], 'Monday: Open');
 console.log('PASS: field errors name the field, mark it, clear on edit; hours label flips; times normalise');

@@ -29,7 +29,7 @@ async function run() {
   assert.equal(note.textContent,'INSTALL'); assert.equal(open.href,'https://t.me/bot?start=p_old');
   assert.equal(qr.hidden,width<900); assert.equal(qr.children[0].src,state.qr);
   assert.equal(qr.children[1].textContent,'SCAN'); assert.equal(renew.hidden,true);
-  // Resize live, including exactly the contract's 900 px breakpoint.
+  // Resize live, including exactly the 900 px breakpoint.
   media.matches=!media.matches;media.change();assert.equal(qr.hidden,!media.matches);
   media.matches=width>=900;media.change();
   state={...state,status:'contact_mismatch',remaining_seconds:450};await timer();

@@ -801,7 +801,7 @@ def test_patient_channel_resolution_and_no_channel_alert_once(prepared, sandbox,
 def test_legacy_queued_rows_fail_without_dispatch_or_rewriting_history(prepared, adapter):
     p = prepared
     oid = enqueue(p)
-    # Simulate a queued pre-slice-15 row; the upgrade keeps historical columns intact.
+    # Simulate a queued legacy row; the upgrade keeps historical columns intact.
     with write_tx(p.engine) as conn:
         conn.execute(
             s.outbox.update().where(s.outbox.c.id == oid).values(channel="sms", adapter=adapter)

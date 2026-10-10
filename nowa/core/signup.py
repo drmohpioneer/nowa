@@ -97,8 +97,8 @@ def load_agreement() -> Agreement:
 
 
 class Refused(Exception):
-    def __init__(self, reason: str = "refused", status: int = 400):
-        self.reason, self.status = reason, status
+    def __init__(self, reason: str = "refused", status: int = 400, fields: list[str] | None = None):
+        self.reason, self.status, self.fields = reason, status, fields
         super().__init__(reason)
 
 
@@ -539,7 +539,7 @@ def complete(
         lat, lng = coordinates(conn, body)
         clinic_phone = booking.normalize_phone(body.clinic_phone) if body.clinic_phone else phone
         if clinic_phone is None:
-            raise Refused("invalid_clinic_phone", 422)
+            raise Refused("invalid_clinic_phone", 422, ["clinic_phone"])
         slug = slug_for(conn, name_en)
         cid = int(
             conn.execute(
@@ -674,6 +674,50 @@ def complete(
             telegram_tokens.delete_signup_tokens(conn, pid)
             conn.execute(s.pending_signups.delete().where(s.pending_signups.c.id == pid))
     return Completion(data, auth.create_session(engine, clock, cid, did))
+
+
+READY_PASSWORD_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"
+
+
+def ready_clinic(
+    engine: Engine,
+    clock: Clock,
+    agreement: Agreement,
+    token: str,
+    agree: bool,
+    *,
+    agreement_lang: str = "ar",
+) -> tuple[Completion, str]:
+    """One-click practice clinic: fictional defaults through the same completion as the form."""
+    if not token.startswith("judge|"):
+        raise Refused("judge_token_required", 403)
+    with engine.connect() as conn:
+        area_id = conn.execute(
+            select(s.areas.c.id).where(s.areas.c.name_en == "Nasr City")
+        ).scalar_one_or_none()
+        if area_id is None:
+            area_id = conn.execute(select(func.min(s.areas.c.id))).scalar_one_or_none()
+    if area_id is None:
+        raise Refused("invalid_pin", 422)
+    password = "".join(secrets.choice(READY_PASSWORD_ALPHABET) for _ in range(12))
+    payload: dict[str, Any] = {
+        "signup_token": token,
+        "name_ar": "ياسر عادل",
+        "name_en": "Yasser Adel",
+        "specialty": "cardiology",
+        "address": "شارع تجريبي ٢٠، مدينة نصر، القاهرة",
+        "address_en": "20 Practice Street, Nasr City, Cairo",
+        "pin_kind": "area",
+        "area_id": area_id,
+        "hours": [{"weekday": day, "start": "19:00", "end": "23:00"} for day in range(7)],
+        "price_egp": 300,
+        "password": password,
+        "agreement_version": agreement.version,
+        "agree": agree,
+        "idempotency_key": "ready-" + secrets.token_hex(16),
+    }
+    done = complete(engine, clock, agreement, payload, agreement_lang=agreement_lang)
+    return done, password
 
 
 def reserved_phone(phone: str) -> bool:

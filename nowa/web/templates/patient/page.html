@@ -2,8 +2,10 @@
 <html lang="{{ 'ar' if v.lang == 'ar' else 'en' }}" dir="{{ 'rtl' if v.lang == 'ar' else 'ltr' }}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t('title') }} · {{ t('brand') }}</title><link rel="icon" href="/favicon.ico" type="image/svg+xml"><link rel="stylesheet" href="/static/nowa.css"></head>
 <body><main class="page patient"><div class="topbar"><span class="logo" aria-label="Nowa"><span>n</span><i class="o" aria-hidden="true"></i><span>wa</span></span><span class="pill">{{ day }}</span></div>
-{% if message and message != "cancelled_done" %}<p class="pill status" role="status">{{ t(message) }}</p>{% endif %}
-{% if v.state == 'cancelled' and mode in ('view','way') %}
+{% if message and message not in ("cancelled_done", "day_changed") %}<p class="pill status" role="status">{{ t(message) }}</p>{% endif %}
+{% if v.state == 'cancelled' and mode in ('view','way') and message == 'day_changed' %}
+<div class="card" role="status"><p>{{ t('day_changed').format(day=changed_day) }}</p><p class="sub">{{ t('new_link') }}</p></div>
+{% elif v.state == 'cancelled' and mode in ('view','way') %}
 <div class="card" role="status"><p>{{ t('cancelled_done') }}</p><a class="btn btn-main" href="{{ chat_url }}">{{ t('book_again') }}</a></div>
 {% else %}<div class="patient-turn">
 {% if v.state == 'told_to_leave' %}<div class="now-card"><span class="k">{{ t('leave_number').format(name=v.patient_first_name)|isolate }} <span class="num">{{ v.queue_number }}</span></span><h2>{{ t('leave_now') }}</h2>{% if v.travel_min is defined and v.travel_min is not none %}<p class="sub">{{ t('travel').format(minutes=v.travel_min) }}</p>{% endif %}<p id="journey-progress">{{ t('journey_progress') }}</p><div class="bar" role="img" aria-labelledby="journey-progress"><i></i></div></div>

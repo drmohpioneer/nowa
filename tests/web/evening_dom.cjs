@@ -145,6 +145,6 @@ context.fetch = async (path, options) => {
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(calls.filter(call => call.path.split('?')[0].endsWith('/advance') &&
     call.body.to_minute === input.initial.evening.start_minute).length, 0);
-  console.log('PASS: FIX 1 rail, room, named replay, labels, walk-in position and first-play transport');
+  console.log('PASS: evening rail, room, named replay, labels, walk-in position and first-play transport');
 })().catch(error => { console.error(error); process.exitCode = 1; });
 console.log('PASS: real initial/on-way/active/closed stage snapshots, messages, links, timeline, report and one-shot motion');

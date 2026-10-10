@@ -1,4 +1,4 @@
-# APPROVED under Decisions 048 and 050; UI wording is never send-gated.
+# UI wording is never send-gated.
 STRINGS: dict[str, dict[str, str]] = {}
 
 
@@ -40,6 +40,12 @@ _add(
     "تمام، لينك حجزك الجديد هيوصلك على تليجرام",
     "Done, your new link will reach you on Telegram",
     "Tamam, link 7agzak el gedeed haywsalak 3ala Telegram",
+)
+_add(
+    "day_changed",
+    "تمام، غيّرنا حجزك لـ{day}",
+    "Done, your booking is moved to {day}",
+    "Tamam, ghayyarna 7agzak le {day}",
 )
 _add(
     "cancelled_done",
@@ -181,6 +187,7 @@ DOCTOR_TEXTS = {
     "settings": ("إعدادات العيادة", "Clinic settings"),
     "logout": ("خروج", "Log out"),
     "no_evening": ("مفيش عيادة النهارده", "No clinic today"),
+    "tonight_closed": ("العيادة اتقفلت", "Clinic closed"),
     "on_way": ("أنا في الطريق", "I'm on my way"),
     "walk_in": ("من غير حجز", "Without a booking"),
     "undo": ("تراجع عن آخر ضغطة", "Undo last tap"),
@@ -752,7 +759,7 @@ CHAT_TEXTS.update(
 for _key, (_ar, _en, _franco) in CHAT_TEXTS.items():
     STRINGS["chat." + _key] = {"ar": _ar, "en": _en, "franco": _franco}
 
-# APPROVED under Decisions 048 and 050.
+# Sign-up page wording.
 SIGNUP_TEXTS = {
     "patient_door": ("عندي حجز", "I have a booking"),
     "patient_telegram": (
@@ -834,6 +841,10 @@ SIGNUP_TEXTS = {
     "agree": ("قريت الاتفاق وبوافق عليه", "I have read and accept the agreement"),
     "complete": ("احفظ وافتح العيادة", "Save and open the clinic"),
     "sent": ("الكود اتبعت. اكتبه هنا.", "Code sent. Enter it here."),
+    "sent_telegram": (
+        "افتح تليجرام وشارك رقمك، والكود هيوصلك هناك. اكتبه هنا.",
+        "Open Telegram and share your number. The code arrives there; enter it here.",
+    ),
     "error": (
         "ما قدرناش نكمل. راجع البيانات وجرب تاني.",
         "Could not complete. Check the details and try again.",
@@ -847,6 +858,29 @@ SIGNUP_TEXTS = {
         "ما قدرناش نحدد المكان. اختار أقرب منطقة.",
         "Could not locate you. Choose the nearest area.",
     ),
+    "location_unsupported": (
+        "المتصفح ده مش بيدعم تحديد المكان. اختار أقرب منطقة.",
+        "This browser cannot share a location. Choose the nearest area.",
+    ),
+    "location_denied": (
+        "المتصفح مانع تحديد المكان للموقع ده. على الماك: Safari ‹ Settings ‹ Websites ‹ Location "
+        "واسمح للموقع. على الموبايل: الإعدادات ‹ الخصوصية ‹ خدمات الموقع ‹ Safari. "
+        "وبعدين اضغط تاني.",
+        "The browser is blocking location for this site. On a Mac: Safari > Settings > Websites > "
+        "Location, allow this site. On a phone: Settings > Privacy > Location Services > Safari. "
+        "Then press again.",
+    ),
+    "location_unavailable": (
+        "الجهاز ما قدرش يعرف مكانه. اتأكد إن خدمات الموقع شغالة "
+        "(على الماك: System Settings ‹ Privacy & Security ‹ Location Services) وجرب تاني.",
+        "Your device could not find its location. Make sure Location Services are on "
+        "(on a Mac: System Settings > Privacy & Security > Location Services), then try again.",
+    ),
+    "location_timeout": (
+        "تحديد المكان خد وقت أطول من اللازم. جرب تاني.",
+        "Finding the location took too long. Try again.",
+    ),
+    "located": ("تم تحديد مكان العيادة.", "Clinic location set."),
     "success": ("عيادتك جاهزة", "Your clinic is ready"),
     "chat": ("افتح شات العيادة", "Open clinic chat"),
     "poster": ("اطبع بوستر العيادة", "Print clinic poster"),
@@ -968,7 +1002,7 @@ for _key, _values in {
 
 # Story page copy; the inline number spans are intentional.
 UI_TEXTS = {
-    "front_nowa_waiting_room_agent": ("نوا · مساعد الانتظار", "Nowa · waiting-room agent"),
+    "front_nowa_waiting_room_agent": ("نوا · مساعد العيادة", "Nowa · the clinic's assistant"),
     "front_patients_wait_at_home_not_in_the": (
         "المريض يستنى دوره في بيته، مش في العيادة.",
         "Patients wait at home, not in the waiting room.",
@@ -1092,7 +1126,7 @@ UI_TEXTS = {
 UI_TEXTS.update(
     {
         "switch_language": ("English", "العربية"),
-        "eyebrow": ("نوا · مساعد الانتظار", "Nowa · waiting-room agent"),
+        "eyebrow": ("نوا · مساعد العيادة", "Nowa · the clinic's assistant"),
         "demo_eyebrow": ("تجربة", "Demo"),
         "demo_title": ("جرّب نوا بنفسك", "Try Nowa yourself"),
         "demo_intro": (
@@ -1815,8 +1849,8 @@ _AUDIT_DOCTOR = {
     "report_total": ("إجمالي الكشوفات", "Total seen"),
     "report_arrival": ("وصلت", "You arrived"),
     "report_start": ("بداية العيادة", "Clinic start"),
-    "report_avg_visit": ("متوسط الكشف", "Average visit (min)"),
-    "report_avg_wait": ("متوسط انتظار المريض", "Average patient wait (min)"),
+    "report_avg_visit": ("متوسط الكشف", "Average visit"),
+    "report_avg_wait": ("متوسط انتظار المريض", "Average patient wait"),
     "report_failed": ("ما وصلتلوش الرسالة", "Messages that failed"),
     "switch_language": ("English", "العربية"),
     "mobile_placeholder": ("01xxxxxxxxx", "01xxxxxxxxx"),
@@ -1921,6 +1955,24 @@ SIGNUP_TEXTS["judge_wrong_code"] = ("الكود غلط.", "Wrong code.")
 STRINGS["signup.judge_wrong_code"] = dict(
     zip(("ar", "en"), SIGNUP_TEXTS["judge_wrong_code"], strict=True)
 )
+for _key, _pair in {
+    "judge_ready": ("افتح عيادة جاهزة", "Open a ready clinic"),
+    "judge_own": ("اعمل عيادتك التجريبية", "Set up your own practice clinic"),
+    "judge_ready_help": (
+        "عيادة تجريبية فيها مرضى خياليين، بتفتح بضغطة واحدة.",
+        "A practice clinic with fictional patients, opened with one tap.",
+    ),
+    "judge_credentials": (
+        "الدخول: {mobile} · كلمة السر: {password}",
+        "Login: {mobile} · password: {password}",
+    ),
+    "judge_credentials_note": (
+        "احفظهم دلوقتي. كلمة السر مش هتظهر تاني.",
+        "Save them now. The password will not be shown again.",
+    ),
+}.items():
+    SIGNUP_TEXTS[_key] = _pair
+    STRINGS["signup." + _key] = dict(zip(("ar", "en"), _pair, strict=True))
 
 
 for _key, _pair in {

@@ -72,7 +72,12 @@ def start_page(request: Request) -> HTMLResponse:
 def judge_page(request: Request) -> HTMLResponse:
     if not get_settings().judge_codes:
         raise HTTPException(404)
-    return public_page(request, "judge.html")
+    return public_page(
+        request,
+        "judge.html",
+        agreement=request.app.state.agreement,
+        agreement_html=markdown_html(request.app.state.agreement.display[page_language(request)]),
+    )
 
 
 def poster_data(request: Request, clinic_id: int, doctor_id: int) -> dict[str, Any]:

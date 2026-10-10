@@ -32,8 +32,11 @@ def choose(client, key, data, id):
     return result.json()
 
 
-def wanted(chat, engine, frozen_clock, lang="en"):
+def wanted(chat, engine, frozen_clock, lang="en", real=False):
     client, app, cid = chat
+    if real:
+        with write_tx(engine) as conn:
+            conn.execute(s.clinics.update().where(s.clinics.c.id == cid).values(is_sandbox=False))
     with write_tx(engine) as conn:
         conn.execute(s.clinics.update().where(s.clinics.c.id == cid).values(max_per_evening=1))
     booked = flows.book(engine, frozen_clock, request(cid, 1))
@@ -75,7 +78,7 @@ def test_linked_join_confirmation_and_duplicate(chat, engine, frozen_clock, lang
 def test_missing_telegram_completes_only_after_contact_proof(chat, engine, frozen_clock):
     client, app, cid = chat
     get_settings().telegram_bot_username = "fictional_bot"
-    key, selected, booked = wanted(chat, engine, frozen_clock)
+    key, selected, booked = wanted(chat, engine, frozen_clock, real=True)
     result = tap(client, key, day_payload(selected))
     assert result["standby_pending"] and result["telegram_url"]
     with engine.connect() as conn:
@@ -176,7 +179,7 @@ def test_pending_proof_cannot_join_a_changed_or_emergency_draft(
 
     client, app, cid = chat
     get_settings().telegram_bot_username = "fictional_bot"
-    key, selected, _ = wanted(chat, engine, frozen_clock)
+    key, selected, _ = wanted(chat, engine, frozen_clock, real=True)
     result = tap(client, key, day_payload(selected))
     payload = result["telegram_url"].split("start=")[1]
     linking.consume(engine, frozen_clock, "900", payload, "start")
@@ -204,7 +207,7 @@ def test_pending_proof_cannot_join_a_changed_or_emergency_draft(
 
 def test_unconfigured_linking_explains_and_offers_next_day(chat, engine, frozen_clock):
     client, app, cid = chat
-    key, selected, _ = wanted(chat, engine, frozen_clock)
+    key, selected, _ = wanted(chat, engine, frozen_clock, real=True)
     shown = tap(client, key, day_payload(selected))
     assert not shown["standby_pending"] and not shown["telegram_url"]
     assert "unavailable" in shown["reply"]
@@ -256,3 +259,43 @@ def test_second_session_same_phone_gets_existing_position(chat, engine, frozen_c
     assert shown["reply"] == "إنت في القايمة خلاص، رقمك 1."
     with engine.connect() as conn:
         assert len(conn.execute(select(s.standbys)).all()) == 1
+
+
+def test_practice_patient_joins_waiting_list_without_telegram(chat, engine, frozen_clock):
+    from nowa.messaging.outbox import screen_messages
+
+    client, app, cid = chat
+    get_settings().telegram_bot_username = "fictional_bot"
+    key, selected, booked = wanted(chat, engine, frozen_clock)
+    result = tap(client, key, day_payload(selected))
+    assert not result["standby_pending"] and not result["telegram_url"]
+    assert "1" in result["reply"]
+    with engine.connect() as conn:
+        row = conn.execute(select(s.standbys)).mappings().one()
+        assert row["state"] == "waiting" and row["position"] == 1
+        assert not conn.execute(select(s.telegram_links)).first()
+    # A freed place shows the offer, with its take link, on the drawn phone.
+    cancel(engine, frozen_clock, booked.booking_id)
+    code = offer_code(engine, row["id"])
+    with engine.connect() as conn:
+        offers = [m for m in screen_messages(conn, cid, 0) if m.template_id == "op:standby_offer"]
+    assert len(offers) == 1 and f"/s/{code}/take" in offers[0].body
+    page = client.get(f"/s/{code}/take")
+    taken = client.post(
+        f"/s/{code}/take", data=fields(page, "/take") | {"action": "take"}, headers=ORIGIN
+    )
+    assert taken.status_code == 200
+    with engine.connect() as conn:
+        assert conn.execute(select(s.standbys.c.state)).scalar_one() == "taken"
+        live = select(s.bookings).where(s.bookings.c.state != "cancelled")
+        assert len(conn.execute(live).all()) == 1
+
+
+def test_real_clinic_waiting_list_still_needs_telegram(chat, engine, frozen_clock):
+    client, app, cid = chat
+    get_settings().telegram_bot_username = "fictional_bot"
+    key, selected, _ = wanted(chat, engine, frozen_clock, real=True)
+    result = tap(client, key, day_payload(selected))
+    assert result["standby_pending"] and result["telegram_url"]
+    with engine.connect() as conn:
+        assert not conn.execute(select(s.standbys)).first()

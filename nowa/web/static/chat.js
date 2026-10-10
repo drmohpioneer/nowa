@@ -8,7 +8,9 @@ const chat = document.getElementById("chat"), controls = document.getElementById
 const error = document.getElementById("error"), send = document.getElementById("send");
 const bookChip = document.getElementById("book-chip");
 const strings = () => config.strings[lang];
-function line(text, mine = false) { const p = document.createElement("div"); p.className = mine ? "bubble me" : "bubble"; p.textContent = text; window.NowaText?.(p, text); p.setAttribute("dir", document.documentElement.dir); chat.insertBefore(p, controls); p.scrollIntoView?.({block: "nearest"}); }
+// A bubble takes its direction from its own first letter, not from the page language.
+const textDirection = text => { const letter = /[A-Za-z\u0590-\u08FF]/.exec(String(text)); return letter ? (/[A-Za-z]/.test(letter[0]) ? "ltr" : "rtl") : document.documentElement.dir; };
+function line(text, mine = false) { const p = document.createElement("div"); p.className = mine ? "bubble me" : "bubble"; p.textContent = text; window.NowaText?.(p, text); p.setAttribute("dir", textDirection(text)); chat.insertBefore(p, controls); p.scrollIntoView?.({block: "nearest"}); }
 function labels() {
     for (const {el, key} of faqChips) el.textContent = strings()["faq_" + key];
     send.setAttribute("aria-label", strings().send);
@@ -26,7 +28,7 @@ function labels() {
     const name = config.names?.[lang];
     if (name) {
         for (const el of document.querySelectorAll("[data-clinic-title]")) el.textContent = strings().clinic_title.replace("{name}", name);
-        document.getElementById("greeting").textContent = strings().greeting.replace("{name}", name);
+        const greeting = document.getElementById("greeting"); greeting.textContent = strings().greeting.replace("{name}", name); greeting.setAttribute?.("dir", textDirection(greeting.textContent));
     }
     const language = document.getElementById("chat-language");
     if (language) {
@@ -156,7 +158,7 @@ function show(data, lookupValues = null) {
     }
     if (data.source && /^https:\/\//.test(data.source.url)) {
         const a = document.createElement("a"); a.href = data.source.url; a.textContent = data.source.label;
-        a.title = data.source.attribution; a.setAttribute("dir", document.documentElement.dir);
+        a.title = data.source.attribution; a.setAttribute("dir", textDirection(a.textContent));
         a.rel = "noopener noreferrer"; a.target = "_blank"; a.className = "bubble"; chat.insertBefore(a, controls);
     }
     controls.scrollIntoView?.({block: "nearest"});

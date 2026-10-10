@@ -106,7 +106,9 @@ def confirm(conn: Connection, clock: Clock, session: dict[str, Any], signed: Dra
     update_session(conn, session, contact_id=contact_id)
     phone = booking.normalize_phone(req.contact_phone)
     assert phone is not None
-    if telegram_chat(conn, phone, "patient"):
+    if telegram_chat(conn, phone, "patient") or not standby.telegram_required(
+        conn, req.clinic_id
+    ):
         return complete(conn, clock, session, values)
     if booking.active_for_phone(conn, clock, req.clinic_id, contact_id) >= 3:
         return response(session, render_operational("phone_cap", session["lang"], {}).text)

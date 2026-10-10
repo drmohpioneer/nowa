@@ -46,7 +46,7 @@ def telegram_replay(engine):
         )
 
 
-def test_telegram_matches_slice06_dashboard_leave_now_order(engine, tmp_path, monkeypatch):
+def test_telegram_matches_dashboard_leave_now_order(engine, tmp_path, monkeypatch):
     monkeypatch.setattr(
         travel,
         "minutes",

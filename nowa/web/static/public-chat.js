@@ -5,7 +5,9 @@ const base = "/c/" + encodeURIComponent(config.slug);
 const chat = document.getElementById("chat"), controls = document.getElementById("controls");
 const error = document.getElementById("error");
 let session, locked = false;
-function line(text, mine = false) { const p = document.createElement("div"); p.className = mine ? "bubble me" : "bubble"; p.textContent = text; window.NowaText?.(p, text); p.setAttribute("dir", document.documentElement.dir); chat.insertBefore(p, controls); p.scrollIntoView?.({block: "nearest"}); }
+// A bubble takes its direction from its own first letter, not from the page language.
+const textDirection = text => { const letter = /[A-Za-z\u0590-\u08FF]/.exec(String(text)); return letter ? (/[A-Za-z]/.test(letter[0]) ? "ltr" : "rtl") : document.documentElement.dir; };
+function line(text, mine = false) { const p = document.createElement("div"); p.className = mine ? "bubble me" : "bubble"; p.textContent = text; window.NowaText?.(p, text); p.setAttribute("dir", textDirection(text)); chat.insertBefore(p, controls); p.scrollIntoView?.({block: "nearest"}); }
 async function tap(action, payload) {
   if (locked) return null;
   const response = await fetch(base + "/tap", {method: "POST", headers: {"Content-Type": "application/json"},

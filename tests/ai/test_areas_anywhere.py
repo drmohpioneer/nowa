@@ -223,6 +223,9 @@ def test_standby_signed_origin_survives_telegram_proof(chat, engine, frozen_cloc
     get_settings().telegram_bot_username = "fictional_bot"
     with write_tx(engine) as conn:
         conn.execute(s.clinics.update().where(s.clinics.c.id == cid).values(max_per_evening=1))
+        if not linked:
+            # The Telegram proof path belongs to a real clinic; a practice clinic needs none.
+            conn.execute(s.clinics.update().where(s.clinics.c.id == cid).values(is_sandbox=False))
         if linked:
             conn.execute(
                 s.telegram_links.insert().values(

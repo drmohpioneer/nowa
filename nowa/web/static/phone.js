@@ -12,7 +12,9 @@ window.NowaPhoneCards = function (element, messages) {
     let card = cards.get(msg.outbox_id), fresh = !card;
     if (!card) { card = document.createElement("article"); card.className = "tg-msg"; cards.set(msg.outbox_id, card); element.append(card); }
     const title = document.createElement("strong"); title.textContent = msg.recipient_name || msg.recipient; window.NowaText?.(title, title.textContent);
-    const body = document.createElement("p"); body.setAttribute("dir", document.documentElement.dir);
+    // A message keeps the direction of its own language, so an English bubble in the Arabic phone reads left to right as one run.
+    const direction = msg.lang ? (msg.lang === "ar" ? "rtl" : "ltr") : document.documentElement.dir;
+    const body = document.createElement("p"); body.setAttribute("dir", direction);
     const pattern = /(?:https?:\/\/[^\s]+)?\/([lwr])\/([A-Za-z0-9_-]{22})(?![A-Za-z0-9_-])/g;
     let at = 0;
     for (const match of msg.body.matchAll(pattern)) {
@@ -28,7 +30,7 @@ window.NowaPhoneCards = function (element, messages) {
     const avatar = document.createElement("span"); avatar.className = "tg-av";
     avatar.textContent = (msg.recipient_name || msg.recipient || "").slice(0, 1);
     const content = document.createElement("div"), who = document.createElement("div"); who.className = "tg-who"; who.append(title);
-    const bubble = document.createElement("div"); bubble.className = "tg-bubble"; bubble.setAttribute("dir", document.documentElement.dir); bubble.append(body, status);
+    const bubble = document.createElement("div"); bubble.className = "tg-bubble"; bubble.setAttribute("dir", direction); bubble.append(body, status);
     content.append(who, bubble); card.replaceChildren(avatar, content);
     if (fresh) { card.classList.add("is-new"); setTimeout(() => card.classList.remove("is-new"), 300); }
   }

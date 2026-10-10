@@ -15,12 +15,12 @@
 <div id="reset-phone" class="phone device tg-body" hidden></div>
 {% elif mode == 'tonight' %}
 <div class="grid"><div class="side">
-<div class="board-head"><div><div class="eyebrow">{{ t('board_eyebrow') }}</div><h1><span>{{ doctor_day|isolate }}</span> · <span class="doctor-title-name">{{ t('board_title').format(day='', name=doctor_name).lstrip(' ·')|isolate }}</span></h1><p id="standby-count" class="muted" hidden></p></div><span class="pill"><span id="evening-dot" class="dot{{ ' live' if evening_id else '' }}"></span>{{ evening_label }}</span></div>
+<div class="board-head"><div><div class="eyebrow">{{ t('board_eyebrow') }}</div><h1><span>{{ doctor_day|isolate }}</span> · <span class="doctor-title-name">{{ t('board_title').format(day='', name=doctor_name).lstrip(' ·')|isolate }}</span></h1><p id="standby-count" class="muted" hidden></p></div><span class="pill"><span id="evening-dot" class="dot{{ ' live' if evening_id else '' }}"></span><span id="evening-label">{{ evening_label }}</span></span></div>
 <div id="onway" class="onway"><button id="on-way" class="btn btn-main btn-xl">{{ t('on_way') }}</button><p id="onway-state" class="onway-done" hidden></p></div>
 <form novalidate id="area-form" hidden><label class="field"><span>{{ t('area') }}</span><select id="areas" required></select></label><button class="btn btn-main">{{ t('send') }}</button></form>
 <div id="stats" class="stat-grid"></div><div id="room-section" class="inroom"><div><span class="muted">{{ t('in_room') }}</span><div id="in-room" class="v">{{ ui_t("empty") }}</div></div></div>
 <section class="next-hero" id="next-hero" hidden><div class="k" id="who-heading">{{ t("who_next") }}</div><div class="who-n" id="next-patient"></div><div id="next-action"></div></section><p id="who-label" class="who-k">{{ ui_t("other_patient") }}</p><div id="who" class="who"><button class="walk" data-command="who-comes-in" data-walk-in="true">{{ t('walk_in') }}</button></div>
-<div id="progress-section" class="pace"><div class="pace-label"><span class="muted">{{ evening_label }}</span><span id="pace-count" class="num ltr" dir="ltr"></span></div><div class="track"><i id="pace-progress"></i></div></div>
+<div id="progress-section" class="pace"><div class="pace-label"><span id="progress-label" class="muted">{{ evening_label }}</span><span id="pace-count" class="num ltr" dir="ltr"></span></div><div class="track"><i id="pace-progress"></i></div></div>
 <div class="tools"><button class="btn btn-ghost" id="undo" data-command="undo" disabled title="{{ t('undo_empty') }}" aria-label="{{ t('undo_empty') }}">{{ t('undo') }}</button><button class="btn btn-ghost" id="close">{{ t('close') }}</button><button class="btn btn-danger" id="cancel">{{ t('cancel_day').format(day=doctor_day) }}</button></div><a id="latest-report" class="btn btn-ghost" hidden>{{ t('report') }}</a>
 </div><div class="main"><section class="section"><h2>{{ t('all_queue') }}</h2><div id="queue" class="qlist" aria-live="polite"></div></section>
 <section class="section"><h2>{{ t('questions') }}</h2><div id="questions"></div></section>
@@ -29,7 +29,7 @@
 </div></div>
 {% elif mode == 'report' %}
 <section id="report-summary" class="report-summary" aria-live="polite"></section>
-<section><h2>{{ t('health_answers') }}</h2><div id="health-answers"></div></section>
+<section id="health-section" hidden><h2>{{ t('health_answers') }}</h2><div id="health-answers"></div></section>
 <section><h2>{{ t('questions') }}</h2><div id="questions"></div></section>
 {% elif mode == 'settings' %}
 <form novalidate id="hours" class="card section"><h2>{{ t('hours') }}</h2>{% with hours_open=false %}{% include 'hours.html' %}{% endwith %}<button class="btn btn-main">{{ t('save') }}</button></form>

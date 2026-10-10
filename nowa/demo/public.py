@@ -1,4 +1,4 @@
-"""Mint an existing slice-08 booking card from a fixed fictional identity."""
+"""Mint an existing booking card from a fixed fictional identity."""
 
 from typing import Any
 

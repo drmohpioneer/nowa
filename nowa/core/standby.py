@@ -48,6 +48,14 @@ def contact_for(conn: Connection, req: booking.BookingRequest) -> int:
     return int(cid)
 
 
+def telegram_required(conn: Connection, clinic_id: int) -> bool:
+    """A practice clinic shows every message on the drawn phone, so it needs no link."""
+    sandbox = conn.execute(
+        select(s.clinics.c.is_sandbox).where(s.clinics.c.id == clinic_id)
+    ).scalar_one()
+    return not sandbox
+
+
 def join_in_tx(
     conn: Connection, clock: Clock, req: booking.BookingRequest
 ) -> Joined | booking.BookingRefused:
@@ -82,7 +90,7 @@ def join_in_tx(
         return Joined(prior["id"], prior["position"], True)
     phone = booking.normalize_phone(req.contact_phone)
     assert phone is not None
-    if telegram_chat(conn, phone, "patient") is None:
+    if telegram_required(conn, req.clinic_id) and telegram_chat(conn, phone, "patient") is None:
         return booking.BookingRefused("invalid_input")
     if booking.active_for_phone(conn, clock, req.clinic_id, contact_id) >= 3:
         return booking.BookingRefused("phone_cap")

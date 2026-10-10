@@ -250,6 +250,22 @@ def test_change_day_and_replay_without_new_code(engine, page):
     assert len([m for m in messages(engine, "1") if m["booking_id"] == new["id"]]) == 1
 
 
+def test_change_day_page_says_changed_not_cancelled(engine, page):
+    from nowa.web import strings
+
+    client, cid, eid, clock, ids, code = page
+    new_day = DAY + timedelta(days=2)
+    data = fields(client.get(f"/l/{code}/change"), "/change") | {
+        "last4": "0000",
+        "date": new_day.isoformat(),
+    }
+    response = post(client, f"/l/{code}/change", data)
+    assert f"Done, your booking is moved to {format_day(new_day, 'en')}" in response.text
+    assert "Done, your booking is cancelled" not in response.text
+    assert "Book again" not in response.text
+    assert strings.text("patient.day_changed", "ar").format(day="X") == "تمام، غيّرنا حجزك لـX"
+
+
 def test_full_change_preserves_original(engine, page):
     client, cid, eid, clock, ids, code = page
     target = flows.book(engine, clock, request(cid, 10, DAY + timedelta(days=2)))
@@ -864,7 +880,7 @@ def test_telegram_json_card_renews_with_verified_form_only(page, engine):
     assert replacement.json()["telegram_url"] != first["telegram_url"]
     with engine.connect() as conn:
         assert len(conn.execute(select(s.link_tokens)).all()) == 2
-        # Private-link proof remains as before; this slice adds no public bypass.
+        # Private-link proof remains as before; there is no public bypass.
         assert not conn.execute(select(s.telegram_pending)).first()
     bad = client.post(
         endpoint,

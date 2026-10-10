@@ -1,4 +1,4 @@
-"""Slice-10 HTTP acceptance and credential regressions."""
+"""Sign-up HTTP acceptance and credential regressions."""
 
 import re
 
@@ -745,3 +745,98 @@ def test_front_button_goes_to_judge_on_a_hosted_instance(signup_web, monkeypatch
     )
     page = signup_web.get("/").text
     assert "/demo" not in page and "/judge" not in page and "/start" in page
+
+
+def ready(client, token, **changes):
+    return send(client, "/judge/ready", {"signup_token": token, "agree": True} | changes)
+
+
+def test_judge_gets_a_ready_practice_clinic_in_one_click(signup_web, engine):
+    formed = finish(signup_web, judge_token(signup_web), idempotency_key="form-made").json()
+    signup_web.cookies.clear()
+    response = ready(signup_web, judge_token(signup_web))
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["slug"] != formed["slug"]
+    assert result["mobile"].startswith("+2010000009")
+    assert len(result["password"]) >= 12
+    assert result["chat_url"].endswith("/c/" + result["slug"])
+    assert "no-store" in response.headers["cache-control"]
+    clinic = clinic_for(engine, result["slug"])
+    made = clinic_for(engine, formed["slug"])
+    assert clinic["is_sandbox"] and clinic["judge_id"] == made["judge_id"]
+    assert clinic["sandbox_expires_at"] - clinic["created_at"] == (
+        made["sandbox_expires_at"] - made["created_at"]
+    )
+    with engine.connect() as conn:
+        assert conn.execute(
+            select(s.agreement_acceptances.c.version).where(
+                s.agreement_acceptances.c.clinic_id == clinic["id"]
+            )
+        ).scalar_one() == "0.1"
+        assert conn.execute(
+            select(s.clinic_hours.c.weekday).where(s.clinic_hours.c.clinic_id == clinic["id"])
+        ).scalars().all()
+    assert signup_web.cookies.get("nowa_session") and signup_web.cookies.get("nowa_csrf")
+    assert len(signup_web.get("/d/api/tonight").json()["rows"]) == 12
+    assert signup_web.get("/c/" + result["slug"]).status_code == 200
+    signup_web.cookies.clear()
+    login = send(
+        signup_web, "/d/login", {"mobile": result["mobile"], "password": result["password"]}
+    )
+    assert login.status_code == 200, login.text
+
+
+def test_ready_clinic_requires_a_valid_judge_token(signup_web, engine):
+    def clinics():
+        with engine.connect() as conn:
+            return len(conn.execute(select(s.clinics.c.id)).all())
+
+    before = clinics()
+    assert send(signup_web, "/judge/ready", {"agree": True}).status_code == 422
+    for token in ("", "judge|forged|forged|9999999999.forged", ordinary_token(signup_web)):
+        assert ready(signup_web, token).status_code in {400, 403, 422}
+    assert clinics() == before
+    token = judge_token(signup_web)
+    assert ready(signup_web, token, agree=False).status_code == 422
+    assert clinics() == before
+    assert ready(signup_web, token).status_code == 200
+    assert ready(signup_web, token).status_code == 400
+    assert clinics() == before + 1
+
+
+def test_ready_clinic_uses_the_same_judge_limit_as_the_form(signup_web):
+    for _ in range(3):
+        assert ready(signup_web, judge_token(signup_web)).status_code == 200
+    assert send(signup_web, "/judge/start", {"code": "fictional-judge-code"}).status_code == 429
+
+
+def test_wrong_judge_code_is_unchanged(signup_web):
+    response = send(signup_web, "/judge/start", {"code": "wrong"})
+    assert response.status_code == 400 and response.json()["reason"] == "wrong_code"
+
+
+def test_own_practice_clinic_form_still_works(signup_web, engine):
+    page = signup_web.get("/judge").text
+    assert 'id="judge-form"' in page and 'id="own-clinic"' in page and 'id="ready-clinic"' in page
+    script = signup_web.get("/static/judge.js").text
+    assert 'sessionStorage.setItem("nowa-judge-signup"' in script and '"/start"' in script
+    start = signup_web.get("/start").text
+    assert 'id="complete-form"' in start and 'name="agree"' in start
+    result = finish(signup_web, judge_token(signup_web), idempotency_key="own-form").json()
+    assert result["mobile"] == "+201000000900"
+    assert len(signup_web.get("/d/api/tonight").json()["rows"]) == 12
+
+
+def test_judge_page_offers_two_actions_in_the_browser_harness():
+    import subprocess
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        ["node", str(root / "tests/web/judge_choice_dom.cjs")],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

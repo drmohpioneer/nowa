@@ -58,7 +58,7 @@ async function check(language) {
   vm.runInContext(fs.readFileSync('nowa/web/static/dashboard.js', 'utf8'), context);
   await new Promise(setImmediate);
   // 13.3 and 20 take the singular noun, 3 takes the plural (Arabic 3 to 10), 0 the singular.
-  assert.equal(learned[0].textContent, '13.3 ' + labels.unit_minutes_many + ' · 20 ' + labels.unit_visits_many);
+  assert.equal(learned[0].textContent, '13 ' + labels.unit_minutes_many + ' · 20 ' + labels.unit_visits_many);
   assert.equal(learned[1].textContent, '0 ' + labels.unit_minutes_many + ' · 0 ' + labels.unit_evenings_many + ' · ' + labels.still_learning);
   assert.equal(learned[2].textContent, '12% · 3 ' + labels.unit_evenings_few);
   const edit = nodes['saved-overrides'].children[0].children[0];

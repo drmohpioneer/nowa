@@ -331,7 +331,7 @@ def main(browser_name="chromium"):
                                     animations="disabled",
                                 )
 
-                            # FIX 1 starts at 140 (first event minus ten), still before
+                            # The replay starts at 140 (first event minus ten), still before
                             # the doctor's on-my-way action at 190.
                             advance_to(140)
                             stage_shot("evening-mid")
@@ -530,10 +530,10 @@ def main(browser_name="chromium"):
                             context.close()
                     browser.close()
                     (OUT / "v2-files.json").write_text(json.dumps(evidence, indent=2) + "\n")
-                    (OUT / "slice22-controls.json").write_text(
+                    (OUT / "controls.json").write_text(
                         json.dumps(control_positions, indent=2) + "\n"
                     )
-                    (OUT / "slice24-layout.json").write_text(
+                    (OUT / "layout.json").write_text(
                         json.dumps(review_measurements, ensure_ascii=False, indent=2) + "\n"
                     )
                     print(json.dumps(control_positions, indent=2))

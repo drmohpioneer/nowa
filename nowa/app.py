@@ -129,7 +129,7 @@ def create_app(
         "/static", StaticFiles(directory=Path(__file__).parent / "web" / "static"), name="static"
     )
 
-    @app.get("/health")
+    @app.api_route("/health", methods=["GET", "HEAD"])  # HEAD: uptime monitors check this way
     def health() -> JSONResponse:
         try:
             with db_engine.connect() as conn:

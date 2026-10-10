@@ -86,7 +86,7 @@ async function patient() {
   const count = h.sent.length; await form.onsubmit({preventDefault() {}}); assert.equal(h.sent.length, count);
   h.complete(answer('Booking found')); await lookupPending; idle(submit);
   assert.equal(h.nodes.error.textContent, '');
-  for (const bubble of h.nodes.chat.children.filter(n => n.className === 'bubble')) assert.equal(bubble.dir, 'rtl');
+  for (const bubble of h.nodes.chat.children.filter(n => n.className === 'bubble')) assert.equal(bubble.dir, /[A-Za-z]/.test((/[A-Za-z\u0590-\u08FF]/.exec(bubble.textContent) || [''])[0]) ? 'ltr' : 'rtl');
 }
 async function publicChat() {
   const h = setup('public-chat.js', true); await new Promise(setImmediate);
@@ -116,7 +116,7 @@ async function publicChat() {
   assert.equal(h.nodes.chat.children.at(-2).className, 'bubble me');
   h.complete(answer('Price answer')); await faqPending;
   assert.equal(h.nodes.error.textContent, '');
-  for (const bubble of h.nodes.chat.children.filter(n => n.className?.startsWith('bubble'))) assert.equal(bubble.dir, 'rtl');
+  for (const bubble of h.nodes.chat.children.filter(n => n.className?.startsWith('bubble'))) assert.equal(bubble.dir, /[A-Za-z]/.test((/[A-Za-z\u0590-\u08FF]/.exec(bubble.textContent) || [''])[0]) ? 'ltr' : 'rtl');
 }
 async function doctor() {
   const panel = node(), fields = {question_asker: '{name} · number {number} · {day}', question_anonymous: 'Patient from chat, not booked yet'};

@@ -33,4 +33,11 @@ for (const isPatient of [false, true]) {
   context.NowaPhoneCards(feed, [message]);
   assert.equal(feed.children.length, 2); assert.equal(feed.children[0], first);
 }
+// An English or Franco message inside the Arabic phone is one left-to-right run; an Arabic one stays right to left.
+for (const [lang, dir] of [['en', 'ltr'], ['franco', 'ltr'], ['ar', 'rtl']]) {
+  const feed = element(), msg = {outbox_id: 9, recipient_name: 'Fictional Patient', lang, body: 'Leave now, number 3. Call +201000000001', created_at: '2026-10-09T16:00:00Z', status: 'delivered'};
+  context.NowaPhoneCards(feed, [msg]);
+  const bubble = feed.children[0].children[1].children[1];
+  assert.equal(bubble.dir, dir, lang); assert.equal(bubble.children[0].dir, dir, lang);
+}
 console.log('PASS: patient and drawer use sender, bubble, meta with no blank body edges or duplicate cards');

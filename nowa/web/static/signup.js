@@ -59,7 +59,7 @@
         },
       });
     }
-    document.getElementById("verify-form").hidden = false; status(t("sent"));
+    document.getElementById("verify-form").hidden = false; status(result.telegram_url ? t("sent_telegram") : t("sent"));
     const phone = document.getElementById("signup-phone");
     if (phone && !result.telegram_url) { if (stopPhone) stopPhone(); phone.replaceChildren(); phone.hidden = false; stopPhone = window.NowaPhone(phone, "/signup/phone?lang=" + document.documentElement.lang, () => status(t("error"))); }
   });
@@ -71,10 +71,13 @@
   });
   const locate = document.getElementById("locate");
   locate.addEventListener("click", () => window.NowaFeedback.pending(locate, async () => {
-    if (!navigator.geolocation) throw new Error(t("location_error"));
-    const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error(t("location_error"))), {timeout: 10000, maximumAge: 0}));
+    if (!navigator.geolocation) throw new Error(t("location_unsupported"));
+    // The browser says why it refused: 1 = this site is blocked, 2 = the device cannot find itself, 3 = too slow.
+    const reason = code => code === 1 ? t("location_denied") : code === 2 ? t("location_unavailable") : code === 3 ? t("location_timeout") : t("location_error");
+    const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve,
+      error => reject(new Error(reason(error?.code))), {timeout: 20000, maximumAge: 0}));
     pin = {lat: position.coords.latitude, lng: position.coords.longitude};
-    return t("here");
+    return t("located");
   }, document.getElementById("location-status")));
   bind("complete-form", async (form, data) => {
     const hours = window.NowaHours.values(form);
@@ -92,7 +95,8 @@
     form.hidden = true; document.getElementById("signup-success").hidden = false;
     document.getElementById("chat-url").href = result.chat_url;
     document.getElementById("poster-url").href = result.poster_url;
-    document.getElementById("success-mobile").textContent = result.mobile ? t("mobile") + ": " + result.mobile : "";
+    const shownMobile = document.getElementById("success-mobile"); shownMobile.replaceChildren();
+    if (result.mobile) { const number = document.createElement("bdi"); number.dir = "ltr"; number.textContent = result.mobile; shownMobile.append(t("mobile") + ": ", number); }
     status("");
   });
 })();

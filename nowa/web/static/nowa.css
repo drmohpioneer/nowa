@@ -727,7 +727,7 @@ form.card h2{margin-bottom:16px}
 @media print{.poster{--ink:#16202A;--muted:#626977;--bg:white;--surface:white;--line:#E2DDD2;color:#16202A}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
-/* FIX 1: names retain their beginning in their own direction. */
+/* Names retain their beginning in their own direction. */
 .tile .t-name{font-size:11px;white-space:nowrap;overflow:hidden;overflow-wrap:normal;text-overflow:ellipsis;min-width:0}
 .tile[data-source="walk_in"] .t-name{display:block;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
 /* The closing view packs ten tiles per row: the label needs slightly smaller type to stay inside its tile. */
@@ -795,7 +795,7 @@ button:disabled:not([aria-busy=true]) { cursor:default }
 .story-card h3{margin:12px 0 8px}
 .story-card p{color:var(--muted);line-height:1.8}
 @media (min-width:760px){.story-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:599px){.hours-times{flex-basis:100%;justify-content:flex-start}.hours-times label{flex:1 1 auto}.hours-times input{width:auto;flex:1 1 96px}}
+@media (max-width:599px){.hours-times{flex-basis:100%;justify-content:flex-start;min-width:0}.hours-times label{flex:1 1 150px;min-width:0}.hours-times input{width:0;flex:1 1 96px;min-width:96px;box-sizing:border-box}}
 
 html[lang="ar"] .legal-en,html[lang="en"] .legal-ar{display:none}
 
@@ -857,6 +857,7 @@ html[lang="ar"] .legal-en,html[lang="en"] .legal-ar{display:none}
 #learned-timing h3{font-size:14px;font-weight:600;color:var(--muted);margin:0 0 6px}
 #learned-timing p{display:flex;justify-content:space-between;gap:12px;margin:6px 0;font-size:14px}
 #learned-timing output{font-variant-numeric:tabular-nums;white-space:nowrap;unicode-bidi:plaintext}
+@media (max-width:599px){#learned-timing p{flex-wrap:wrap}#learned-timing output{white-space:normal}}
 
 /* the legend uses the queue's state and source styles. */
 .stage .legend .legend-marker{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;min-width:20px;min-height:20px;padding:0;border-radius:4px;font-style:normal}
@@ -868,7 +869,7 @@ html[lang="ar"] .legal-en,html[lang="en"] .legal-ar{display:none}
 .tg-body .tg-bubble{background:var(--tg-in);color:var(--tg-ink)}
 .tg-body .tg-bubble a{color:var(--tg-link)}
 .tg-body .tg-msg{width:100%}
-.field-error{display:block;color:var(--danger);font-size:13px;margin-top:4px}
+.field-error,.field>span.field-error{display:block;color:var(--danger);font-size:13px;margin-top:4px}
 .tg-who .tg-kind{margin:0}
 .phone .tg-meta{display:flex}
 
@@ -889,3 +890,18 @@ html[lang="ar"] .legal-en,html[lang="en"] .legal-ar{display:none}
 :is(input,textarea,select)[aria-invalid="true"],.is-invalid{border-color:var(--danger)!important;box-shadow:0 0 0 1px var(--danger)}
 input[type=checkbox][aria-invalid="true"]{outline:2px solid var(--danger);outline-offset:2px}
 .hours-error{flex:0 0 100%;margin:0}
+
+/* Error notice on the private link page stays in the first column row, not a grid cell of its own. */
+.page.patient>.status{grid-column:1/-1;justify-self:start}
+
+/* Tap targets on phones: at least 44px tall. */
+@media (max-width:899px){
+  .topbar nav button,.topbar nav a,#logout{min-height:44px;display:inline-flex;align-items:center}
+  .qrow button.name{min-height:44px}
+  .who button,.walk{min-height:44px}
+  select,.field select,.choices select{min-height:44px;height:44px}
+  .faq button{min-height:44px}
+  .clinic-link .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .choices button,.chips button{min-height:44px}
+  .quiet-link,summary.quiet-link{min-height:44px;display:flex;align-items:center;justify-content:center;margin-top:10px}
+}

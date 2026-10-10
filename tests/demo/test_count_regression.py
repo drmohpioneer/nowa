@@ -34,7 +34,7 @@ def test_script_population_counts_walkin_in_came(engine):
                 "en",
                 None,
                 booking.ConsentInput("fictional", "fictional", "self"),
-                f"slice12-count:book:{number}",
+                f"count-regression:book:{number}",
                 actor="system",
             ),
         )
@@ -48,7 +48,7 @@ def test_script_population_counts_walkin_in_came(engine):
 
     clock.advance(minutes=150)  # 18:30: patient 12 cancels through the link flow.
     cancelled = patient_link.cancel_by_link(
-        engine, clock, booking.link_code_for(ids[11]), "2012", "slice12-count:cancel"
+        engine, clock, booking.link_code_for(ids[11]), "2012", "count-regression:cancel"
     )
     assert isinstance(cancelled, booking.CancelResult), cancelled
     clock.advance(minutes=83)  # 19:53: doctor present; first who-comes-in opens gate.
@@ -56,13 +56,13 @@ def test_script_population_counts_walkin_in_came(engine):
         if number in (12, 15):
             continue
         tap = timing.who_comes_in(
-            engine, clock, cid, eid, ids[number - 1], False, f"slice12-count:visit:{number}"
+            engine, clock, cid, eid, ids[number - 1], False, f"count-regression:visit:{number}"
         )
         assert tap.ok, tap
         clock.advance(minutes=13)
         if number == 9:
             walkin = timing.who_comes_in(
-                engine, clock, cid, eid, None, True, "slice12-count:walkin"
+                engine, clock, cid, eid, None, True, "count-regression:walkin"
             )
             assert walkin.ok, walkin
             clock.advance(minutes=13)
@@ -75,7 +75,7 @@ def test_script_population_counts_walkin_in_came(engine):
         cid,
         eid,
         "doctor",
-        "slice12-count:close",
+        "count-regression:close",
         expected_untold=preview.untold_count,
     )
     assert closed.ok

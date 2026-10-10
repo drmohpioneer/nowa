@@ -6,6 +6,8 @@ window.NowaHours = {
     row.querySelector(".hours-times").hidden = closed;
     const text = row.querySelector('[name="enabled"]').nextElementSibling;
     if (text?.dataset?.on) text.textContent = closed ? text.dataset.off : text.dataset.on;
+    const day = row.querySelector(".hours-day")?.textContent;
+    if (text?.dataset?.on && day) row.querySelector('[name="enabled"]').setAttribute("aria-label", day + ": " + text.textContent);
   },
   values(root) {
     return [...root.querySelectorAll("[data-weekday]")]

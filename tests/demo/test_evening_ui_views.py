@@ -1,4 +1,4 @@
-"""FIX 1 regressions over real taps and the authorized read-only UI views."""
+"""Regressions over real taps and the authorized read-only UI views."""
 
 from datetime import datetime
 

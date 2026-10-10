@@ -32,7 +32,7 @@ async function check(script, width) {
   vm.runInContext('show(data)', context);
   const cta = controls.children.find(el => el.className === 'tg-cta');
   assert(cta, 'v2 Telegram CTA wrapper');
-  assert(nodes.get('chat').children.filter(el => el.className === 'bubble').every(el => el.dir === 'rtl'));
+  assert(nodes.get('chat').children.filter(el => el.className === 'bubble').every(el => el.dir === (/[A-Za-z]/.test((/[A-Za-z\u0590-\u08FF]/.exec(el.textContent) || [''])[0]) ? 'ltr' : 'rtl')));
   await new Promise(setImmediate);
   const widget = cta.children[0];
   assert.equal(widget.children[3].hidden,width<900);

@@ -80,6 +80,7 @@ window.NowaFeedback = (() => {
       const count = /\{(\d+)\}$/.exec(field.pattern);
       key = count ? "field_digits" : field.type === "tel" ? "field_mobile" : "field_invalid"; vars = {n: count?.[1]};
     }
+    if (value && field.hasAttribute?.("data-egypt-mobile") && !/^(?:\+2|002)?01[0125]\d{8}$/.test(digits(value).replace(/[\s-]/g, ""))) key = "field_mobile";
     if (value && field.dataset.min != null) {
       const number = digits(value);
       if (!/^\d+$/.test(number) || Number(number) < Number(field.dataset.min) || Number(number) > Number(field.dataset.max)) { key = "field_range"; vars = {min: field.dataset.min, max: field.dataset.max}; }

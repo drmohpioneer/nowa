@@ -22,7 +22,7 @@ In a survey of colleagues who run private clinics in Cairo and Sharqia, 83% star
 
 - **Talks like the secretary.** A patient opens the clinic's chat link (or scans the poster on the door) and writes the way they speak: Arabic, English or Franco, in the same conversation.
 - **Books, moves and cancels.** For the patient or for someone else. Every booking is a day, a queue number and an expected time. One private link lets the patient change the day or cancel, and the chat finds any booking by name and the last four digits of the phone.
-- **Answers health questions from approved sources only.** Replies come from a library of approved medical pages (NHS, MedlinePlus, CDC) and show the source. What the library cannot answer goes to the doctor, who answers once; Nowa reuses that answer for the next patient who asks.
+- **Answers health questions from approved sources only.** Replies come from a library of approved medical pages (NHS, MedlinePlus, NHLBI, CDC) and show the source. What the library cannot answer goes to the doctor, who answers once; Nowa reuses that answer for the next patient who asks.
 - **Puts emergencies first.** A dangerous symptom gets a fixed "call 123" reply, the chat locks and booking stops. This check runs before anything else on every message.
 
 **Clinic night**
@@ -86,6 +86,8 @@ ruff check nowa tests
 mypy nowa
 ```
 
+The browser-side tests run small scripts with Node; without `node` on the PATH those tests fail and the rest still run.
+
 Three runs you can check yourself:
 
 1. **A normal booking.** Book as a patient. The reply gives the day, the queue number and the expected time, and the drawn Telegram shows one confirmation with a private link.
@@ -114,7 +116,7 @@ The one rule between the layers: the AI talks, code decides. The model must answ
 Rules the code enforces:
 
 - A booking is a day, a queue number and an expected time. The expected time only moves later, only by 20 minutes or more, and freezes after "leave now".
-- Every message a patient receives is one of a fixed set of approved templates, filled from the database in the patient's language (Arabic, English or Franco-Arabic).
+- Every message sent to a patient's Telegram is one of a fixed set of approved templates, filled from the database in the patient's language (Arabic, English or Franco-Arabic). In the chat, the model writes the reply, and code decides what happens.
 - A Telegram chat is linked to a phone number only after the user shares their own contact and it matches.
 - Every action is safe to repeat. Names and phones live only in the identity tables.
 
@@ -137,13 +139,14 @@ In the demo, the people and their actions in the Live evening are scripted; the 
 
 ## Hosted instance
 
-The hosted copy runs at https://nowa-bche.onrender.com (Render, Frankfurt; Postgres on Supabase, Frankfurt) with a real Telegram bot. A judge code opens a seven-day practice clinic; a doctor can also register a real clinic from the front page.
+The hosted copy runs at https://nowa-bche.onrender.com (Render, Frankfurt; Postgres on Supabase, Frankfurt) with a real Telegram bot. A judge code opens a seven-day practice clinic with fictional patients.
 
 ## More
 
 - Environment names for your own instance: [.env.example](.env.example)
 - The queue simulator behind the wait numbers: [docs/reference/sim.py](docs/reference/sim.py)
 - Area coordinates: [docs/reference/greater-cairo-areas.json](docs/reference/greater-cairo-areas.json). Area coordinates © OpenStreetMap contributors, ODbL.
-- Licence: all rights reserved, see [LICENSE](LICENSE). The code is published for review; running it locally to evaluate it is permitted.
+- Health passages in the library come from NHS (Open Government Licence v3.0), MedlinePlus and NHLBI (U.S. National Library of Medicine and NHLBI, public domain) and CDC (public domain), each shown with its source in the chat.
+- Licence: all rights reserved, see [LICENSE](LICENSE). The code is published for review; reviewers may run it on their own machine and open the hosted instance to evaluate it. Nothing else is permitted.
 
 Built by Dr Mohamed Mostafa, cardiologist, Cairo, for Agents at Work 2026.

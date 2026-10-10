@@ -164,7 +164,7 @@ def test_code_ip_limit_precedes_phone_counter_and_signup_writes(engine, offset_c
         )
 
 
-def test_decision062_reused_pending_signup_gets_own_purge_deadline(
+def test_reused_pending_signup_gets_own_purge_deadline(
     engine, offset_clock, frozen_clock
 ):
     record.configure(offset_clock)
@@ -214,7 +214,7 @@ def test_decision062_reused_pending_signup_gets_own_purge_deadline(
     )  # Original timer due; replacement is not eligible yet.
     stats = worker.run_once(engine, offset_clock, {"pending_signup_purge": pending_signup_purge})
     assert stats.done == 1
-    frozen_clock.advance(minutes=60)  # Replacement's contracted purge deadline.
+    frozen_clock.advance(minutes=60)  # Replacement's agreed purge deadline.
     stats = worker.run_once(engine, offset_clock, {"pending_signup_purge": pending_signup_purge})
     assert stats.done == 1
     with engine.connect() as conn:
@@ -253,7 +253,7 @@ def test_refused_completion_rolls_back_clinic_creation(engine, offset_clock, fie
         assert not conn.execute(select(s.agreement_acceptances)).all()
 
 
-def test_decision061_reused_clinic_gets_pending_expiry_for_seven_real_days(
+def test_reused_clinic_gets_pending_expiry_for_seven_real_days(
     engine, offset_clock, frozen_clock, monkeypatch
 ):
     """Exercise provisioning and the real expiry handler with SQLite ID reuse."""

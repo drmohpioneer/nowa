@@ -23,7 +23,7 @@ from nowa.library.store import read_passages
 def health_json_schema(schema: dict[str, Any]) -> None:
     # Encode the same two exclusive shapes checked below in the provider schema.
     # Otherwise providers tend to emit the optional no_answer=false alongside
-    # every answer, which violates the contracted four-field answer shape.
+    # every answer, which violates the required four-field answer shape.
     properties = {
         "answer": {"type": "string", "minLength": 1, "maxLength": 600},
         "source_url": {"type": "string"},

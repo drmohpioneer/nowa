@@ -41,10 +41,16 @@ class Judge(Input):
     code: SecretStr
 
 
+class Ready(Input):
+    signup_token: SecretStr
+    agree: bool = False
+
+
 def refusal(exc: signup.Refused) -> JSONResponse:
-    return JSONResponse(
-        {"ok": False, "reason": exc.reason}, status_code=exc.status, headers=PRIVATE_HEADERS
-    )
+    body: dict[str, object] = {"ok": False, "reason": exc.reason}
+    if exc.fields:
+        body["fields"] = exc.fields
+    return JSONResponse(body, status_code=exc.status, headers=PRIVATE_HEADERS)
 
 
 @router.post("/signup/code")
@@ -138,6 +144,33 @@ def judge(request: Request, body: Judge, origin: Origin) -> JSONResponse:
         status_code=200 if token else 400,
         headers=PRIVATE_HEADERS,
     )
+
+
+@router.post("/judge/ready")
+def judge_ready(request: Request, body: Ready, origin: Origin) -> JSONResponse:
+    try:
+        referer = urlsplit(request.headers.get("referer", ""))
+    except ValueError:
+        raise HTTPException(422) from None
+    lang = parse_qs(referer.query).get("lang", [page_language(request)])[0]
+    if lang not in {"ar", "en"}:
+        lang = page_language(request)
+    try:
+        result, password = signup.ready_clinic(
+            request.app.state.engine,
+            request.app.state.clock,
+            request.app.state.agreement,
+            body.signup_token.get_secret_value(),
+            body.agree,
+            agreement_lang=lang,
+        )
+    except signup.Refused as exc:
+        return refusal(exc)
+    # The generated password is shown once to this response and is never stored or logged.
+    response = JSONResponse(dict(result.data, password=password), headers=PRIVATE_HEADERS)
+    if result.tokens is not None:
+        start_session(response, result.tokens, host=request.url.hostname)
+    return response
 
 
 @router.get("/signup/phone")

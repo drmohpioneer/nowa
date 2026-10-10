@@ -15,7 +15,7 @@
 <div id="pin-link" hidden><label class="field"><span>{{ t('map_link') }}</span><input name="map_link" type="url" maxlength="2000"></label></div>
 <h2>{{ t('hours') }}</h2>{% with hours_open=true %}{% include 'hours.html' %}{% endwith %}
 <label class="field"><span>{{ t('price') }}</span><input name="price_egp" type="text" inputmode="numeric" data-min="0" data-max="100000" required></label>
-<label class="field"><span>{{ t('clinic_phone') }}</span><input name="clinic_phone" type="tel"></label>
+<label class="field"><span>{{ t('clinic_phone') }}</span><input name="clinic_phone" type="tel" data-egypt-mobile></label>
 <label class="field"><span>{{ t('password') }}</span><input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
 <h2>{{ t('agreement') }}</h2><small class="help">{{ t('agreement_version').format(version=agreement.version) }}</small><div class="agreement legal-copy" tabindex="0" role="region" aria-label="{{ t('agreement') }}">{{ agreement_html }}</div>
 <input name="agreement_version" type="hidden" value="{{ agreement.version }}"><label class="field"><input name="agree" type="checkbox" required>{{ t('agree') }}</label><button class="btn btn-main">{{ t('complete') }}</button></form>
