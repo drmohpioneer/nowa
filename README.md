@@ -2,29 +2,41 @@
 
 **Know when to leave home.**
 
-Nowa is a waiting-room agent for private clinics in Egypt. A patient books a day and gets a queue number. The doctor taps **on my way** once, and **who comes in** after each visit. Nowa tells every patient, on Telegram, the minute to leave home.
+Nowa is an AI assistant for a private clinic in Egypt. It talks with patients in Arabic, English or Franco, books, moves and cancels their visits, answers health questions only from approved medical sources, passes the rest to the doctor, and stops everything to send an emergency to 123. On clinic night it runs the queue from two taps by the doctor and tells each patient, on Telegram, the exact minute to leave home.
 
 [![Watch the film (2:41)](docs/img/film.jpg)](https://youtu.be/CoW-QtdwgFg)
 
 **Watch the film (2:41):** https://youtu.be/CoW-QtdwgFg
 **Impact slides:** [docs/submission/nowa-impact-slides.pdf](docs/submission/nowa-impact-slides.pdf)
+**Live:** https://nowa-bche.onrender.com
 
 ## The problem
 
-In a private clinic in Egypt every patient is told the same time, and then the doctor is held up at the hospital. The room fills with people who are already unwell, and nobody can tell them how long they will wait.
+In a private clinic in Egypt every patient is told the same time, and then the doctor is held up at the hospital. The room fills with people who are already unwell, and nobody can tell them how long they will wait. The secretary answers the same calls all evening: booking, prices, times, has the doctor arrived.
 
-We asked six colleagues who run private clinics. Five of the six start late, by 15 to 60 minutes. Their patients wait 45 minutes at the median and 66 on average, and in two clinics the wait passes an hour.
+In a survey of colleagues who run private clinics in Cairo and Sharqia, 83% start late, by 15 to 60 minutes. Their patients wait 45 minutes at the median and 66 on average, and in a third of the clinics the wait passes an hour.
 
 ## What Nowa does
 
-- **For the patient:** one Telegram message at the right minute, "leave now", worked out from the pace of the queue, their own travel time and a small cushion. They arrive just before their turn.
-- **For the doctor:** two kinds of tap all evening. No second system to manage, no crowded waiting room.
-- **For safety:** the AI only talks. It understands the patient, triages, and answers from approved health pages. Code alone books, times and sends. An emergency gets a fixed "call 123" reply and booking stops.
-- **For a full day:** the clinic takes a few bookings over its capacity from its own learned no-show rate, and a standby list fills a freed place by Telegram with a one-tap take.
-- **It learns the clinic:** the visit length, how late the evening starts, and who comes and who does not, from each closed night, shown to the doctor in the settings.
-- **Any place in Greater Cairo:** 72 districts with Arabic, English and Franco spellings and typo tolerance; with a Mapbox token, any typed place is geocoded; a place off the map gets a safe travel allowance, never a refusal.
-- **Telegram on any device:** the linking step shows a QR on a laptop, explains the install when Telegram is missing, renews an expired link, and says what to fix when the numbers differ.
-- **Check a booking any time:** the chat finds it by name and the last four digits of the phone, with a lock after repeated failures.
+**The front desk, at any hour**
+
+- **Talks like the secretary.** A patient opens the clinic's chat link (or scans the poster on the door) and writes the way they speak: Arabic, English or Franco, in the same conversation.
+- **Books, moves and cancels.** For the patient or for someone else. Every booking is a day, a queue number and an expected time. One private link lets the patient change the day or cancel, and the chat finds any booking by name and the last four digits of the phone.
+- **Answers health questions from approved sources only.** Replies come from a library of approved medical pages (NHS, MedlinePlus, CDC) and show the source. What the library cannot answer goes to the doctor, who answers once; Nowa reuses that answer for the next patient who asks.
+- **Puts emergencies first.** A dangerous symptom gets a fixed "call 123" reply, the chat locks and booking stops. This check runs before anything else on every message.
+
+**Clinic night**
+
+- **Two taps by the doctor.** "On my way" when leaving the hospital, and "who comes in" after each visit. Nothing else to manage.
+- **One message at the right minute.** From the doctor's drive, the pace of the queue and each patient's own travel time, Nowa sends every patient one Telegram message, "leave now", so they arrive just before their turn.
+- **A full day is not a dead end.** A waiting list offers a freed place at once, with a one-tap take, and the clinic takes a few bookings over capacity from its own learned no-show rate.
+- **The evening report.** Who came, who did not, walk-ins, the average visit and the average wait, on Telegram when the doctor closes the night.
+
+**It learns the clinic**
+
+- The visit length, how late the evening starts and who tends not to show, from each closed night, shown to the doctor in the settings and used for the next evening.
+- Any place in Greater Cairo: 72 districts with Arabic, English and Franco spellings and typo tolerance; with a Mapbox token, any typed place is geocoded; a place off the map gets a safe travel allowance, never a refusal.
+- Telegram on any device: a QR on a laptop, a button on a phone, the install explained when Telegram is missing, an expired link renewed, and a clear message when the numbers differ.
 
 ![The live evening: clinic clock, the patient in the room, the queue and the Telegram messages](docs/img/live-evening.jpg)
 
@@ -33,13 +45,17 @@ We asked six colleagues who run private clinics. Five of the six start late, by 
 | | Number | Basis |
 |---|---|---|
 | Wait on a full 30-patient evening | 229 min to 21 min (median) | Simulated, 300 evenings, assumed inputs |
-| Wait in clinics today | 45 to 66 min | Survey of 6 clinics |
+| Wait in clinics today | 45 to 66 min | Colleague survey, Cairo and Sharqia |
 | Patient-hours returned per clinic per month | 100 to 190 h | Assumed 15 patients a night over 17 nights, today's wait against the simulated 21 min |
 | What the doctor does | 2 kinds of tap | By design |
 | Cost to run | about 1.7 EGP per patient | Estimate |
 | Price | 1,500 EGP per clinic per month, about two visit fees | Proposed |
 
-Nowa is a working prototype. It has not served a real clinic yet, so its wait results are simulated and the survey is the measurement. The first pilot is the next step.
+Nowa is a working product that has not served a real clinic yet, so its wait results are simulated and the survey is the measurement. The first pilot is the next step.
+
+## Try it hosted, nothing to install
+
+Open https://nowa-bche.onrender.com and press **See Nowa working**. A judge code from the submission form opens a practice clinic with 12 fictional patients, a practice clock and a drawn Telegram phone that shows every message, so no Telegram account is needed. The first request can take up to a minute while the free server wakes.
 
 ## Run it in 5 minutes, no keys
 
@@ -93,16 +109,18 @@ Patient (web chat, Telegram)      Doctor (board, Telegram)
    Postgres (SQLite in the demo) -> Telegram sender, timer worker
 ```
 
+The one rule between the layers: the AI talks, code decides. The model must answer in a strict schema (triage level, intent, the booking fields it understood, whether it is a health question, a reply) and has no tools. Code alone books, times and sends.
+
 Rules the code enforces:
 
 - A booking is a day, a queue number and an expected time. The expected time only moves later, only by 20 minutes or more, and freezes after "leave now".
-- Every message is one of six fixed templates filled from the database, in the patient's language (Arabic, English or Franco-Arabic).
+- Every message a patient receives is one of a fixed set of approved templates, filled from the database in the patient's language (Arabic, English or Franco-Arabic).
 - A Telegram chat is linked to a phone number only after the user shares their own contact and it matches.
 - Every action is safe to repeat. Names and phones live only in the identity tables.
 
 Built to fail safely:
 
-- **The AI provider is slow or down.** The chat falls back through a chain of models to a fixed reply. Booking by buttons and the timing engine never need a model.
+- **The AI provider is slow or down.** The chat falls back through a chain of models to a fixed reply that gives the clinic's phone. Booking by buttons and the timing engine never need a model.
 - **Telegram cannot deliver.** The message is marked failed and the doctor is alerted once.
 - **The travel service fails.** Nowa uses a fixed travel time for the patient's area.
 - **The doctor has not tapped by opening time.** Nowa reminds the doctor on Telegram.
@@ -111,7 +129,7 @@ In the demo, the people and their actions in the Live evening are scripted; the 
 
 ## Roadmap
 
-1. **A first pilot with three doctors.** Measure the real wait and how often doctors and patients tap. Test the price.
+1. **A first pilot** in a real clinic. Measure the real wait and how often doctors and patients tap. Test the price.
 2. **SMS as a second channel** for patients who do not use Telegram, after a carrier contract and a field test. WhatsApp follows if the pilot shows the need.
 3. **Data protection licences.** Egypt's Law 151 of 2020 requires them before holding real patient data. The design already keeps names and phones in separate identity tables.
 4. **More specialties.** Cardiology triage rules are in place; other specialties follow after specialist review.
@@ -119,7 +137,7 @@ In the demo, the people and their actions in the Live evening are scripted; the 
 
 ## Hosted instance
 
-A hosted copy runs at https://nowa-bche.onrender.com (Render, Frankfurt; Postgres on Supabase, Frankfurt). Its front page leads to the judge page: a judge code from the submission form opens a seven-day practice clinic with a real Telegram link. Real clinic sign-up stays closed until the pilot agreement is in force.
+The hosted copy runs at https://nowa-bche.onrender.com (Render, Frankfurt; Postgres on Supabase, Frankfurt) with a real Telegram bot. A judge code opens a seven-day practice clinic; a doctor can also register a real clinic from the front page.
 
 ## More
 
@@ -128,4 +146,4 @@ A hosted copy runs at https://nowa-bche.onrender.com (Render, Frankfurt; Postgre
 - Area coordinates: [docs/reference/greater-cairo-areas.json](docs/reference/greater-cairo-areas.json). Area coordinates © OpenStreetMap contributors, ODbL.
 - Licence: all rights reserved, see [LICENSE](LICENSE). The code is published for review; running it locally to evaluate it is permitted.
 
-Built by Dr Mohamed Mostafa, cardiologist, Cairo, for Agents at Work 2026. Designed by the doctor and built with two AI agents in fixed roles: one writes the code, the other specifies and reviews it.
+Built by Dr Mohamed Mostafa, cardiologist, Cairo, for Agents at Work 2026.
