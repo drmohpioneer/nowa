@@ -172,7 +172,7 @@ def test_gets_create_nothing_and_public_booking(
                 "ar",
                 "patient",
                 bid,
-                timing.patient_blanks(conn, bid, "2"),
+                timing.patient_blanks(conn, bid, "2", at=demo_clock.now(cid)),
                 "public-linked-leave",
             )
             sent = conn.execute(select(s.outbox).where(s.outbox.c.id == oid)).mappings().one()

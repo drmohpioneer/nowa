@@ -44,10 +44,10 @@ def test_gate_equality_freeze_travel(engine, monkeypatch):
         timing.recompute(conn, clock, eid)
     assert row(engine, s.bookings, ids[0])["state"] == "booked"
     timing.doctor_on_my_way(engine, clock, cid, eid, travel.LatLng(30, 31), None, "way")
-    move(clock, 11)
+    move(clock, 6)
     drain(engine, clock, worker.build_registry())
     assert row(engine, s.bookings, ids[0])["state"] == "booked"
-    move(clock, 12)
+    move(clock, 7)
     drain(engine, clock, worker.build_registry())
     b = row(engine, s.bookings, ids[0])
     assert b["state"] == "told_to_leave" and b["travel_min"] == 10 and b["expected_frozen"]
@@ -87,7 +87,7 @@ def test_silent_and_patient_undo(engine):
     timing.patient_on_my_way(engine, clock, ids[0], "another")
     assert row(engine, s.bookings, ids[0])["on_my_way_at"] == at
     timing.patient_undo_on_my_way(engine, clock, ids[0], "undo-patient")
-    assert row(engine, s.bookings, ids[0])["silent"]
+    assert not row(engine, s.bookings, ids[0])["silent"]
     timing.patient_on_my_way(engine, clock, ids[0], "again")
     assert row(engine, s.bookings, ids[0])["on_my_way_at"] == clock.now(cid)
 

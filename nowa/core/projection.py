@@ -8,7 +8,9 @@ from sqlalchemy.engine import Connection, RowMapping
 from nowa import schema as s
 from nowa.clock import CAIRO
 
-EveningState = Literal["scheduled", "doctor_on_way", "running", "closed", "cancelled"]
+EveningState = Literal[
+    "scheduled", "doctor_on_way", "running", "winding_down", "closed", "cancelled"
+]
 WAITING_STATES = ("booked", "told_to_leave", "on_my_way")
 
 
@@ -36,7 +38,7 @@ def doctor_free_at(snap: EveningSnapshot, pace_min: float, now: datetime) -> dat
         return max(
             now, snap.doctor_on_way_at + timedelta(minutes=snap.doctor_eta_min + snap.start_gap_min)
         )
-    if snap.state == "running":
+    if snap.state in {"running", "winding_down"}:
         if snap.visit_started_at is None:
             return now
         return max(now + timedelta(minutes=1), snap.visit_started_at + timedelta(minutes=pace_min))

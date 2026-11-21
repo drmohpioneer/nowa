@@ -392,7 +392,7 @@ def _lookup_status(
                 s.bookings.c.contact_id == contact_id,
                 s.bookings.c.state.in_(WAITING_STATES),
                 s.evenings.c.date >= clock.now(session["clinic_id"]).date(),
-                s.evenings.c.state.in_(("scheduled", "doctor_on_way", "running")),
+                s.evenings.c.state.in_(("scheduled", "doctor_on_way", "running", "winding_down")),
             )
             .order_by(s.evenings.c.date)
         )
@@ -475,7 +475,9 @@ def lookup(
                     s.bookings.c.state.in_(WAITING_STATES),
                     s.contacts.c.phone_e164.endswith(last4),
                     s.evenings.c.date >= clock.now(clinic_id).date(),
-                    s.evenings.c.state.in_(("scheduled", "doctor_on_way", "running")),
+                    s.evenings.c.state.in_(
+                        ("scheduled", "doctor_on_way", "running", "winding_down")
+                    ),
                 )
             ).all()
             matches = {

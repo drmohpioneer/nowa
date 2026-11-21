@@ -286,7 +286,7 @@ def test_full_change_preserves_original(engine, page):
     assert not messages(engine, "3")
 
 
-@pytest.mark.parametrize("kind", ["cancel_tonight", "close_untold"])
+@pytest.mark.parametrize("kind", ["cancel_tonight", "close_untold", "close_told", "wind_down"])
 def test_rebook_once_from_clinic_cancel(engine, page, kind):
     client, cid, eid, clock, ids, code = page
     if kind == "cancel_tonight":
@@ -300,8 +300,21 @@ def test_rebook_once_from_clinic_cancel(engine, page, kind):
         assert timing.who_comes_in(engine, clock, cid, eid, ids[0], False, "visit").ok
         ids = [rows(engine, s.bookings)[-1]["id"]]
         code = booking.link_code_for(ids[0])
+        if kind == "close_told":
+            with write_tx(engine) as conn:
+                conn.execute(
+                    s.bookings.update()
+                    .where(s.bookings.c.id == ids[0])
+                    .values(
+                        state="told_to_leave", expected_shown=clock.now(cid) + timedelta(minutes=60)
+                    )
+                )
         count = timing.close_preview(engine, clock, cid, eid).untold_count
-        assert timing.close_evening(engine, clock, cid, eid, "doctor", "close", count).ok
+        if kind == "wind_down":
+            with write_tx(engine) as conn:
+                assert timing.wind_down_in_tx(conn, clock, cid, eid, "wind", count).ok
+        else:
+            assert timing.close_evening(engine, clock, cid, eid, "doctor", "close", count).ok
     initial_count = len(rows(engine, s.bookings))
     assert booking.booking_view(engine, code).state_reason == kind
     form = client.get(f"/r/{code}")

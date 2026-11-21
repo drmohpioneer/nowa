@@ -50,7 +50,7 @@ def contact_for(conn: Connection, req: booking.BookingRequest) -> int:
 
 def telegram_required(conn: Connection, clinic_id: int) -> bool:
     """A practice clinic shows every message on the drawn phone, so it needs no link."""
-    sandbox = conn.execute(
+    sandbox: bool = conn.execute(
         select(s.clinics.c.is_sandbox).where(s.clinics.c.id == clinic_id)
     ).scalar_one()
     return not sandbox
@@ -271,6 +271,8 @@ def offer_next(conn: Connection, clock: Clock, evening_id: int) -> None:
         )
         .values(state="expired")
     )
+    if evening["state"] == "winding_down":
+        return
     # Existing live offers already consume capacity in _day_status. A second
     # freed place can therefore go to a different standby without sharing a hold.
     reason, projected = booking._day_status(conn, cid, day, now)

@@ -71,7 +71,7 @@ def test_claim_restart_matching_contact_and_next_leave_now(bot, engine):
             "en",
             "patient",
             ids[0],
-            timing.patient_blanks(conn, ids[0], "2"),
+            timing.patient_blanks(conn, ids[0], "2", at=clock.now(cid)),
             "contact-leave-now",
         )
     assert next(r for r in rows(engine, s.outbox) if r["id"] == oid)["adapter"] == "telegram"

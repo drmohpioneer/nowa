@@ -508,7 +508,7 @@ def test_sandbox_isolation_and_telegram_cleanup_on_mobile_reuse(
             "ar",
             "patient",
             bid,
-            timing.patient_blanks(conn, bid, "2"),
+            timing.patient_blanks(conn, bid, "2", at=offset_clock.now(cid)),
             "fictional-sandbox-patient",
         )
         row = conn.execute(select(s.outbox).where(s.outbox.c.id == mid)).mappings().one()

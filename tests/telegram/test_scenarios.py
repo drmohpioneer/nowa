@@ -15,7 +15,6 @@ from nowa.db import write_tx
 from nowa.messaging.adapters import ADAPTERS
 from nowa.messaging.outbox import enqueue_message
 from nowa.telegram import keyboards
-from nowa.web.strings import text
 from tests.core.support import row
 from tests.helpers.worker import drain
 from tests.telegram.support import callback, doctor_link, inline_data, message, tap
@@ -84,7 +83,7 @@ def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypa
             "en",
             "patient",
             ids[0],
-            timing.patient_blanks(conn, ids[0], "2"),
+            timing.patient_blanks(conn, ids[0], "2", at=clock.now(cid)),
             "scenario-telegram",
         )
     for delay in (0, 1, 2):
@@ -111,7 +110,7 @@ def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypa
             "en",
             "patient",
             ids[0],
-            timing.patient_blanks(conn, ids[0], "2"),
+            timing.patient_blanks(conn, ids[0], "2", at=clock.now(cid)),
             "after-unlink",
         )
     for delay in (0, 1, 2):
@@ -162,8 +161,8 @@ def test_doctor_full_evening_actions_and_close_count_change(bot, engine):
         ("editMessageText", reask),
         ("answerCallbackQuery", {"callback_query_id": "query-10"}),
     ]
-    assert reask["text"] == text("tg.close_untold", "ar").format(
-        count=int(keyboards.parse(new_data).arg)
+    assert reask["text"] == keyboards.close_preview_text(
+        timing.close_preview(engine, clock, bot[1], eid), "ar"
     )
     assert inline_data(fake) == [new_data]
     assert row(engine, s.evenings, eid)["state"] == "running"

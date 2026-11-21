@@ -57,6 +57,9 @@ DOCTOR_DYNAMIC = {
     'room ? "who_next" : "who_first"': {"who_next", "who_first"},
     "key": {"booked_count", "seen_count", "remaining_count", "without_booking_count"},
     'doctor.arrived_at ? "arrived_since" : "on_way_arrival"': {"arrived_since", "on_way_arrival"},
+    'row.arrived_at ? "arrived" : row.state': STATES | {"arrived"},
+    'row.arrived_at ? "undo_arrived" : "mark_arrived"': {"undo_arrived", "mark_arrived"},
+    '"close_group_" + group': {"close_group_untold", "close_group_told", "close_group_passed"},
     "row.state": STATES,
     'row.state === "in_room" ? "in_room" : row.state': STATES,
     'action === "draft" ? "q_answer" : "q_" + action': {

@@ -119,6 +119,44 @@ def test_lookup_success_and_lockout_across_sessions(chat, engine, frozen_clock):
     assert result.json()["reply"] != ui("lookup_locked", "ar")
 
 
+def test_lookup_status_returns_told_booking_during_wind_down(chat, engine, frozen_clock):
+    client, app, clinic = chat
+    app.state.ai_chain = [FixtureAdapter(book_output())]
+    key = session(client)
+    tap(client, key, day_payload(turn(client, key)))
+    booked = rows(engine, s.bookings)
+    assert len(booked) == 1
+    booking = booked[0]
+    with write_tx(engine) as conn:
+        conn.execute(
+            s.evenings.update()
+            .where(s.evenings.c.id == booking["evening_id"])
+            .values(state="winding_down")
+        )
+        conn.execute(
+            s.bookings.update()
+            .where(s.bookings.c.id == booking["id"])
+            .values(
+                state="told_to_leave",
+                told_to_leave_at=frozen_clock.now(clinic),
+                expected_frozen=True,
+            )
+        )
+    result = client.post(
+        BASE + "/lookup",
+        json=dict(
+            session=session(client), name="Karim Father", last4="0777",
+            idempotency_key="wind-down",
+        ),
+    )
+    assert result.status_code == 200
+    assert "رقم 1" in result.json()["reply"]
+    assert "اتحرك دلوقتي" in result.json()["reply"]
+    stored = rows(engine, s.chat_sessions)[-1]
+    assert stored["patient_id"] == booking["patient_id"]
+    assert stored["contact_id"] == booking["contact_id"]
+
+
 def test_real_ip_lock_is_only_recorded(chat, engine):
     client, app, clinic = chat
     with write_tx(engine) as conn:

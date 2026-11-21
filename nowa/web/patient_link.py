@@ -295,7 +295,12 @@ def change_page(request: Request, code: str, view: View) -> HTMLResponse:
 
 @router.api_route("/r/{code}", methods=["GET", "HEAD"], response_model=None)
 def rebook_page(request: Request, code: str, view: View) -> HTMLResponse | RedirectResponse:
-    if view.state != "cancelled" or view.state_reason not in {"cancel_tonight", "close_untold"}:
+    if view.state != "cancelled" or view.state_reason not in {
+        "cancel_tonight",
+        "close_untold",
+        "close_told",
+        "wind_down",
+    }:
         return RedirectResponse(
             f"/l/{code}"
             + (

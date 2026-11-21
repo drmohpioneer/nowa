@@ -72,19 +72,22 @@ def test_populated_head09_upgrade_preserves_rows_and_foreign_keys(tmp_path):
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "31"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "33"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
             for table, rows in before.items():
                 after = conn.exec_driver_sql(f"SELECT * FROM {table}").all()
                 if table == "evenings":
-                    assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in rows]
-                    assert all(tuple(row[-2:]) == (None, None) for row in after)
+                    assert [tuple(row[:-3]) for row in after] == [tuple(row) for row in rows]
+                    assert all(tuple(row[-3:]) == (None, None, 0) for row in after)
                 elif table == "outbox":
                     assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in rows]
                     assert all(tuple(row[-2:]) == (None, None) for row in after)
-                elif table in {"patients", "bookings"}:
+                elif table == "bookings":
+                    assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in rows]
+                    assert all(tuple(row[-2:]) == (None, None) for row in after)
+                elif table == "patients":
                     assert [tuple(row[:-1]) for row in after] == [tuple(row) for row in rows]
                     assert all(row[-1] is None for row in after)
                 else:
@@ -113,7 +116,7 @@ def test_dangling_foreign_key_upgrade_rolls_back_and_restores_enforcement(tmp_pa
         (scripts / "versions" / "11_broken.py").write_text("""from alembic import op
 import sqlalchemy as sa
 revision = "11_broken"
-down_revision = "31"
+down_revision = "33"
 branch_labels = None
 depends_on = None
 
@@ -185,13 +188,16 @@ def test_populated_head10_evening_upgrade_through_runner(tmp_path):
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "31"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "33"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
             for table, original in before.items():
                 after = conn.exec_driver_sql(f"SELECT * FROM {table}").all()
-                if table in {"clinics", "patients", "bookings"}:
+                if table == "bookings":
+                    assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in original]
+                    assert all(tuple(row[-2:]) == (None, None) for row in after)
+                elif table in {"clinics", "patients"}:
                     assert [tuple(row[:-1]) for row in after] == [tuple(row) for row in original]
                     if table == "clinics":
                         assert all(row[-1] == row[4] for row in after)
@@ -200,8 +206,8 @@ def test_populated_head10_evening_upgrade_through_runner(tmp_path):
                 else:
                     assert after == original
             upgraded = conn.exec_driver_sql("SELECT * FROM evenings").one()
-            assert tuple(upgraded[:-2]) == tuple(evening)
-            assert tuple(upgraded[-2:]) == (None, None)
+            assert tuple(upgraded[:-3]) == tuple(evening)
+            assert tuple(upgraded[-3:]) == (None, None, 0)
             columns = {r[1]: r for r in conn.exec_driver_sql("PRAGMA table_info(evenings)")}
             assert all(
                 columns[name][2] == "TIME" and columns[name][3] == 0

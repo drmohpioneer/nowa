@@ -170,6 +170,7 @@ evenings = Table(
     clinic_column(),
     Column("date", Date, nullable=False),
     Column("state", String, nullable=False, server_default="scheduled"),
+    Column("covers_used", Integer, nullable=False, server_default="0"),
     stamp("doctor_on_way_at"),
     Column("doctor_eta_min", Float),
     stamp("projected_start"),
@@ -179,7 +180,7 @@ evenings = Table(
     Column("paper_start", Time),
     Column("paper_end", Time),
     UniqueConstraint("clinic_id", "date"),
-    enum_check("state", "scheduled doctor_on_way running closed cancelled"),
+    enum_check("state", "scheduled doctor_on_way running winding_down closed cancelled"),
     enum_check("closed_by", "doctor auto system_no_taps"),
 )
 areas = Table(
@@ -216,6 +217,7 @@ bookings = Table(
     Column("expected_frozen", Boolean, nullable=False, server_default=false()),
     stamp("told_to_leave_at"),
     stamp("on_my_way_at"),
+    stamp("arrived_at"),
     Column("travel_min", Float),
     Column("link_code_hash", Text),
     Column("area_id", Integer, ForeignKey("areas.id")),

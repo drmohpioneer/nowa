@@ -341,7 +341,7 @@ def test_prefetch_refresh_throttle_and_leave(engine, monkeypatch, fake_mapbox, v
     initial = pending(engine, eid)
     assert len(initial) == 2
     first = min(initial, key=lambda r: r["due_at"])
-    assert first["due_at"] == BASE + timedelta(minutes=150 - 10 - (45 * 1.3 + 10) - 30)
+    assert first["due_at"] == BASE + timedelta(minutes=150 - 10 - (45 * 1.3 + 15) - 30)
     for _ in range(10):
         with write_tx(engine) as conn:
             timing.recompute(conn, clock, eid)

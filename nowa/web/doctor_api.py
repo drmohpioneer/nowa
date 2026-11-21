@@ -54,6 +54,10 @@ class Who(Command):
         return self
 
 
+class Arrival(Command):
+    booking_id: Annotated[int, Field(strict=True, gt=0)]
+
+
 class Close(Command):
     expected_untold: Annotated[int, Field(strict=True, ge=0)]
 
@@ -66,7 +70,7 @@ def own(conn: Connection, session: auth.Session, body: Command | None) -> None:
     # evening_id checks ownership only; evening commands always act on tonight's evening.
     for table, row_id in (
         (s.evenings, body.evening_id if body else None),
-        (s.bookings, body.booking_id if isinstance(body, Who) else None),
+        (s.bookings, body.booking_id if isinstance(body, (Who, Arrival)) else None),
     ):
         if (
             row_id is not None
@@ -136,6 +140,8 @@ def tonight(request: Request, session: Session) -> dict[str, Any]:
 
         return {
             "standby_count": count(conn, session.clinic_id, eid),
+            "cover_cap_reached": board.cover_cap_reached,
+            "evening_state": board.evening_state,
             **tap_state(conn, session.clinic_id, eid, lang),
             "can_undo": eid is not None
             and conn.execute(
@@ -180,12 +186,33 @@ def run(request: Request, session: auth.Session, body: Command, command: str) ->
             data = asdict(
                 timing.who_comes_in_in_tx(conn, clock, cid, eid, body.booking_id, body.walk_in, key)
             )
+        elif command in {"arrived", "arrived/undo"}:
+            assert isinstance(body, Arrival)
+            subject = conn.execute(
+                select(s.bookings.c.id).where(
+                    s.bookings.c.id == body.booking_id,
+                    s.bookings.c.evening_id == eid,
+                    s.bookings.c.clinic_id == cid,
+                )
+            ).first()
+            action = (
+                timing.mark_arrived_in_tx if command == "arrived" else timing.undo_arrived_in_tx
+            )
+            data = (
+                asdict(action(conn, clock, cid, body.booking_id, "doctor", key))
+                if subject
+                else {"ok": False, "reason": "invalid_booking"}
+            )
         elif command == "undo":
             data = asdict(timing.undo_last_in_tx(conn, clock, cid, eid, key))
-        elif command == "close":
+        elif command in {"close", "wind-down"}:
             assert isinstance(body, Close)
-            result = timing.close_evening_in_tx(
-                conn, clock, cid, eid, "doctor", key, body.expected_untold
+            result = (
+                timing.wind_down_in_tx(conn, clock, cid, eid, key, body.expected_untold)
+                if command == "wind-down"
+                else timing.close_evening_in_tx(
+                    conn, clock, cid, eid, "doctor", key, body.expected_untold
+                )
             )
             data = asdict(result)
             if isinstance(result, timing.CloseRefused) and result.reason == "count_changed":
@@ -262,6 +289,16 @@ def who(request: Request, body: Who, session: CommandSession) -> JSONResponse:
     return run(request, session, body, "who-comes-in")
 
 
+@router.post("/arrived")
+def arrived(request: Request, body: Arrival, session: CommandSession) -> JSONResponse:
+    return run(request, session, body, "arrived")
+
+
+@router.post("/arrived/undo")
+def undo_arrived(request: Request, body: Arrival, session: CommandSession) -> JSONResponse:
+    return run(request, session, body, "arrived/undo")
+
+
 @router.post("/undo")
 def undo(request: Request, body: Command, session: CommandSession) -> JSONResponse:
     return run(request, session, body, "undo")
@@ -272,11 +309,12 @@ def preview(request: Request, session: Session, evening_id: int | None = None) -
     with request.app.state.engine.connect() as conn:
         own(conn, session, Command(idempotency_key="preview", evening_id=evening_id))
         eid = evening(conn, request, session)
+        lang = doctor_language(request, conn, session)
     if eid is None:
         return {"ok": False, "reason": "no_evening"}
     return asdict(
         timing.close_preview(
-            request.app.state.engine, request.app.state.clock, session.clinic_id, eid
+            request.app.state.engine, request.app.state.clock, session.clinic_id, eid, lang
         )
     )
 
@@ -284,6 +322,11 @@ def preview(request: Request, session: Session, evening_id: int | None = None) -
 @router.post("/close")
 def close(request: Request, body: Close, session: CommandSession) -> JSONResponse:
     return run(request, session, body, "close")
+
+
+@router.post("/wind-down")
+def wind_down(request: Request, body: Close, session: CommandSession) -> JSONResponse:
+    return run(request, session, body, "wind-down")
 
 
 @router.post("/cancel-tonight/request")

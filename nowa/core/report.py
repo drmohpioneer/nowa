@@ -352,7 +352,7 @@ def build_report(
             .select_from(s.action_record)
             .where(
                 s.action_record.c.clinic_id == clinic_id,
-                s.action_record.c.kind == "close_untold",
+                s.action_record.c.kind.in_(("close_untold", "close_told")),
                 s.action_record.c.booking_id.in_(by_booking),
             )
         ).scalar_one(),

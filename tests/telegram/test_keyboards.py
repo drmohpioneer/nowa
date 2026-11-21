@@ -120,9 +120,9 @@ def test_board_uses_engine_order_and_names():
     short = k.board(1, board, "ar")["inline_keyboard"]
     full = k.board(1, board, "ar", full=True)["inline_keyboard"]
     assert short[0][0]["text"] == "8 كريم ⚠️2"
-    assert [r[0]["callback_data"] for r in short[:3]] == ["in:1:7:-", "in:1:8:-", "in:1:9:-"]
-    assert short[3][0]["text"] == "المزيد"
-    assert len(full) == len(short) + 1
+    assert [r[0]["callback_data"] for r in short[:6:2]] == ["in:1:7:-", "in:1:8:-", "in:1:9:-"]
+    assert short[6][0]["text"] == "المزيد"
+    assert len(full) == len(short) + 3
     assert k.location("ar")["keyboard"][0][0]["request_location"] is True
     assert k.location("ar")["one_time_keyboard"] is True
     assert k.patient_menu()["keyboard"] == [["حجوزاتي"], ["وقف الرسايل هنا"]]

@@ -290,8 +290,8 @@ def test_review_poster_one_heading_localized_address_or_fallback(
                 "and their road."
             ),
         ),
-        ("ui.told_to_leave", "اتقاله ينزل", "Told to leave"),
-        ("doctor.told_to_leave", "اتقاله ينزل", "Told to leave"),
+        ("ui.told_to_leave", "متقول له", "Told to leave"),
+        ("doctor.told_to_leave", "متقول له", "Told to leave"),
         (
             "doctor.close_untold",
             (

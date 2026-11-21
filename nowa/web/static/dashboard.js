@@ -78,6 +78,12 @@ async function refresh() {
   const standbyCount = document.getElementById("standby-count");
   if (standbyCount) { standbyCount.hidden = !(data.standby_count > 0);
     standbyCount.textContent = t("standby_count").replace("{count}", data.standby_count || 0); }
+  const windDownButton = document.getElementById("wind-down");
+  if (windDownButton) windDownButton.hidden = data.evening_state !== "running";
+  const windDownState = document.getElementById("wind-down-state");
+  if (windDownState) windDownState.hidden = data.evening_state !== "winding_down";
+  const coverLimit = document.getElementById("cover-limit");
+  if (coverLimit) coverLimit.hidden = !data.cover_cap_reached;
   const reportLink = document.getElementById("latest-report");
   reportLink.hidden = !data.latest_report_id;
   if (data.latest_report_id) reportLink.href = "/d/report/" + data.latest_report_id;
@@ -103,6 +109,12 @@ async function refresh() {
     const el = document.createElement(tag); el.className = className || ""; el.textContent = text ?? "";
     if (text) globalThis.NowaText?.(el, text);
     return el;
+  };
+  const rowStatus = row => {
+    if (!row.remaining || row.state === "in_room") return t(row.state);
+    const at = row.arrived_at || row.on_my_way_at || row.told_to_leave_at;
+    const label = t(row.arrived_at ? "arrived" : row.state);
+    return label + (at ? " · " + new Date(at).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) : "");
   };
   const booked = data.rows.filter(row => row.source === "chat" && row.state !== "cancelled").length;
   const withoutBooking = data.rows.filter(row => row.source === "walkin_tap").length;
@@ -138,7 +150,7 @@ async function refresh() {
     bindButton(button, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
     if (index === 0) {
       const name = row.patient_first_name || t("walk_in");
-      const details = make("div"), state = make("span", "state-pill", t(row.state));
+      const details = make("div"), state = make("span", "state-pill", rowStatus(row));
       state.dataset.state = row.state;
       const sub = make("small"); sub.append(state);
       if (row.no_show_count > 0) sub.append(make("span", "warn", t("didnt_come") + " ×" + row.no_show_count));
@@ -156,12 +168,19 @@ async function refresh() {
     const name = (row.patient_first_name || t("walk_in")) + (row.no_show_count > 0 ? " · " + t("didnt_come") + " ×" + row.no_show_count : "");
     const title = make(row.remaining ? "button" : "span", "name", name); title.setAttribute("dir", document.documentElement.dir);
     if (row.remaining && !closed) bindButton(title, async () => { await command("who-comes-in", {booking_id: row.booking_id}); });
-    const state = make("span", "state-pill", [t(row.state === "in_room" ? "in_room" : row.state), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · "));
+    const state = make("span", "state-pill", [rowStatus(row), row.silent ? t("silent") : "", row.source === "walkin_tap" ? t("walk_in") : ""].filter(Boolean).join(" · "));
     if (row.state === "in_room") state.prepend(make("span", "dot live", ""));
     state.dataset.state = row.state; card.dataset.state = row.state;
     const expected = row.expected_shown ? new Date(row.expected_shown).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) : "";
     if (row.origin_display) title.append(make("small", "muted", row.origin_display));
-    card.append(make("span", "n", String(row.queue_number)), title, make("span", "exp", expected), state); queue.append(card);
+    card.append(make("span", "n", String(row.queue_number)), title, make("span", "exp", expected), state);
+    if (row.remaining && !closed) {
+      const arrival = make("button", "btn btn-ghost", t(row.arrived_at ? "undo_arrived" : "mark_arrived"));
+      arrival.type = "button";
+      bindButton(arrival, () => command(row.arrived_at ? "arrived/undo" : "arrived", {booking_id: row.booking_id}));
+      card.append(arrival);
+    }
+    queue.append(card);
   }
   const select = document.getElementById("areas");
   const previous = select.value;
@@ -187,19 +206,36 @@ if (document.body.dataset.mode === "tonight") {
   let closePreview;
   function showClose(preview) {
     closePreview = preview; closePanel.hidden = false;
-    document.getElementById("close-details").textContent = preview.untold_count > 0 ? t("close_untold").replace("{count}", preview.untold_count) : t("close_confirm");
+    const lines = [t("close_groups").replace("{untold}", preview.untold_count).replace("{told}", preview.told_count).replace("{passed}", preview.passed_count)];
+    for (const group of ["untold", "told", "passed"]) {
+      lines.push(t("close_group_" + group));
+      for (const patient of preview[group]) {
+        const at = patient.expected_shown ? new Date(patient.expected_shown).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) : "";
+        lines.push(patient.patient_name + " · " + at);
+      }
+    }
+    const details = document.getElementById("close-details");
+    details.style.whiteSpace = "pre-line"; details.textContent = lines.join("\n");
     document.getElementById("close-confirm").focus();
   }
   bindButton(document.getElementById("close"), async () => showClose(await api("/d/api/close/preview")));
   bindButton(document.getElementById("close-confirm"), async () => {
     const result = await command("close", {expected_untold: closePreview.untold_count});
-    if (result.reason === "count_changed") showClose(result);
+    if (result.reason === "count_changed") showClose(await api("/d/api/close/preview"));
     else { closePanel.hidden = true; document.getElementById("latest-report").focus(); }
   });
   document.getElementById("close-back").addEventListener("click", () => { closePanel.hidden = true; document.getElementById("close").focus(); });
   closePanel.addEventListener("keydown", event => {
     if (event.key === "Escape") { closePanel.hidden = true; document.getElementById("close").focus(); }
     if (event.key === "Tab") { event.preventDefault(); const confirm = document.getElementById("close-confirm"), back = document.getElementById("close-back"); (document.activeElement === confirm ? back : confirm).focus(); }
+  });
+  bindButton(document.getElementById("wind-down"), async () => {
+    let preview = await api("/d/api/close/preview");
+    while (window.confirm(t("wind_down_confirm").replace("{count}", preview.untold_count))) {
+      const result = await command("wind-down", {expected_untold: preview.untold_count});
+      if (result.reason !== "count_changed") return;
+      preview = await api("/d/api/close/preview");
+    }
   });
   bindButton(document.getElementById("cancel"), async () => {
     const result = await command("cancel-tonight/request");

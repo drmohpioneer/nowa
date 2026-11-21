@@ -111,7 +111,10 @@ class BookingView:
     clinic_id: int
     lang: Literal["ar", "en", "franco"]
     evening_state: str
-    state_reason: Literal["cancel_tonight", "close_untold", "patient", "clinic"] | None
+    state_reason: (
+        Literal["cancel_tonight", "close_untold", "close_told", "wind_down", "patient", "clinic"]
+        | None
+    )
     is_sandbox: bool
     patient_first_name: str
     doctor_name: str
@@ -788,14 +791,25 @@ def booking_view(engine: Engine, link_code: str, lang: str | None = None) -> Boo
                 s.evenings.c.id == row["evening_id"]
             )
         ).one()
-        reason: Literal["cancel_tonight", "close_untold", "patient", "clinic"] | None = None
+        reason: (
+            Literal[
+                "cancel_tonight", "close_untold", "close_told", "wind_down", "patient", "clinic"
+            ]
+            | None
+        ) = None
         if row["state"] == "cancelled":
             action = conn.execute(
                 select(s.action_record.c.kind, s.action_record.c.actor)
                 .where(
                     s.action_record.c.booking_id == row["id"],
                     s.action_record.c.kind.in_(
-                        ("booking_cancelled", "cancel_tonight", "close_untold")
+                        (
+                            "booking_cancelled",
+                            "cancel_tonight",
+                            "close_untold",
+                            "close_told",
+                            "wind_down",
+                        )
                     ),
                 )
                 .order_by(s.action_record.c.id.desc())
@@ -806,6 +820,10 @@ def booking_view(engine: Engine, link_code: str, lang: str | None = None) -> Boo
                     reason = "cancel_tonight"
                 elif action.kind == "close_untold":
                     reason = "close_untold"
+                elif action.kind == "close_told":
+                    reason = "close_told"
+                elif action.kind == "wind_down":
+                    reason = "wind_down"
                 else:
                     reason = "patient" if action.actor == "patient" else "clinic"
         return BookingView(

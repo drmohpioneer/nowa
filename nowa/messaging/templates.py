@@ -37,7 +37,8 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "2",
         "ar",
     ): (
-        "{patient_name}: اتحرك دلوقتي لعيادة {doctor_name}، دورك قرب "
+        "{patient_name}: انزل من البيت قبل {leave_by} عشان توصل عيادة {doctor_name} "
+        "حوالي {arrive_by} "
         "(رقم {queue_number}). لما تتحرك اضغط هنا: {on_my_way_link} "
         "للاستفسار {clinic_phone}"
     ),
@@ -108,16 +109,16 @@ TEMPLATES: dict[tuple[str, str], str] = {
         "2",
         "en",
     ): (
-        "{patient_name}: leave now for {doctor_name}'s clinic, your "
-        "turn (number {queue_number}) is close. When you leave, tap here: "
+        "{patient_name}: leave home by {leave_by} to reach {doctor_name}'s clinic "
+        "around {arrive_by} (number {queue_number}). When you leave, tap here: "
         "{on_my_way_link} Questions: {clinic_phone}"
     ),
     (
         "2",
         "franco",
     ): (
-        "{patient_name}: et7arrak dilwa2ty le 3eyadet {doctor_name}, "
-        "dorak korrab (rakm {queue_number}). Lama tet7arrak edghat hena: "
+        "{patient_name}: enzel men el beit abl {leave_by} 3ashan tewsal 3eyadet "
+        "{doctor_name} 7awaly {arrive_by} (rakm {queue_number}). Lama tet7arrak edghat hena: "
         "{on_my_way_link} lel estefsar {clinic_phone}"
     ),
     (
@@ -602,6 +603,9 @@ def _fill(text: str, lang: str, blanks: dict[str, Any]) -> str:
             value = doctor_label(value, lang)
         elif name in {"day", "day_franco", "day_date", "next_day"}:
             value = format_day(value, lang)
+        elif name in {"leave_by", "arrive_by"}:
+            local = value.astimezone(CAIRO)
+            value = f"{local.hour % 12 or 12}:{local.minute:02d}"
         elif name == "expected_time":
             value = format_time(value, lang)
         elif name in {"clinic_start", "doctor_arrival"}:

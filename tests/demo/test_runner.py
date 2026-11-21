@@ -278,6 +278,9 @@ def test_silent_check_rearms_one_extra_and_keeps_place(engine, demo_setup):
                 s.timers.c.status == "pending",
             )
         ).scalar_one_or_none()
+        before_covers = ctx.conn.execute(
+            select(s.evenings.c.covers_used).where(s.evenings.c.id == row["evening_id"])
+        ).scalar_one()
         real(ctx, payload)
         if row["queue_number"] == 11:
             after_due = ctx.conn.execute(
@@ -300,24 +303,43 @@ def test_silent_check_rearms_one_extra_and_keeps_place(engine, demo_setup):
                     row["order_key"],
                     state["order_key"],
                     state["silent"],
+                    row["silent"],
+                    before_covers,
+                    ctx.conn.execute(
+                        select(s.evenings.c.covers_used).where(
+                            s.evenings.c.id == row["evening_id"]
+                        )
+                    ).scalar_one(),
                 )
             )
 
     runner.registry["silent_check"] = observed
     runner.advance(600)
     assert len(checks) == 1
-    at, before_due, after_due, before_order, after_order, silent = checks[0]
+    (
+        at,
+        before_due,
+        after_due,
+        before_order,
+        after_order,
+        silent,
+        already_silent,
+        before_covers,
+        after_covers,
+    ) = checks[0]
     assert silent and before_order == after_order == 11
-    assert at < after_due <= at + timedelta(minutes=1)
-    assert before_due > after_due
-    # The engine schedules an earlier leave, then the next minute's drain delivers it.
+    assert after_due == at + timedelta(minutes=3, seconds=30)
+    assert not already_silent and before_due == after_due
+    assert before_covers == 0 and after_covers == 1
+    # With the 15-minute lead, this silent check sends the extra patient now.
+    # The pending timer for the following patient remains valid; the cover is
+    # spent once, and patient 11 keeps the same place.
     with engine.connect() as conn:
         extra = (
             conn.execute(
                 select(s.bookings.c.queue_number).where(
                     s.bookings.c.clinic_id == cid,
-                    s.bookings.c.told_to_leave_at > at,
-                    s.bookings.c.told_to_leave_at <= at + timedelta(minutes=1),
+                    s.bookings.c.told_to_leave_at == at,
                 )
             )
             .scalars()
@@ -326,7 +348,7 @@ def test_silent_check_rearms_one_extra_and_keeps_place(engine, demo_setup):
     assert extra == [13]
     print(
         f"Silent trace: at={at}; old_due={before_due}; new_due={after_due}; "
-        "next_minute_extra=[13]; order=11 unchanged"
+        "same_minute_extra=[13]; order=11 unchanged"
     )
 
 
@@ -420,7 +442,7 @@ def test_overbooking_learning_keeps_script_and_film_counts(engine, demo_setup):
             result.walk_ins,
             result.total_seen,
             result.avg_wait,
-        ) == (17, 16, 1, 1, 1, 17, 22)
+        ) == (17, 16, 1, 1, 1, 17, 30)
         totals = (
             conn.execute(
                 select(s.daily_totals).where(

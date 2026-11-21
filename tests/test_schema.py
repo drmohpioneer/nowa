@@ -24,7 +24,7 @@ def check_migration(engine):
             )
             == []
         )
-        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "31"
+        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "33"
         assert len(conn.execute(select(s.areas)).all()) == 72
         assert list(conn.execute(select(s.clinics.c.slug)).scalars()) == ["_nowa"]
         assert not conn.execute(select(s.clinic_hours)).all()

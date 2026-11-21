@@ -21,7 +21,7 @@
     <p role="status">{{ t('done') }}</p><form method="post" action="/w/{{ code }}/undo">{{ tap_fields() }}<button class="btn btn-main">{{ t('undo') }}</button></form>
   {% elif v.state != 'booked' %}<p>{{ t('readonly') }}</p>{% endif %}
 {% elif mode in ('change', 'rebook') %}
-  {% if (mode == 'change' and active) or (mode == 'rebook' and v.state_reason in ('cancel_tonight', 'close_untold')) %}
+  {% if (mode == 'change' and active) or (mode == 'rebook' and v.state_reason in ('cancel_tonight', 'close_untold', 'close_told', 'wind_down')) %}
     <h2>{{ t('change' if mode == 'change' else 'rebook') }}</h2>
     {% if days %}<form method="post" action="{{ '/l/' + code + '/change' if mode == 'change' else '/r/' + code }}">{{ form_fields(mode) }}
     {% for date, label in days %}<button class="btn {{ 'btn-main' if date == selected_day else 'btn-ghost' }}" name="date" value="{{ date }}" aria-pressed="{{ 'true' if date == selected_day else 'false' }}">{{ label }}</button>{% endfor %}</form>

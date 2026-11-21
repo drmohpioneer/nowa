@@ -44,9 +44,9 @@ In a survey of colleagues who run private clinics in Cairo and Sharqia, 83% star
 
 | | Number | Basis |
 |---|---|---|
-| Wait on a full 30-patient evening | 229 min to 21 min (median) | Simulated, 300 evenings, assumed inputs |
+| Wait on a full 30-patient evening | 229 min to 26 min (median) | Simulated, 300 evenings, assumed inputs; patients get 15 minutes to get ready before the drive |
 | Wait in clinics today | 45 to 66 min | Colleague survey, Cairo and Sharqia |
-| Patient-hours returned per clinic per month | 100 to 190 h | Assumed 15 patients a night over 17 nights, today's wait against the simulated 21 min |
+| Patient-hours returned per clinic per month | 80 to 170 h | Assumed 15 patients a night over 17 nights, today's wait against the simulated 26 min |
 | What the doctor does | 2 kinds of tap | By design |
 | Cost to run | about 1.7 EGP per patient | Estimate |
 | Price | 1,500 EGP per clinic per month, about two visit fees | Proposed |

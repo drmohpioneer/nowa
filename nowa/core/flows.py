@@ -97,7 +97,7 @@ def _cancellable_evening(
     state: str = conn.execute(
         select(s.evenings.c.state).where(s.evenings.c.id == verified["evening_id"])
     ).scalar_one()
-    if state not in {"scheduled", "doctor_on_way", "running"}:
+    if state not in {"scheduled", "doctor_on_way", "running", "winding_down"}:
         return LinkRefused("not_cancellable")
     return None
 
@@ -162,7 +162,9 @@ def rebook_in_tx(
     cancelled = conn.execute(
         select(s.action_record.c.id).where(
             s.action_record.c.booking_id == cancelled_booking_id,
-            s.action_record.c.kind.in_(("cancel_tonight", "close_untold")),
+            s.action_record.c.kind.in_(
+                ("cancel_tonight", "close_untold", "close_told", "wind_down")
+            ),
         )
     ).first()
     if cancelled is None:

@@ -11,7 +11,7 @@ from sqlalchemy.engine import Connection, RowMapping
 from nowa import record
 from nowa import schema as s
 from nowa.clock import CAIRO, Clock
-from nowa.config import Settings, get_settings
+from nowa.config import GET_READY_MIN, Settings, get_settings
 from nowa.core import projection, timers, travel
 from nowa.core.travel import LatLng, TravelContext
 from nowa.db import conflict_insert, write_tx
@@ -184,6 +184,8 @@ def _leave_moments(
     clock: Clock,
     evening: Mapping[str, Any] | RowMapping,
 ) -> dict[int, datetime]:
+    if evening["state"] == "winding_down":
+        return {}
     cid = evening["clinic_id"]
     now = clock.now(cid)
     snap = projection.load_snapshot(conn, cid, evening["date"], now)
@@ -205,10 +207,15 @@ def _leave_moments(
         projected = projection.expected_time(snap, k, pace, now)
         if not row["silent"]:
             k += 1
-        if row["state"] == "booked" and row["source"] == "chat" and row["area_id"] is not None:
+        if (
+            row["state"] == "booked"
+            and row["source"] == "chat"
+            and row["arrived_at"] is None
+            and row["area_id"] is not None
+        ):
             area_id = row["area_id"]
             drive = travel.minutes(conn, cid, now, area_id=area_id)
-            leave = projected - timedelta(minutes=cushion + drive * 1.3 + 10)
+            leave = projected - timedelta(minutes=cushion + drive * 1.3 + GET_READY_MIN)
             moments[area_id] = min(moments.get(area_id, leave), leave)
     return moments
 

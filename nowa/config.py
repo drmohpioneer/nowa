@@ -10,6 +10,9 @@ from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 
+GET_READY_MIN = 15
+COVER_CAP = 3
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(hide_input_in_errors=True)

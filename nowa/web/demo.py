@@ -333,6 +333,12 @@ def public_phone(
 def stage_body(msg: ScreenMessage, lang: str) -> str:
     from nowa.messaging.templates import render_saved
 
+    if (
+        msg.template_id == "2"
+        and msg.values_json is not None
+        and not {"leave_by", "arrive_by"} <= msg.values_json.keys()
+    ):
+        return msg.body
     if lang == "en" and msg.values_json is not None:
         return render_saved(msg.template_id, lang, msg.values_json)
     return msg.body

@@ -24,17 +24,18 @@ GOLDENS = {
         "Telephone el 3eyada 01000000000"
     ),
     ("2", "ar"): (
-        "كريم محمود: اتحرك دلوقتي لعيادة د. هشام مصطفى، دورك قرب (رقم 7). "
+        "كريم محمود: انزل من البيت قبل 8:20 عشان توصل عيادة د. هشام مصطفى حوالي 8:20 (رقم 7). "
         "لما تتحرك اضغط هنا: http://127.0.0.1:8000/w/x للاستفسار 01000000000"
     ),
     ("2", "en"): (
-        "كريم محمود: leave now for Dr. Hesham Mostafa's clinic, your turn (number 7) "
-        "is close. When you leave, tap here: http://127.0.0.1:8000/w/x "
+        "كريم محمود: leave home by 8:20 to reach Dr. Hesham Mostafa's clinic "
+        "around 8:20 (number 7). "
+        "When you leave, tap here: http://127.0.0.1:8000/w/x "
         "Questions: 01000000000"
     ),
     ("2", "franco"): (
-        "كريم محمود: et7arrak dilwa2ty le 3eyadet Dr. Hesham Mostafa, "
-        "dorak korrab (rakm 7). Lama tet7arrak edghat hena: "
+        "كريم محمود: enzel men el beit abl 8:20 3ashan tewsal 3eyadet Dr. Hesham Mostafa "
+        "7awaly 8:20 (rakm 7). Lama tet7arrak edghat hena: "
         "http://127.0.0.1:8000/w/x lel estefsar 01000000000"
     ),
     ("3", "ar"): (
@@ -121,7 +122,7 @@ def test_template_golden(template, lang):
     if template == "1":
         blanks = common | day | dict(expected_time=now, link="/l/x")
     elif template == "2":
-        blanks = common | dict(on_my_way_link="/w/x")
+        blanks = common | dict(on_my_way_link="/w/x", leave_by=now, arrive_by=now)
     elif template == "3":
         blanks = common | day
     elif template == "4":

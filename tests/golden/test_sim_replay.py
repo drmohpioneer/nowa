@@ -75,7 +75,7 @@ def test_deterministic(engine, monkeypatch, name, start, pace, cushion):
         map=drives,
     )
     monkeypatch.setattr(sim, "world", lambda seed, scenario: world)
-    res, told, calls = traces(sim, ROUND15 | {"cushion_min": cushion}, {}, 0, 20)
+    res, told, calls = traces(sim, ROUND15 | {"cushion_min": cushion, "buffer": 15}, {}, 0, 20)
     assert res["missed"] == res["late_rejoins"] == 0, "Bad fixture"
     assert all(b[0] == a[0] + pace for a, b in zip(calls, calls[1:])), "Bad fixture"
     cid, eid, clock, ids = setup(engine, pace, cushion)

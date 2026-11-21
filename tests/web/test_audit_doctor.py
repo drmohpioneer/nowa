@@ -233,13 +233,14 @@ def test_audit_43_49_50_report(web, engine):
     assert post(client, "who-comes-in", {"booking_id": ids[0]}).json()["ok"]
     at = client.get("/d/api/tonight").json()["doctor"]["arrived_at"]
     clock.advance(minutes=12)
-    count = client.get("/d/api/close/preview").json()["untold_count"]
+    preview = client.get("/d/api/close/preview").json()
+    count = preview["untold_count"]
     assert post(client, "close", {"expected_untold": count}).json()["ok"]
     result = client.get(f"/d/api/report/{eid}?lang=en").json()
     from datetime import datetime
 
     assert datetime.fromisoformat(result["doctor_arrival"]) == datetime.fromisoformat(at)
-    assert result["cancelled_at_close"] == count
+    assert result["cancelled_at_close"] == count + preview["told_count"]
     assert result["doctor_arrival_display"] == "12:00"
     assert "[View]" not in result["text"] and "Cancelled at close:" in result["text"]
     assert "<pre" not in client.get(f"/d/report/{eid}").text

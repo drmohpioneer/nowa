@@ -60,7 +60,7 @@ def are_you_on_way(ctx: TimerContext, payload: dict[str, Any]) -> None:
 
 def evening_auto_close(ctx: TimerContext, payload: dict[str, Any]) -> None:
     evening = timing._evening(ctx.conn, ctx.clinic_id, int(payload["evening_id"]))
-    if evening["state"] != "running":
+    if evening["state"] not in {"running", "winding_down"}:
         return
     due = timing._auto_due(ctx.conn, evening)
     if due is None:

@@ -1,5 +1,8 @@
+import http.cookiejar
 import os
+import time
 from datetime import datetime
+from types import SimpleNamespace
 
 import pytest
 from alembic import command
@@ -58,6 +61,24 @@ def settings_env(monkeypatch, tmp_path):
         "AI_CLINIC_DAILY_CEILING",
     ):
         monkeypatch.delenv(name, raising=False)
+
+    # The HTTP client must expire cookies on the same simulated clock as the app.
+    # Otherwise fixtures dated in the past lose a freshly issued login immediately.
+    def cookie_time():
+        try:
+            clock = record.configured_clock()
+        except RuntimeError:
+            return time.time()
+        return clock.base_now().timestamp()
+
+    monkeypatch.setattr(
+        http.cookiejar,
+        "time",
+        SimpleNamespace(
+            time=cookie_time,
+            localtime=time.localtime,
+        ),
+    )
     library_data = tmp_path / "empty-library-data"
     library_data.mkdir()
     monkeypatch.setenv("LIBRARY_DATA_DIR", str(library_data))

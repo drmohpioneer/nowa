@@ -352,6 +352,8 @@ def test_refused_doctor_replay_keeps_reply_and_board(bot, engine, monkeypatch, r
     doctor_link(bot, engine)
     tap(router, 3, "in", eid, ids[0])
     board = next(payload for method, payload in fake.calls if method == "editMessageText")
+    with engine.connect() as conn:
+        expected_board_text = keyboards.board_text(timing.tonight_board(conn, bot[1], eid), "ar")
     verb = "in" if reason == "already_seen" else "undo"
     function = "who_comes_in_in_tx" if verb == "in" else "undo_last_in_tx"
     with write_tx(engine) as conn:
@@ -374,7 +376,7 @@ def test_refused_doctor_replay_keeps_reply_and_board(bot, engine, monkeypatch, r
         ]
         replies.append(list(fake.calls))
         # No edit means the displayed board, including its buttons, stays as it was.
-        assert board["text"] == text("tg.board", "ar")
+        assert board["text"] == expected_board_text
         assert board["reply_markup"]["inline_keyboard"]
     assert replies[0] == replies[1]
     assert spy.call_count == 2

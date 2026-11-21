@@ -12,11 +12,15 @@ VERBS = {
     "omw",
     "area",
     "in",
+    "arrived",
+    "unarrived",
     "walkin",
     "undo",
     "more",
     "close",
     "closeok",
+    "wind",
+    "windok",
     "cancel",
     "cancelok",
     "unlink",
@@ -55,9 +59,9 @@ def parse(value: str) -> Callback:
         valid = eid is None and bid is None and arg == "-"
     elif verb in {"omw", "undo"}:
         valid = (eid is None) != (bid is None) and arg == "-"
-    elif verb == "in":
+    elif verb in {"in", "arrived", "unarrived"}:
         valid = eid is not None and bid is not None and arg == "-"
-    elif verb in {"area", "closeok"}:
+    elif verb in {"area", "closeok", "windok"}:
         valid = (
             eid is not None
             and bid is None
@@ -71,7 +75,7 @@ def parse(value: str) -> Callback:
         valid = eid is not None and bid is None and arg == "-"
     if not valid:
         raise ValueError("callback fields")
-    if verb in {"area", "closeok"} or verb.startswith("q"):
+    if verb in {"area", "closeok", "windok"} or verb.startswith("q"):
         if int(arg) > 2**63 - 1:
             raise ValueError("callback argument range")
     return Callback(verb, eid, bid, arg)
@@ -162,6 +166,17 @@ def board(evening_id: int, value: timing.Board, lang: str, *, full: bool = False
             else "",
         )
         rows.append([{"text": label, "callback_data": build("in", evening_id, row.booking_id)}])
+        rows.append(
+            [
+                button(
+                    "undo_arrived" if row.arrived_at else "mark_arrived",
+                    "unarrived" if row.arrived_at else "arrived",
+                    evening_id,
+                    row.booking_id,
+                    lang=lang,
+                )
+            ]
+        )
     if not full:
         rows.append([button("more", "more", evening_id, lang=lang)])
     rows.extend(
@@ -177,7 +192,48 @@ def board(evening_id: int, value: timing.Board, lang: str, *, full: bool = False
             [button("bookings", "tgmenu", lang=lang)],
         ]
     )
+    if value.evening_state == "running":
+        rows.append([button("wind_down", "wind", evening_id, lang=lang)])
     return {"inline_keyboard": rows}
+
+
+def board_text(value: timing.Board, lang: str) -> str:
+    lines = [text("tg.board", lang)]
+    for row in value.rows:
+        if row.remaining:
+            label = (
+                f"{row.queue_number} {row.patient_first_name or text('tg.unknown_patient', lang)}"
+            )
+            at = row.arrived_at or row.on_my_way_at or row.told_to_leave_at
+            if at is not None:
+                from nowa.messaging.templates import format_doctor_time
+
+                state = "arrived" if row.arrived_at else row.state
+                label += " · " + text("tg." + state, lang) + " " + format_doctor_time(at)
+            if row.silent:
+                label += " · " + text("tg.silent", lang)
+            lines.append(label)
+    if value.evening_state == "winding_down":
+        lines.append(text("tg.winding_down", lang))
+    if value.cover_cap_reached:
+        lines.append(text("tg.cover_limit", lang))
+    return "\n".join(lines)
+
+
+def close_preview_text(preview: timing.ClosePreview, lang: str) -> str:
+    from nowa.messaging.templates import format_doctor_time
+
+    lines = [
+        text("tg.close_groups", lang).format(
+            untold=preview.untold_count, told=preview.told_count, passed=preview.passed_count
+        )
+    ]
+    for group in ("untold", "told", "passed"):
+        lines.append(text("tg.close_group_" + group, lang))
+        for patient in getattr(preview, group):
+            at = format_doctor_time(patient.expected_shown) if patient.expected_shown else ""
+            lines.append(f"{patient.patient_name} · {at}")
+    return "\n".join(lines)
 
 
 def question_buttons(question_id: int, lang: str, *, draft: bool = False) -> Markup:

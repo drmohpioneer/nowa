@@ -1,6 +1,6 @@
 import hashlib
 import hmac
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal, cast
 
@@ -10,7 +10,7 @@ from sqlalchemy.engine import Connection, Engine, RowMapping
 from nowa import record
 from nowa import schema as s
 from nowa.clock import Clock
-from nowa.config import get_settings
+from nowa.config import COVER_CAP, GET_READY_MIN, get_settings
 from nowa.core import booking, learning, projection, timers, travel
 from nowa.core.display import origin_label, patient_display_name
 from nowa.core.text_norm import greeting_name
@@ -50,8 +50,20 @@ class CloseRefused:
 
 
 @dataclass(frozen=True)
+class ClosePatient:
+    booking_id: int
+    patient_name: str
+    expected_shown: datetime | None
+
+
+@dataclass(frozen=True)
 class ClosePreview:
     untold_count: int
+    told_count: int = 0
+    passed_count: int = 0
+    untold: list[ClosePatient] = field(default_factory=list)
+    told: list[ClosePatient] = field(default_factory=list)
+    passed: list[ClosePatient] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -68,11 +80,14 @@ class BoardRow:
     on_my_way_at: datetime | None
     no_show_count: int
     origin_display: str = ""
+    arrived_at: datetime | None = None
 
 
 @dataclass(frozen=True)
 class Board:
     rows: list[BoardRow]
+    cover_cap_reached: bool = False
+    evening_state: str = "scheduled"
 
 
 def _evening(conn: Connection, clinic_id: int, evening_id: int) -> RowMapping:
@@ -99,6 +114,8 @@ def _finish(
     command: str,
     result: TapResult | OnMyWayResult | CloseResult,
     actor: str = "doctor",
+    *,
+    booking_id: int | None = None,
 ) -> None:
     data = asdict(result)
     if isinstance(result, OnMyWayResult) and result.projected_start is not None:
@@ -112,11 +129,13 @@ def _finish(
             created_at=clock.now(evening["clinic_id"]),
         )
     )
-    record.write_action(conn, evening["clinic_id"], actor, command)
+    record.write_action(conn, evening["clinic_id"], actor, command, booking_id)
     recompute(conn, clock, evening["id"])
 
 
-def patient_blanks(conn: Connection, booking_id: int, template: str) -> dict[str, Any]:
+def patient_blanks(
+    conn: Connection, booking_id: int, template: str, *, at: datetime | None = None
+) -> dict[str, Any]:
     row = conn.execute(select(s.bookings).where(s.bookings.c.id == booking_id)).mappings().one()
     doctor = (
         conn.execute(select(s.doctors).where(s.doctors.c.clinic_id == row["clinic_id"]))
@@ -148,6 +167,14 @@ def patient_blanks(conn: Connection, booking_id: int, template: str) -> dict[str
             expected_time=row["expected_shown"], link="/l/" + booking.link_code_for(booking_id)
         )
     if template == "2":
+        sent_at = at or row["told_to_leave_at"]
+        if sent_at is None:
+            raise ValueError("Message 2 requires its send time")
+        cushion: int = conn.execute(
+            select(s.clinics.c.cushion_min).where(s.clinics.c.id == row["clinic_id"])
+        ).scalar_one()
+        blanks["leave_by"] = sent_at + timedelta(minutes=GET_READY_MIN)
+        blanks["arrive_by"] = row["expected_shown"] - timedelta(minutes=cushion)
         blanks["on_my_way_link"] = "/w/" + booking.link_code_for(booking_id)
     if template == "4":
         blanks["rebook_link"] = "/r/" + booking.link_code_for(booking_id)
@@ -241,19 +268,34 @@ def recompute(conn: Connection, clock: Clock, evening_id: int) -> None:
         .all()
     )
     newly_silent = False
+    covers_used = evening["covers_used"]
     k = 0
     future: list[datetime] = []
     for row in rows:
         silent = (
             row["state"] == "told_to_leave"
             and row["told_to_leave_at"] is not None
-            and now >= row["told_to_leave_at"] + timedelta(minutes=10)
             and row["on_my_way_at"] is None
+            and row["arrived_at"] is None
+            and (
+                row["silent"]
+                or (
+                    covers_used < COVER_CAP
+                    and now >= row["told_to_leave_at"] + timedelta(minutes=10)
+                )
+            )
         )
         changes: dict[str, Any] = {}
         if silent != row["silent"]:
             changes["silent"] = silent
             newly_silent = newly_silent or silent
+            if silent:
+                covers_used += 1
+                conn.execute(
+                    s.evenings.update()
+                    .where(s.evenings.c.id == evening_id)
+                    .values(covers_used=covers_used)
+                )
         projected = projection.expected_time(snap, k, pace, now)
         if not silent:
             k += 1
@@ -267,15 +309,19 @@ def recompute(conn: Connection, clock: Clock, evening_id: int) -> None:
             and row["state"] == "booked"
             and row["source"] == "chat"
             and row["told_to_leave_at"] is None
+            and row["arrived_at"] is None
         ):
             drive = travel.minutes(conn, cid, now, area_id=row["area_id"])
-            due = projected - timedelta(minutes=cushion + drive * 1.3 + 10)
+            due = projected - timedelta(minutes=cushion + drive * 1.3 + GET_READY_MIN)
             if due <= now:
                 changes.update(
                     state="told_to_leave",
                     told_to_leave_at=now,
                     expected_frozen=True,
                     travel_min=drive,
+                )
+                conn.execute(
+                    s.bookings.update().where(s.bookings.c.id == row["id"]).values(**changes)
                 )
                 enqueue_message(
                     conn,
@@ -487,7 +533,7 @@ def who_comes_in_in_tx(
             return TapResult(False, "already_seen")
         if row is None or row["state"] not in projection.WAITING_STATES:
             return TapResult(False, "invalid_booking")
-    if evening["state"] not in {"scheduled", "doctor_on_way", "running"}:
+    if evening["state"] not in {"scheduled", "doctor_on_way", "running", "winding_down"}:
         return TapResult(False, "invalid_state")
     now = clock.now(clinic_id)
     tap = _tap_begin(
@@ -529,6 +575,7 @@ def who_comes_in_in_tx(
                     queue_number=(number or 0) + 1,
                     order_key=(order or 0) + 1,
                     source="walkin_tap",
+                    arrived_at=now,
                     lang="ar",
                     state="seen",
                     created_at=now,
@@ -594,7 +641,14 @@ def who_comes_in_in_tx(
     after.append(
         {"table": "visits", "id": visit_id, "fields": {"ended_at": None, "accepted": True}}
     )
-    _change(conn, s.evenings, evening_id, {"state": "running"}, prior, after)
+    _change(
+        conn,
+        s.evenings,
+        evening_id,
+        {"state": "winding_down" if evening["state"] == "winding_down" else "running"},
+        prior,
+        after,
+    )
     _tap_end(conn, tap, prior, after)
     _arm_auto(conn, clock, evening)
     result = TapResult(True, booking_id=booking_id, visit_id=visit_id)
@@ -628,7 +682,14 @@ def undo_last_in_tx(
         table = tables[change["table"]]
         current = conn.execute(select(table).where(table.c.id == change["id"])).mappings().first()
         if current is None or any(
-            _json_value(current[k]) != v for k, v in change["fields"].items()
+            _json_value(current[k]) != v
+            and not (
+                table is s.evenings
+                and k == "state"
+                and v == "running"
+                and current[k] == "winding_down"
+            )
+            for k, v in change["fields"].items()
         ):
             return TapResult(False, "changed_since")
     for change in reversed(tap["prior_json"]):
@@ -643,7 +704,10 @@ def undo_last_in_tx(
                 else v
                 for k, v in fields.items()
             }
-            conn.execute(table.update().where(table.c.id == change["id"]).values(**values))
+            if table is s.evenings and evening["state"] == "winding_down":
+                values.pop("state", None)
+            if values:
+                conn.execute(table.update().where(table.c.id == change["id"]).values(**values))
     conn.execute(
         s.evening_taps.update()
         .where(s.evening_taps.c.id == tap["id"])
@@ -653,6 +717,87 @@ def undo_last_in_tx(
     result = TapResult(True)
     _finish(conn, clock, evening, idempotency_key, "undo_last", result)
     return result
+
+
+def _arrival_in_tx(
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    booking_id: int,
+    actor: str,
+    idempotency_key: str | None,
+    *,
+    undo: bool,
+) -> TapResult:
+    if actor not in ({"doctor"} if undo else {"doctor", "secretary"}):
+        return TapResult(False, "unauthorized")
+    command = "undo_arrived" if undo else "mark_arrived"
+    if idempotency_key is not None:
+        saved = _replay(conn, clinic_id, idempotency_key, command)
+        if saved is not None:
+            return TapResult(**saved)
+    evening_id = conn.execute(
+        select(s.bookings.c.evening_id).where(
+            s.bookings.c.id == booking_id, s.bookings.c.clinic_id == clinic_id
+        )
+    ).scalar_one_or_none()
+    if evening_id is None:
+        return TapResult(False, "invalid_booking")
+    evening = _evening(conn, clinic_id, evening_id)
+    if evening["state"] in {"closed", "cancelled"}:
+        return TapResult(False, "evening_closed")
+    row = (
+        conn.execute(
+            select(s.bookings).where(
+                s.bookings.c.id == booking_id, s.bookings.c.clinic_id == clinic_id
+            )
+        )
+        .mappings()
+        .one()
+    )
+    if row["state"] not in projection.WAITING_STATES:
+        return TapResult(False, "invalid_booking")
+    changed = (row["arrived_at"] is not None) if undo else (row["arrived_at"] is None)
+    if changed:
+        conn.execute(
+            s.bookings.update()
+            .where(s.bookings.c.id == booking_id)
+            .values(
+                arrived_at=None if undo else clock.now(clinic_id),
+                silent=False,
+            )
+        )
+    result = TapResult(True, booking_id=booking_id)
+    if idempotency_key is not None:
+        _finish(
+            conn, clock, evening, idempotency_key, command, result, actor, booking_id=booking_id
+        )
+    elif changed:
+        record.write_action(conn, clinic_id, actor, command, booking_id)
+        recompute(conn, clock, evening_id)
+    return result
+
+
+def mark_arrived_in_tx(
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    booking_id: int,
+    actor: str,
+    idempotency_key: str | None = None,
+) -> TapResult:
+    return _arrival_in_tx(conn, clock, clinic_id, booking_id, actor, idempotency_key, undo=False)
+
+
+def undo_arrived_in_tx(
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    booking_id: int,
+    actor: str,
+    idempotency_key: str | None = None,
+) -> TapResult:
+    return _arrival_in_tx(conn, clock, clinic_id, booking_id, actor, idempotency_key, undo=True)
 
 
 def _patient_way(
@@ -734,18 +879,67 @@ def _untold(conn: Connection, evening_id: int) -> int:
     )
 
 
-def close_preview(engine: Engine, clock: Clock, clinic_id: int, evening_id: int) -> ClosePreview:
+def _close_preview_in_tx(
+    conn: Connection, clock: Clock, clinic_id: int, evening_id: int, lang: str = "ar"
+) -> ClosePreview:
+    now = clock.now(clinic_id)
+    groups: dict[str, list[ClosePatient]] = {"untold": [], "told": [], "passed": []}
+    rows = conn.execute(
+        select(s.bookings, s.patients.c.name, s.patients.c.name_en)
+        .outerjoin(s.patients, s.patients.c.id == s.bookings.c.patient_id)
+        .where(
+            s.bookings.c.clinic_id == clinic_id,
+            s.bookings.c.evening_id == evening_id,
+            s.bookings.c.state.in_(projection.WAITING_STATES),
+        )
+        .order_by(s.bookings.c.order_key, s.bookings.c.id)
+    ).mappings()
+    for row in rows:
+        group = (
+            "untold"
+            if row["state"] == "booked"
+            else (
+                "passed"
+                if row["expected_shown"] is not None and row["expected_shown"] <= now
+                else "told"
+            )
+        )
+        groups[group].append(
+            ClosePatient(
+                row["id"],
+                patient_display_name(row, lang) if row["name"] else "",
+                row["expected_shown"],
+            )
+        )
+    return ClosePreview(
+        len(groups["untold"]),
+        len(groups["told"]),
+        len(groups["passed"]),
+        groups["untold"],
+        groups["told"],
+        groups["passed"],
+    )
+
+
+def close_preview(
+    engine: Engine, clock: Clock, clinic_id: int, evening_id: int, lang: str = "ar"
+) -> ClosePreview:
     with engine.connect() as conn:
         conn.execute(
             select(s.evenings.c.id).where(
                 s.evenings.c.id == evening_id, s.evenings.c.clinic_id == clinic_id
             )
         ).scalar_one()
-        return ClosePreview(_untold(conn, evening_id))
+        return _close_preview_in_tx(conn, clock, clinic_id, evening_id, lang)
 
 
 def _cancel_bookings(
-    conn: Connection, clock: Clock, evening: RowMapping, states: tuple[str, ...], kind: str
+    conn: Connection,
+    clock: Clock,
+    evening: RowMapping,
+    states: tuple[str, ...],
+    kind: str,
+    booking_ids: set[int] | None = None,
 ) -> int:
     rows = (
         conn.execute(
@@ -756,6 +950,8 @@ def _cancel_bookings(
         .mappings()
         .all()
     )
+    if booking_ids is not None:
+        rows = [row for row in rows if row["id"] in booking_ids]
     for row in rows:
         conn.execute(
             s.bookings.update()
@@ -778,6 +974,34 @@ def _cancel_bookings(
     return len(rows)
 
 
+def wind_down_in_tx(
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    evening_id: int,
+    idempotency_key: str,
+    expected_untold: int,
+) -> CloseResult | CloseRefused:
+    saved = _replay(conn, clinic_id, idempotency_key, "wind_down")
+    if saved is not None:
+        return CloseResult(**saved)
+    evening = _evening(conn, clinic_id, evening_id)
+    if evening["state"] == "winding_down":
+        return CloseResult()
+    if evening["state"] != "running":
+        return CloseRefused("invalid_state")
+    count = _untold(conn, evening_id)
+    if expected_untold != count:
+        return CloseRefused("count_changed", count)
+    conn.execute(
+        s.evenings.update().where(s.evenings.c.id == evening_id).values(state="winding_down")
+    )
+    count = _cancel_bookings(conn, clock, evening, ("booked",), "wind_down")
+    result = CloseResult(untold_cancelled=count)
+    _finish(conn, clock, evening, idempotency_key, "wind_down", result)
+    return result
+
+
 def close_evening_in_tx(
     conn: Connection,
     clock: Clock,
@@ -793,7 +1017,7 @@ def close_evening_in_tx(
     if saved is not None:
         return CloseResult(**saved)
     evening = _evening(conn, clinic_id, evening_id)
-    allowed = {"scheduled", "doctor_on_way"} if _system_no_taps else {"running"}
+    allowed = {"scheduled", "doctor_on_way"} if _system_no_taps else {"running", "winding_down"}
     if actor in {"doctor", "system"} and evening["state"] == "closed":
         return CloseResult()
     if actor not in {"doctor", "system"} or evening["state"] not in allowed:
@@ -805,11 +1029,20 @@ def close_evening_in_tx(
     _cancel_timers(conn, evening_id)
     count = _cancel_bookings(conn, clock, evening, ("booked",), "close_untold")
     if not _system_no_taps:
+        preview = _close_preview_in_tx(conn, clock, clinic_id, evening_id)
+        _cancel_bookings(
+            conn,
+            clock,
+            evening,
+            ("told_to_leave", "on_my_way"),
+            "close_told",
+            {p.booking_id for p in preview.told},
+        )
         conn.execute(
             s.bookings.update()
             .where(
                 s.bookings.c.evening_id == evening_id,
-                s.bookings.c.state.in_(("told_to_leave", "on_my_way")),
+                s.bookings.c.id.in_([p.booking_id for p in preview.passed]),
             )
             .values(state="didnt_come", silent=False)
         )
@@ -916,7 +1149,7 @@ def cancel_tonight_in_tx(
         for w in (window, window - 1)
     ):
         return TapResult(False, "invalid_token")
-    if evening["state"] == "running":
+    if evening["state"] in {"running", "winding_down"}:
         return TapResult(False, "evening_running")
     if evening["state"] not in {"scheduled", "doctor_on_way"}:
         return TapResult(False, "invalid_state")
@@ -975,9 +1208,21 @@ def tonight_board(conn: Connection, clinic_id: int, evening_id: int, lang: str =
                 row["on_my_way_at"],
                 count,
                 origin_label(row, lang),
+                row["arrived_at"],
             )
         )
-    return Board(result)
+    evening = (
+        conn.execute(
+            select(s.evenings).where(
+                s.evenings.c.id == evening_id, s.evenings.c.clinic_id == clinic_id
+            )
+        )
+        .mappings()
+        .first()
+    )
+    if evening is None:
+        return Board([])
+    return Board(result, evening["covers_used"] >= COVER_CAP, evening["state"])
 
 
 def doctor_on_my_way(

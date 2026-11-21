@@ -159,7 +159,7 @@ def test_close_learning_preview_and_once(engine, actor):
         assert learned["mean_visit_min"] == 12
         states = list(conn.execute(select(s.bookings.c.state)).scalars())
         assert "didnt_come" in states and "booked" not in states
-    assert len(messages(engine, "4")) == preview.untold_count
+    assert len(messages(engine, "4")) == preview.untold_count + preview.told_count
 
 
 def test_auto_close_conditions(engine):
@@ -342,7 +342,7 @@ def test_flows_refuse_closed_or_cancelled_evening(engine, action, close, in_tx):
         assert timing.close_evening(
             engine, clock, cid, eid, "doctor", "close", preview.untold_count
         ).ok
-        assert row(engine, s.bookings, ids[1])["state"] == "didnt_come"
+        assert row(engine, s.bookings, ids[1])["state"] == "cancelled"
     else:
         with engine.connect() as conn:
             doctor = conn.execute(select(s.doctors.c.id)).scalar_one()

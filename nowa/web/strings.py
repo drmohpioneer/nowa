@@ -217,10 +217,10 @@ DOCTOR_TEXTS = {
             "close or after the new closing time."
         ),
     ),
-    "silent": ("لسه ما أكدش التحرك", "Has not confirmed leaving"),
+    "silent": ("ساكت", "Silent"),
     "booked": ("محجوز", "Booked"),
     "told_to_leave": (
-        "اتقاله ينزل",
+        "متقول له",
         "Told to leave",
     ),
     "on_my_way": ("في الطريق", "On my way"),
@@ -1077,8 +1077,8 @@ UI_TEXTS = {
     "front_nowa_dr_hesham_s_clinic_33": ("نوا · عيادة د. هشام", "Nowa · Dr. Hesham's clinic"),
     "front_bot_34": ("بوت", "Bot"),
     "front_mahmoud_leave_now_for_dr_hesham_mostafa": (
-        "محمود: اتحرك دلوقتي لعيادة د. هشام مصطفى، دورك قرب (رقم",
-        "Mahmoud: leave now for Dr. Hesham Mostafa's clinic, your turn is close (number",
+        "محمود: انزل من البيت قبل 8:00 عشان توصل عيادة د. هشام مصطفى حوالي 8:20 (رقم",
+        "Mahmoud: leave home by 8:00 to reach Dr. Hesham Mostafa's clinic around 8:20 (number",
     ),
     "front_when_you_leave_tap_here": ("). لما تتحرك اضغط هنا:", "). When you leave, tap here:"),
     "front_i_m_on_my_way": ("أنا في الطريق", "I'm on my way"),
@@ -1208,7 +1208,7 @@ UI_TEXTS.update(
         "minutes": ("د", "min"),
         "booked": ("محجوز", "Booked"),
         "told_to_leave": (
-            "اتقاله ينزل",
+            "متقول له",
             "Told to leave",
         ),
         "on_my_way": ("في الطريق", "On the way"),
@@ -2133,3 +2133,50 @@ for _key, _values in LINKING_TEXTS.items():
     for _prefix in ("patient", "chat", "signup"):
         STRINGS[_prefix + "." + _key] = dict(zip(("ar", "en", "franco"), _values))
     SIGNUP_TEXTS[_key] = _values[:2]
+
+
+# Contract 33 evening wording is shared by the doctor board and Telegram.
+EVENING_FLOW_TEXTS = {
+    "wind_down": ("قفّل الاستقبال", "Stop receiving", "2affel el este2bal"),
+    "winding_down": (
+        "الاستقبال مقفول، مستنيين اللي في الطريق",
+        "Reception closed; waiting for those on the way",
+        "El este2bal ma2fool, mestaneyeen elly fel tareek",
+    ),
+    "wind_down_confirm": (
+        "{count} لسه متقالش لهم. هتوصلهم رسالة اعتذار ولينك حجز تاني. تأكيد "
+        "قفل الاستقبال؟ مفيش تراجع.",
+        "{count} patients have not been told yet. They will get an apology "
+        "and a rebook link. Stop receiving? This cannot be undone.",
+        "{count} lessa ma et2allohomsh. Hayewsalhom e3tezar w link 7agz tany. "
+        "Ta2keed 2afl el este2bal? Mafeesh tarago3.",
+    ),
+    "close_groups": (
+        "{untold} لسه متقالش لهم، {told} في الطريق ودورهم لسه مجاش، {passed} دورهم "
+        "عدى. اللي دورهم لسه مجاش هتوصلهم رسالة اعتذار ولينك حجز تاني.",
+        "{untold} not told yet, {told} told or on the way before their turn, "
+        "{passed} past their turn. Those whose turn has not come will get an "
+        "apology and a rebook link.",
+        "{untold} lessa ma et2allohomsh, {told} fel tareek w dorhom lessa magash, "
+        "{passed} dorhom 3adda. Elly dorhom lessa magash hayewsalhom e3tezar w "
+        "link 7agz tany.",
+    ),
+    "close_group_untold": ("لسه متقالش لهم", "Not told yet", "Lessa ma et2allohomsh"),
+    "close_group_told": ("دورهم لسه مجاش", "Turn still ahead", "Dorhom lessa magash"),
+    "close_group_passed": ("دورهم عدى", "Turn passed", "Dorhom 3adda"),
+    "told_to_leave": ("متقول له", "Told to leave", "Et2allo yenzel"),
+    "on_my_way": ("في الطريق", "On the way", "Fel tareek"),
+    "arrived": ("في العيادة", "At the clinic", "Fel 3eyada"),
+    "mark_arrived": ("وصل ✓", "Arrived ✓", "Wesel ✓"),
+    "undo_arrived": ("تراجع عن الوصول", "Undo arrival", "Tarago3 3an el wosool"),
+    "silent": ("ساكت", "Silent", "Saket"),
+    "cover_limit": (
+        "وصلنا الحد، مستنيين الأدوار",
+        "Cover limit reached; waiting for turns",
+        "Weselna el 7ad, mestaneyeen el adwar",
+    ),
+}
+for _key, (_ar, _en, _franco) in EVENING_FLOW_TEXTS.items():
+    DOCTOR_TEXTS[_key] = (_ar, _en)
+    for _prefix in ("doctor.", "tg."):
+        STRINGS[_prefix + _key] = {"ar": _ar, "en": _en, "franco": _franco}

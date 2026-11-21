@@ -47,16 +47,16 @@ def show_board(ctx: "Context", *, edit: bool = False, full: bool = False) -> Non
     assert ctx.doctor is not None
     with ctx.engine.connect() as conn:
         eid = tonight(conn, ctx)
-        value = timing.tonight_board(conn, ctx.doctor["clinic_id"], eid) if eid else None
+        value = timing.tonight_board(conn, ctx.doctor["clinic_id"], eid, ctx.lang) if eid else None
     if value is None or eid is None:
         ctx.send("no_evening", keyboards.doctor_menu(ctx.lang))
         return
     markup = keyboards.board(eid, value, ctx.lang, full=full)
     if edit:
-        ctx.edit("board", markup)
+        ctx.edit_text(keyboards.board_text(value, ctx.lang), markup)
     else:
         ctx.send("board", keyboards.doctor_menu(ctx.lang))
-        ctx.send("board", markup)
+        ctx.send_text(keyboards.board_text(value, ctx.lang), markup)
 
 
 def prompt(ctx: "Context") -> None:
@@ -134,14 +134,31 @@ def on_way(
         ctx.send("refused")
 
 
-def close_confirm(ctx: "Context", eid: int, count: int) -> None:
+def close_confirm(ctx: "Context", eid: int) -> None:
+    assert ctx.doctor is not None
+    preview = timing.close_preview(ctx.engine, ctx.clock, ctx.doctor["clinic_id"], eid, ctx.lang)
     ctx.edit_text(
-        text("tg.close_untold", ctx.lang).format(count=count)
-        if count
-        else (text("tg.close_confirm", ctx.lang)),
+        keyboards.close_preview_text(preview, ctx.lang),
         {
             "inline_keyboard": [
-                [keyboards.button("closeok", "closeok", eid, arg=str(count), lang=ctx.lang)]
+                [
+                    keyboards.button(
+                        "closeok", "closeok", eid, arg=str(preview.untold_count), lang=ctx.lang
+                    )
+                ]
+            ]
+        },
+    )
+
+
+def wind_down_confirm(ctx: "Context", eid: int) -> None:
+    assert ctx.doctor is not None
+    count = timing.close_preview(ctx.engine, ctx.clock, ctx.doctor["clinic_id"], eid).untold_count
+    ctx.edit_text(
+        text("tg.wind_down_confirm", ctx.lang).format(count=count),
+        {
+            "inline_keyboard": [
+                [keyboards.button("wind_down", "windok", eid, arg=str(count), lang=ctx.lang)]
             ]
         },
     )
@@ -164,9 +181,11 @@ def callback(ctx: "Context", command: keyboards.Callback) -> None:
     if command.verb == "more":
         show_board(ctx, edit=True, full=True)
         return
+    if command.verb == "wind":
+        wind_down_confirm(ctx, eid)
+        return
     if command.verb == "close":
-        count = timing.close_preview(ctx.engine, ctx.clock, cid, eid).untold_count
-        close_confirm(ctx, eid, count)
+        close_confirm(ctx, eid)
         return
     if command.verb == "cancel":
         token = timing.request_cancel_tonight(ctx.engine, ctx.clock, cid, eid, ctx.doctor["id"])
@@ -191,8 +210,20 @@ def callback(ctx: "Context", command: keyboards.Callback) -> None:
                 result = timing.who_comes_in_in_tx(
                     conn, ctx.clock, cid, eid, command.booking_id, command.verb == "walkin", ctx.key
                 )
+            elif command.verb in {"arrived", "unarrived"}:
+                assert command.booking_id is not None
+                action = (
+                    timing.mark_arrived_in_tx
+                    if command.verb == "arrived"
+                    else timing.undo_arrived_in_tx
+                )
+                result = action(conn, ctx.clock, cid, command.booking_id, "doctor", ctx.key)
             elif command.verb == "undo":
                 result = timing.undo_last_in_tx(conn, ctx.clock, cid, eid, ctx.key)
+            elif command.verb == "windok":
+                result = timing.wind_down_in_tx(
+                    conn, ctx.clock, cid, eid, ctx.key, int(command.arg)
+                )
             elif command.verb == "closeok":
                 result = timing.close_evening_in_tx(
                     conn, ctx.clock, cid, eid, "doctor", ctx.key, int(command.arg)
@@ -206,7 +237,10 @@ def callback(ctx: "Context", command: keyboards.Callback) -> None:
             if result.ok:
                 linking.remember(conn, ctx.clock, cid, ctx.handled_key, "telegram_update")
     if isinstance(result, timing.CloseRefused) and result.reason == "count_changed":
-        close_confirm(ctx, eid, result.untold_count)
+        if command.verb == "windok":
+            wind_down_confirm(ctx, eid)
+        else:
+            close_confirm(ctx, eid)
     elif result.ok:
         show_board(ctx, edit=True)
     else:
