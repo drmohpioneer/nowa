@@ -223,7 +223,9 @@ def test_cancel_and_rebook_once(engine):
     booked = flows.rebook(engine, clock, ids[0], DAY + timedelta(days=2), "rebook-intent")
     assert isinstance(booked, booking.BookingOk)
     again = flows.rebook(engine, clock, ids[0], DAY + timedelta(days=5), "different-intent")
-    assert again.repeated and again.booking_id == booked.booking_id
+    assert isinstance(again, booking.BookingRefused) and again.reason == "already_rebooked"
+    replay = flows.rebook(engine, clock, ids[0], DAY + timedelta(days=2), "rebook-intent")
+    assert replay.repeated and replay.booking_id == booked.booking_id
     assert len([m for m in messages(engine, "1") if m["booking_id"] == booked.booking_id]) == 1
 
 
@@ -265,17 +267,17 @@ def test_flow_in_tx_outer_rollback(engine, flow, confirm):
                     conn, clock, request(cid, 10, DAY + timedelta(days=2)), confirm=confirm
                 )
             else:
-                result = flows.rebook_in_tx(
-                    conn, clock, ids[0], DAY + timedelta(days=2), "rebook"
-                )
+                result = flows.rebook_in_tx(conn, clock, ids[0], DAY + timedelta(days=2), "rebook")
             assert isinstance(result, booking.BookingOk) and not result.repeated
             assert conn.in_transaction()
             new_evening = conn.execute(
                 select(s.bookings.c.evening_id).where(s.bookings.c.id == result.booking_id)
             ).scalar_one()
-            confirmations = conn.execute(
-                select(s.outbox).where(s.outbox.c.booking_id == result.booking_id)
-            ).mappings().all()
+            confirmations = (
+                conn.execute(select(s.outbox).where(s.outbox.c.booking_id == result.booking_id))
+                .mappings()
+                .all()
+            )
             assert len(confirmations) == int(confirm)
             if confirm:
                 assert confirmations[0]["template_id"] == "1"

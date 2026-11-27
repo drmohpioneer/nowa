@@ -20,6 +20,8 @@ VERBS = {
     "close",
     "closeok",
     "wind",
+    "pause",
+    "resume",
     "windok",
     "cancel",
     "cancelok",
@@ -194,6 +196,9 @@ def board(evening_id: int, value: timing.Board, lang: str, *, full: bool = False
     )
     if value.evening_state == "running":
         rows.append([button("wind_down", "wind", evening_id, lang=lang)])
+    if value.evening_state in {"running", "winding_down"}:
+        verb = "resume" if value.paused_since is not None else "pause"
+        rows.append([button(verb, verb, evening_id, lang=lang)])
     return {"inline_keyboard": rows}
 
 
@@ -215,6 +220,12 @@ def board_text(value: timing.Board, lang: str) -> str:
             lines.append(label)
     if value.evening_state == "winding_down":
         lines.append(text("tg.winding_down", lang))
+    if value.paused_since is not None:
+        from nowa.messaging.templates import format_doctor_time
+
+        lines.append(
+            text("tg.paused_since", lang).format(time=format_doctor_time(value.paused_since))
+        )
     if value.cover_cap_reached:
         lines.append(text("tg.cover_limit", lang))
     return "\n".join(lines)
@@ -228,11 +239,13 @@ def close_preview_text(preview: timing.ClosePreview, lang: str) -> str:
             untold=preview.untold_count, told=preview.told_count, passed=preview.passed_count
         )
     ]
-    for group in ("untold", "told", "passed"):
+    for group in ("untold", "told", "passed", "arrived"):
         lines.append(text("tg.close_group_" + group, lang))
         for patient in getattr(preview, group):
             at = format_doctor_time(patient.expected_shown) if patient.expected_shown else ""
             lines.append(f"{patient.patient_name} · {at}")
+    if preview.arrived:
+        lines.append(text("tg.arrived_present", lang))
     return "\n".join(lines)
 
 

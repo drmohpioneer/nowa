@@ -32,7 +32,13 @@ from nowa.db import write_tx
 from nowa.web.strings import doctor_label
 
 RefusalReason = Literal[
-    "full", "booking_closed", "closed_day", "already_booked", "phone_cap", "invalid_input"
+    "full",
+    "booking_closed",
+    "closed_day",
+    "already_booked",
+    "phone_cap",
+    "invalid_input",
+    "already_rebooked",
 ]
 
 
@@ -267,7 +273,7 @@ def _lock_evening(conn: Connection, evening_id: int) -> None:
 
 
 def _day_status(
-    conn: Connection, clinic_id: int, day: date, now: datetime
+    conn: Connection, clinic_id: int, day: date, now: datetime, *, allow_winding_down: bool = False
 ) -> tuple[RefusalReason | None, datetime | None]:
     hours = paper_hours(conn, clinic_id, day)
     evening = (
@@ -280,7 +286,13 @@ def _day_status(
     if (
         day < now.astimezone(CAIRO).date()
         or hours is None
-        or (evening is not None and evening["state"] in ("closed", "cancelled"))
+        or (
+            evening is not None
+            and (
+                evening["state"] in ("closed", "cancelled")
+                or (evening["state"] == "winding_down" and not allow_winding_down)
+            )
+        )
     ):
         return "closed_day", None
     if now > hours[1] - timedelta(minutes=60):
@@ -415,6 +427,7 @@ def _book(
     req: BookingRequest,
     exempt_phone_cap: bool = False,
     remember: bool = True,
+    allow_winding_down: bool = False,
 ) -> BookingOk | BookingRefused:
     if remember:
         replay = _replay(conn, req.idempotency_key, req.clinic_id, "book")
@@ -429,12 +442,16 @@ def _book(
     if not _valid_request(conn, req):
         return BookingRefused("invalid_input")
     now = clock.now(req.clinic_id)
-    reason, _ = _day_status(conn, req.clinic_id, req.date, now)
+    reason, _ = _day_status(
+        conn, req.clinic_id, req.date, now, allow_winding_down=allow_winding_down
+    )
     if reason in ("closed_day", "booking_closed"):
         return _refused(conn, clock, req, reason)
     evening_id = get_or_create_evening(conn, req.clinic_id, req.date)
     _lock_evening(conn, evening_id)
-    reason, projected = _day_status(conn, req.clinic_id, req.date, now)
+    reason, projected = _day_status(
+        conn, req.clinic_id, req.date, now, allow_winding_down=allow_winding_down
+    )
     if reason in ("closed_day", "booking_closed"):
         return _refused(conn, clock, req, reason)
     phone = normalize_phone(req.contact_phone)
@@ -587,8 +604,10 @@ def _book(
     return BookingOk(booking_id, queue_number, projected, code)
 
 
-def book_in_tx(conn: Connection, clock: Clock, req: BookingRequest) -> BookingOk | BookingRefused:
-    return _book(conn, clock, req)
+def book_in_tx(
+    conn: Connection, clock: Clock, req: BookingRequest, *, allow_winding_down: bool = False
+) -> BookingOk | BookingRefused:
+    return _book(conn, clock, req, allow_winding_down=allow_winding_down)
 
 
 def book(engine: Engine, clock: Clock, req: BookingRequest) -> BookingOk | BookingRefused:

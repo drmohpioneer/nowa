@@ -12,6 +12,7 @@ from sqlalchemy.engine import make_url
 
 GET_READY_MIN = 15
 COVER_CAP = 3
+RECIPIENT_DAILY_CAP = 5
 
 
 class Settings(BaseSettings):
@@ -26,6 +27,7 @@ class Settings(BaseSettings):
     render_git_commit: str = "local"
     demo_doctor_password: str = Field(default="demo1234", repr=False)
     worker_in_process: int = Field(default=0, ge=0, le=1)
+    recipient_daily_cap: int = Field(default=RECIPIENT_DAILY_CAP, ge=1)
     port: int = Field(default=8000, ge=1, le=65535)
     telegram_bot_username: str = ""
     telegram_bot_token: str = Field(default="", repr=False)

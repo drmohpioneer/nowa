@@ -248,6 +248,25 @@ visits = Table(
     stamp("ended_at"),
     Column("accepted", Boolean, nullable=False, server_default=true()),
     Column("est_at_start", Float),
+    Column("paused_min", Float, nullable=False, server_default="0"),
+)
+evening_pauses = Table(
+    "evening_pauses",
+    metadata,
+    id_column(),
+    clinic_column(),
+    Column("evening_id", Integer, ForeignKey("evenings.id"), nullable=False),
+    stamp("started_at", nullable=False),
+    stamp("ended_at"),
+    Column("by", Text, nullable=False),
+    enum_check("by", "doctor secretary system"),
+    Index(
+        "ix_evening_pauses_open",
+        "evening_id",
+        unique=True,
+        postgresql_where=text("ended_at IS NULL"),
+        sqlite_where=text("ended_at IS NULL"),
+    ),
 )
 evening_taps = Table(
     "evening_taps",
@@ -319,6 +338,7 @@ outbox = Table(
     Column("attempts", Integer, nullable=False, server_default="0"),
     Column("idempotency_key", Text, nullable=False, unique=True),
     Column("provider_ref", Text),
+    stamp("first_attempt_at"),
     stamp("next_attempt_at"),
     stamp("created_at", nullable=False),
     enum_check(
@@ -328,7 +348,9 @@ outbox = Table(
     enum_check("lang", "ar en franco"),
     enum_check("channel", "sms telegram"),
     enum_check("adapter", "screen_phone mac_relay telegram we_business"),
-    enum_check("status", "queued sent delivered failed blocked_by_brake blocked_unapproved"),
+    enum_check(
+        "status", "queued sent delivered failed blocked_by_brake blocked_unapproved superseded"
+    ),
 )
 timers = Table(
     "timers",

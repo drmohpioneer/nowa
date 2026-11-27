@@ -58,6 +58,8 @@ class Report:
     cancelled_at_close: int = 0
     standby_taken: int = 0
     origins: list[dict[str, Any]] = field(default_factory=list)
+    pause_count: int = 0
+    pause_min: int = 0
 
     @property
     def total_seen(self) -> int:
@@ -235,7 +237,7 @@ def build_report(
             arrival = row["on_my_way_at"] + timedelta(minutes=row["travel_min"])
             waits.append(max(0.0, (visit["started_at"] - arrival).total_seconds() / 60))
     lengths = [
-        (v["ended_at"] - v["started_at"]).total_seconds() / 60
+        (v["ended_at"] - v["started_at"]).total_seconds() / 60 - v["paused_min"]
         for v in visits
         if v["accepted"] and v["ended_at"] is not None
     ]
@@ -318,6 +320,16 @@ def build_report(
     no_shows = [row for row in bookings if row["source"] == "chat" and row["state"] == "didnt_come"]
     from nowa.core.standby import count
 
+    pauses = list(
+        conn.execute(
+            select(s.evening_pauses).where(
+                s.evening_pauses.c.clinic_id == clinic_id,
+                s.evening_pauses.c.evening_id == evening_id,
+                s.evening_pauses.c.ended_at.is_not(None),
+            )
+        ).mappings()
+    )
+    pause_minutes = sum((p["ended_at"] - p["started_at"]).total_seconds() / 60 for p in pauses)
     return Report(
         evening_id,
         evening["date"],
@@ -357,6 +369,8 @@ def build_report(
             )
         ).scalar_one(),
         standby_taken=count(conn, clinic_id, evening_id, taken=True),
+        pause_count=len(pauses),
+        pause_min=int(Decimal(str(pause_minutes)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)),
         origins=[
             {"queue_number": row["queue_number"], "origin_display": label}
             for row in bookings

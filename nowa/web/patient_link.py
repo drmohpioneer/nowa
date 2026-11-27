@@ -13,7 +13,7 @@ from starlette.exceptions import HTTPException
 from nowa import schema as s
 from nowa.clock import CAIRO
 from nowa.config import get_settings
-from nowa.core import booking, patient_link
+from nowa.core import booking, flows, patient_link
 from nowa.core.text_norm import western_digits
 from nowa.web import strings, tokens
 from nowa.web.logging import PRIVATE_HEADERS, private_path
@@ -165,6 +165,11 @@ def render(
         format_time(view.expected_shown.astimezone(CAIRO), view.lang) if view.expected_shown else ""
     )
     with request.app.state.engine.connect() as conn:
+        current_booking = (
+            flows.rebooked_booking_id(conn, view.clinic_id, view.booking_id)
+            if mode == "rebook"
+            else None
+        )
         slug = conn.execute(
             select(s.clinics.c.slug).where(s.clinics.c.id == view.clinic_id)
         ).scalar_one()
@@ -178,10 +183,14 @@ def render(
         "day_changed",
         "sandbox",
         "repeated",
+        "same_day",
+        "already_rebooked",
     }
     notice = request.query_params.get("notice")
     if message is None and notice in allowed_messages:
         message = notice
+    if current_booking is not None:
+        message = "already_rebooked"
     selected_day = request.query_params.get("date")
     if selected_day not in {day.isoformat() for day in (days or [])}:
         selected_day = None
@@ -202,6 +211,11 @@ def render(
             v=view,
             code=code,
             mode=mode,
+            current_booking_link=(
+                "/l/" + booking.link_code_for(current_booking)
+                if current_booking is not None
+                else None
+            ),
             message=message,
             selected_day=selected_day,
             changed_day=changed_day,
@@ -339,7 +353,12 @@ def action_result(
             code, mode, "readonly" if result.reason == "not_cancellable" else result.reason, day
         )
     if isinstance(result, booking.BookingRefused):
-        return result_redirect(code, mode, "day_refused", day)
+        return result_redirect(
+            code,
+            mode,
+            "already_rebooked" if result.reason == "already_rebooked" else "day_refused",
+            day,
+        )
     if isinstance(result, booking.CancelResult):
         return result_redirect(code, "view", "cancelled_done")
     if mode == "change":
@@ -366,6 +385,9 @@ def change_action(
         day = date.fromisoformat(form.get("date", ""))
     except ValueError:
         return result_redirect(code, "rebook" if rebook else "change", "day_refused")
+    if not rebook and day == view.date:
+        return result_redirect(code, "change", "same_day", day)
+    key += ":" + day.isoformat()
     command = patient_link.rebook_by_link if rebook else patient_link.change_day_by_link
     result = command(
         request.app.state.engine, request.app.state.clock, code, form.get("last4", ""), day, key
@@ -424,7 +446,9 @@ def standby_page(request: Request, code: str) -> HTMLResponse:
             lang = row["lang"]
         request.state.patient_lang = lang
         now = request.app.state.clock.now(row["clinic_id"])
-        reason = booking._day_status(conn, row["clinic_id"], row["date"], now)[0]
+        reason = booking._day_status(
+            conn, row["clinic_id"], row["date"], now, allow_winding_down=True
+        )[0]
         active = (
             row["state"] == "offered"
             and row["expires_at"] > now

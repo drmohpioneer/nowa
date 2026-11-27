@@ -64,6 +64,8 @@ class TelegramAdapter:
             if data.get("ok") is False and 400 <= response.status_code < 500:
                 return SendResult("refused", error="provider_rejected")
             return SendResult("unknown", error="ambiguous_response")
+        except (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout):
+            return SendResult("refused", error="connect_error")
         except (httpx.HTTPError, ValueError, TypeError, AttributeError):
             return SendResult("unknown", error="adapter_exception")
 

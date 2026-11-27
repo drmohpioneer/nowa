@@ -500,6 +500,7 @@ def test_sandbox_isolation_and_telegram_cleanup_on_mobile_reuse(
         )
     # The patient phone is explicitly allowlisted; sandbox routing must still select ScreenPhone.
     with write_tx(engine) as conn:
+        conn.execute(s.bookings.update().where(s.bookings.c.id == bid).values(travel_min=10))
         mid = enqueue_message(
             conn,
             offset_clock,
@@ -508,7 +509,9 @@ def test_sandbox_isolation_and_telegram_cleanup_on_mobile_reuse(
             "ar",
             "patient",
             bid,
-            timing.patient_blanks(conn, bid, "2", at=offset_clock.now(cid)),
+            timing.patient_blanks(
+                conn, bid, "2", at=offset_clock.now(cid), projected_at=offset_clock.now(cid)
+            ),
             "fictional-sandbox-patient",
         )
         row = conn.execute(select(s.outbox).where(s.outbox.c.id == mid)).mappings().one()
@@ -769,14 +772,21 @@ def test_judge_gets_a_ready_practice_clinic_in_one_click(signup_web, engine):
         made["sandbox_expires_at"] - made["created_at"]
     )
     with engine.connect() as conn:
-        assert conn.execute(
-            select(s.agreement_acceptances.c.version).where(
-                s.agreement_acceptances.c.clinic_id == clinic["id"]
+        assert (
+            conn.execute(
+                select(s.agreement_acceptances.c.version).where(
+                    s.agreement_acceptances.c.clinic_id == clinic["id"]
+                )
+            ).scalar_one()
+            == "0.1"
+        )
+        assert (
+            conn.execute(
+                select(s.clinic_hours.c.weekday).where(s.clinic_hours.c.clinic_id == clinic["id"])
             )
-        ).scalar_one() == "0.1"
-        assert conn.execute(
-            select(s.clinic_hours.c.weekday).where(s.clinic_hours.c.clinic_id == clinic["id"])
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     assert signup_web.cookies.get("nowa_session") and signup_web.cookies.get("nowa_csrf")
     assert len(signup_web.get("/d/api/tonight").json()["rows"]) == 12
     assert signup_web.get("/c/" + result["slug"]).status_code == 200

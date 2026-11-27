@@ -60,6 +60,7 @@ def test_wind_down_once_stops_calls_preserves_admission_undo_and_close(engine):
     assert isinstance(
         flows.rebook(engine, clock, cancelled, DAY + timedelta(days=2), "rebook"), booking.BookingOk
     )
+    assert timing.who_comes_in(engine, clock, cid, eid, ids[1], False, "admit-arrived").ok
     preview = timing.close_preview(engine, clock, cid, eid)
     assert timing.close_evening(engine, clock, cid, eid, "doctor", "close", preview.untold_count).ok
     for p in preview.told:

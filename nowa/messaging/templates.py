@@ -620,7 +620,15 @@ def _fill(text: str, lang: str, blanks: dict[str, Any]) -> str:
 
 def render(template_id: str, lang: str, blanks: dict[str, Any]) -> str:
     text = TEMPLATES[template_id, lang]
+    pause_line = ""
     if template_id == "6":
+        blanks = dict(blanks)
+        pause_count = blanks.pop("pause_count", 0)
+        pause_min = blanks.pop("pause_min", 0)
+        if pause_count:
+            pause_line = "\n" + STRINGS["doctor.report_pause"][lang].format(
+                min=pause_min, count=pause_count
+            )
         fields = {field for _, field, _, _ in Formatter().parse(text) if field is not None}
         if fields != blanks.keys():
             raise ValueError("Missing or unknown template blank")
@@ -652,7 +660,7 @@ def render(template_id: str, lang: str, blanks: dict[str, Any]) -> str:
             text = text.replace("{next_day}", "")
             blanks.pop("next_day", None)
             blanks["next_day_bookings"] = 0
-    return _fill(text, lang, blanks)
+    return _fill(text, lang, blanks) + pause_line
 
 
 def render_operational(key: str, lang: str, blanks: dict[str, Any]) -> Rendered:

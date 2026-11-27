@@ -323,16 +323,26 @@ def test_rebook_once_from_clinic_cancel(engine, page, kind):
         "last4": "0000" if kind == "cancel_tonight" else "0011",
         "date": (DAY + timedelta(days=2)).isoformat(),
     }
+    fresh_form = fields(client.get(f"/r/{code}"), f"/r/{code}")
+    assert fresh_form["form_token"] != data["form_token"]
     response = post(client, f"/r/{code}", data)
     new = rows(engine, s.bookings)[-1]
     assert (
         "new link will reach you on Telegram" in response.text
         and booking.link_code_for(new["id"]) not in response.text
     )
-    fresh_form = fields(client.get(f"/r/{code}"), f"/r/{code}")
-    assert fresh_form["form_token"] != data["form_token"]
-    data.update(fresh_form)
+    current = client.get(f"/r/{code}")
+    assert "already been rebooked" in current.text
+    assert f"/l/{booking.link_code_for(new['id'])}" in current.text
+    assert 'button name="date"' not in current.text
+    # The exact submission replays; another still-valid intent is refused.
     assert post(client, f"/r/{code}", data).status_code == 200
+    another = post(
+        client,
+        f"/r/{code}",
+        data | fresh_form | {"date": (DAY + timedelta(days=3)).isoformat()},
+    )
+    assert "already been rebooked" in another.text
     assert len(rows(engine, s.bookings)) == initial_count + 1
     assert len([m for m in messages(engine, "1") if m["booking_id"] == new["id"]]) == 1
 

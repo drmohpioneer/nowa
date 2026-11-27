@@ -24,7 +24,7 @@ def are_you_on_way(ctx: TimerContext, payload: dict[str, Any]) -> None:
     if evening["state"] != "scheduled":
         return
     hours = projection.paper_hours(ctx.conn, ctx.clinic_id, evening["date"])
-    if hours is None or ctx.clock.now(ctx.clinic_id) < hours[0]:
+    if hours is None or not hours[0] <= ctx.clock.now(ctx.clinic_id) < hours[1]:
         return
     count = ctx.conn.execute(
         select(func.count())
@@ -62,15 +62,33 @@ def evening_auto_close(ctx: TimerContext, payload: dict[str, Any]) -> None:
     evening = timing._evening(ctx.conn, ctx.clinic_id, int(payload["evening_id"]))
     if evening["state"] not in {"running", "winding_down"}:
         return
+    if timing._open_pause(ctx.conn, ctx.clinic_id, evening["id"]) is not None:
+        timing._arm(
+            ctx.conn,
+            ctx.clock,
+            evening["id"],
+            "evening_auto_close",
+            ctx.clock.now(ctx.clinic_id) + timedelta(minutes=60),
+        )
+        return
     due = timing._auto_due(ctx.conn, evening)
     if due is None:
         return
     if ctx.clock.now(ctx.clinic_id) < due:
         timing._arm_auto(ctx.conn, ctx.clock, evening)
         return
-    timing.close_evening_in_tx(
+    result = timing.close_evening_in_tx(
         ctx.conn, ctx.clock, ctx.clinic_id, evening["id"], "system", f"auto_close:{evening['id']}"
     )
+    if isinstance(result, timing.CloseRefused) and result.reason == "arrived_present":
+        timing._arm(
+            ctx.conn,
+            ctx.clock,
+            evening["id"],
+            "evening_auto_close",
+            ctx.clock.now(ctx.clinic_id) + timedelta(minutes=60),
+        )
+        return
 
 
 def evening_system_close(ctx: TimerContext, payload: dict[str, Any]) -> None:

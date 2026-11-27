@@ -9,7 +9,7 @@ from nowa.db import conflict_insert
 
 def accepted_lengths(conn: Connection, clinic_id: int, evening_id: int) -> list[float]:
     rows = conn.execute(
-        select(s.visits.c.started_at, s.visits.c.ended_at)
+        select(s.visits.c.started_at, s.visits.c.ended_at, s.visits.c.paused_min)
         .where(
             s.visits.c.clinic_id == clinic_id,
             s.visits.c.evening_id == evening_id,
@@ -18,7 +18,7 @@ def accepted_lengths(conn: Connection, clinic_id: int, evening_id: int) -> list[
         )
         .order_by(s.visits.c.started_at, s.visits.c.id)
     )
-    return [(end - start).total_seconds() / 60 for start, end in rows]
+    return [(end - start).total_seconds() / 60 - paused for start, end, paused in rows]
 
 
 def learn(conn: Connection, clinic_id: int, evening_id: int) -> None:

@@ -2137,6 +2137,26 @@ for _key, _values in LINKING_TEXTS.items():
 
 # Contract 33 evening wording is shared by the doctor board and Telegram.
 EVENING_FLOW_TEXTS = {
+    "below_booked": (
+        "الحد الأقصى أقل من عدد الحجوزات الحالية الليلة.",
+        "The maximum is below tonight's current booking count.",
+        "El 7ad el a2sa a2al men 3adad 7ogozat el leila el 7aleya.",
+    ),
+    "pause": ("استراحة", "Pause", "Esteraha"),
+    "resume": ("رجعت", "I'm back", "Rege3t"),
+    "paused_since": ("⏸ استراحة من {time}", "⏸ paused since {time}", "⏸ esteraha men {time}"),
+    "pause_state": ("في استراحة من {time}", "Paused since {time}", "Fee esteraha men {time}"),
+    "report_pause": (
+        "وقت الاستراحة: {min} دقيقة ({count} مرات)",
+        "Paused: {min} min ({count} times)",
+        "Wa2t el esteraha: {min} de2ee2a ({count} marrat)",
+    ),
+    "close_group_arrived": ("موجودين في العيادة", "At the clinic", "Mawgoodeen fel 3eyada"),
+    "arrived_present": (
+        "في مرضى موجودين في العيادة. دخّلهم أو الغي حجزهم الأول قبل القفل.",
+        "Patients are at the clinic. Admit them or cancel their bookings before closing.",
+        "Fee marda fel 3eyada. Dakhkhalhom aw elghi 7agzhom el awel abl el 2afl.",
+    ),
     "wind_down": ("قفّل الاستقبال", "Stop receiving", "2affel el este2bal"),
     "winding_down": (
         "الاستقبال مقفول، مستنيين اللي في الطريق",
@@ -2180,3 +2200,28 @@ for _key, (_ar, _en, _franco) in EVENING_FLOW_TEXTS.items():
     DOCTOR_TEXTS[_key] = (_ar, _en)
     for _prefix in ("doctor.", "tg."):
         STRINGS[_prefix + _key] = {"ar": _ar, "en": _en, "franco": _franco}
+
+
+for _key, (_ar, _en, _franco) in {
+    "same_day": (
+        "حجزك بالفعل في اليوم ده. اختار يوم تاني.",
+        "Your booking is already on this day. Choose another day.",
+        "7agzak aslan fel yom da. Ekhtar yom tany.",
+    ),
+    "already_rebooked": (
+        "الحجز ده اتحجز بداله مرة تانية بالفعل. افتح حجزك الحالي.",
+        "This booking has already been rebooked. Open your current booking.",
+        "El 7agz da et7agaz badalo abl keda. Efta7 7agzak el 7aly.",
+    ),
+    "current_booking": ("حجزك الحالي", "Your current booking", "7agzak el 7aly"),
+}.items():
+    STRINGS["patient." + _key] = {"ar": _ar, "en": _en, "franco": _franco}
+
+for _kind, (_ar, _en, _franco) in {
+    "pause": ("بدأت الاستراحة", "Break started", "El esteraha bada2et"),
+    "resume": ("انتهت الاستراحة", "Break ended", "El esteraha kheleset"),
+}.items():
+    ACTION_SENTENCES[_kind] = "action_" + _kind
+    for _key in ("action_" + _kind, "kind_" + _kind):
+        UI_TEXTS[_key] = (_ar, _en)
+        STRINGS["ui." + _key] = {"ar": _ar, "en": _en, "franco": _franco}

@@ -8,13 +8,13 @@ function element(tag = 'div') {
     append(...nodes) {this.children.push(...nodes);}, replaceChildren(...nodes) {this.children = nodes;},
     querySelectorAll: () => [], querySelector: () => null};
 }
-async function check(language, answers) {
+async function check(language, answers, pauseCount = 0) {
   const ar = language === 'ar';
-  const labels = {error: 'x', report_booked: 'b', report_avg_visit: 'v', report_avg_wait: 'w', report_no_show: 'n',
+  const labels = {error: 'x', report_booked: 'b', report_avg_visit: 'v', report_avg_wait: 'w', report_no_show: 'n', report_pause: 'Paused: {min} min ({count} times)',
     unit_minutes_few: ar ? 'دقايق' : 'minutes', unit_minutes_many: ar ? 'دقيقة' : 'minutes'};
   const nodes = Object.fromEntries(['message', 'report-summary', 'health-answers', 'health-section'].map(id => [id, element()]));
   nodes['health-section'].hidden = true;
-  const report = {booked: 12, avg_visit: 13, avg_wait: 5, no_show_names: ['A', 'B'], failed_names: [], health_answers: answers, origins: []};
+  const report = {pause_count: pauseCount, pause_min: pauseCount ? 10 : 0, booked: 12, avg_visit: 13, avg_wait: 5, no_show_names: ['A', 'B'], failed_names: [], health_answers: answers, origins: []};
   const context = vm.createContext({document: {body: {dataset: {mode: 'report', eveningId: '1'}}, documentElement: {lang: language},
     querySelector: () => null, cookie: '', getElementById: id => nodes[id] || null, createElement: element,
     querySelectorAll: selector => selector === '#translations [data-key]' ?
@@ -30,9 +30,12 @@ async function check(language, answers) {
   assert.equal(cards.w, '5 ' + labels.unit_minutes_few);
   assert.equal(String(cards.b), '12');
   assert.equal(nodes['report-summary'].children.at(-1).textContent, 'n: A' + (ar ? '، ' : ', ') + 'B');
+  const pauseLines = nodes['report-summary'].children.filter(c => c.textContent === 'Paused: 10 min (1 times)');
+  assert.equal(pauseLines.length, pauseCount ? 1 : 0);
   return nodes['health-section'].hidden;
 }
 (async () => {
+  assert.equal(await check('en', [], 1), true);
   assert.equal(await check('ar', []), true); assert.equal(await check('en', []), true);
   assert.equal(await check('ar', [{question: 'q', answer: 'a', at_display: '1', source_label: 's'}]), false);
   console.log('PASS: report durations carry units, Arabic comma, empty health section hidden');

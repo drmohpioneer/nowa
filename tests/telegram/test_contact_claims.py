@@ -63,6 +63,7 @@ def test_claim_restart_matching_contact_and_next_leave_now(bot, engine):
     router.handle_update(contact(101, 701, phone))
     assert (rows(engine, s.outbox), fake.calls) == before
     with write_tx(engine) as conn:
+        conn.execute(s.bookings.update().where(s.bookings.c.id == ids[0]).values(travel_min=10))
         oid = enqueue_message(
             conn,
             clock,
@@ -71,7 +72,9 @@ def test_claim_restart_matching_contact_and_next_leave_now(bot, engine):
             "en",
             "patient",
             ids[0],
-            timing.patient_blanks(conn, ids[0], "2", at=clock.now(cid)),
+            timing.patient_blanks(
+                conn, ids[0], "2", at=clock.now(cid), projected_at=clock.now(cid)
+            ),
             "contact-leave-now",
         )
     assert next(r for r in rows(engine, s.outbox) if r["id"] == oid)["adapter"] == "telegram"

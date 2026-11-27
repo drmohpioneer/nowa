@@ -25,6 +25,8 @@ class EveningSnapshot:
     doctor_eta_min: float | None
     start_gap_min: float
     visit_started_at: datetime | None
+    visit_paused_min: float = 0.0
+    paused: bool = False
 
 
 def doctor_free_at(snap: EveningSnapshot, pace_min: float, now: datetime) -> datetime:
@@ -41,7 +43,10 @@ def doctor_free_at(snap: EveningSnapshot, pace_min: float, now: datetime) -> dat
     if snap.state in {"running", "winding_down"}:
         if snap.visit_started_at is None:
             return now
-        return max(now + timedelta(minutes=1), snap.visit_started_at + timedelta(minutes=pace_min))
+        return max(
+            now + timedelta(minutes=1),
+            snap.visit_started_at + timedelta(minutes=snap.visit_paused_min + pace_min),
+        )
     raise ValueError("closed or cancelled evening has no projection")
 
 
@@ -115,10 +120,33 @@ def load_snapshot(
         None
         if evening is None
         else conn.execute(
-            select(s.visits.c.started_at).where(
+            select(s.visits.c.started_at, s.visits.c.paused_min).where(
                 s.visits.c.evening_id == evening["id"], s.visits.c.ended_at.is_(None)
             )
+        )
+        .mappings()
+        .one_or_none()
+    )
+    pause = (
+        None
+        if evening is None
+        else conn.execute(
+            select(s.evening_pauses.c.started_at).where(
+                s.evening_pauses.c.clinic_id == clinic_id,
+                s.evening_pauses.c.evening_id == evening["id"],
+                s.evening_pauses.c.ended_at.is_(None),
+            )
         ).scalar_one_or_none()
+    )
+    paused_so_far = (
+        0.0
+        if visit is None
+        else float(visit["paused_min"])
+        + (
+            max(0.0, (now - max(pause, visit["started_at"])).total_seconds() / 60)
+            if pause is not None
+            else 0.0
+        )
     )
     return EveningSnapshot(
         clinic_id,
@@ -128,7 +156,9 @@ def load_snapshot(
         None if evening is None else evening["doctor_on_way_at"],
         None if evening is None else evening["doctor_eta_min"],
         float(gap) if gap is not None else 0.0,
-        visit,
+        None if visit is None else visit["started_at"],
+        paused_so_far,
+        pause is not None,
     )
 
 
@@ -143,14 +173,14 @@ def current_pace(conn: Connection, clinic_id: int, evening_id: int | None) -> fl
             select(s.clinics.c.usual_visit_min).where(s.clinics.c.id == clinic_id)
         ).scalar_one()
     if evening_id is None:
-        return float(pace)
+        return max(float(pace), 1.0)
     from nowa.core.learning import accepted_lengths
 
     lengths = accepted_lengths(conn, clinic_id, evening_id)
     if len(lengths) >= 3:
         recent = lengths[-10:]
-        return sum(recent) / len(recent)
-    return (float(pace) * 2 + sum(lengths)) / (2 + len(lengths))
+        return max(sum(recent) / len(recent), 1.0)
+    return max((float(pace) * 2 + sum(lengths)) / (2 + len(lengths)), 1.0)
 
 
 def people_ahead_of_new_booking(conn: Connection, evening_id: int | None) -> int:

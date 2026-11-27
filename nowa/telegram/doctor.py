@@ -140,7 +140,9 @@ def close_confirm(ctx: "Context", eid: int) -> None:
     ctx.edit_text(
         keyboards.close_preview_text(preview, ctx.lang),
         {
-            "inline_keyboard": [
+            "inline_keyboard": []
+            if preview.arrived
+            else [
                 [
                     keyboards.button(
                         "closeok", "closeok", eid, arg=str(preview.untold_count), lang=ctx.lang
@@ -218,6 +220,11 @@ def callback(ctx: "Context", command: keyboards.Callback) -> None:
                     else timing.undo_arrived_in_tx
                 )
                 result = action(conn, ctx.clock, cid, command.booking_id, "doctor", ctx.key)
+            elif command.verb in {"pause", "resume"}:
+                pause_action = (
+                    timing.pause_in_tx if command.verb == "pause" else timing.resume_in_tx
+                )
+                result = pause_action(conn, ctx.clock, cid, eid, ctx.key)
             elif command.verb == "undo":
                 result = timing.undo_last_in_tx(conn, ctx.clock, cid, eid, ctx.key)
             elif command.verb == "windok":
@@ -236,7 +243,10 @@ def callback(ctx: "Context", command: keyboards.Callback) -> None:
                 result = timing.TapResult(False, "unavailable")
             if result.ok:
                 linking.remember(conn, ctx.clock, cid, ctx.handled_key, "telegram_update")
-    if isinstance(result, timing.CloseRefused) and result.reason == "count_changed":
+    if isinstance(result, timing.CloseRefused) and result.reason in {
+        "count_changed",
+        "arrived_present",
+    }:
         if command.verb == "windok":
             wind_down_confirm(ctx, eid)
         else:

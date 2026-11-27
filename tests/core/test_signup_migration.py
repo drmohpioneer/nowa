@@ -72,7 +72,7 @@ def test_populated_head09_upgrade_preserves_rows_and_foreign_keys(tmp_path):
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "33"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "34"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
@@ -82,8 +82,8 @@ def test_populated_head09_upgrade_preserves_rows_and_foreign_keys(tmp_path):
                     assert [tuple(row[:-3]) for row in after] == [tuple(row) for row in rows]
                     assert all(tuple(row[-3:]) == (None, None, 0) for row in after)
                 elif table == "outbox":
-                    assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in rows]
-                    assert all(tuple(row[-2:]) == (None, None) for row in after)
+                    assert [tuple(row[:-3]) for row in after] == [tuple(row) for row in rows]
+                    assert all(tuple(row[-3:]) == (None, None, None) for row in after)
                 elif table == "bookings":
                     assert [tuple(row[:-2]) for row in after] == [tuple(row) for row in rows]
                     assert all(tuple(row[-2:]) == (None, None) for row in after)
@@ -116,7 +116,7 @@ def test_dangling_foreign_key_upgrade_rolls_back_and_restores_enforcement(tmp_pa
         (scripts / "versions" / "11_broken.py").write_text("""from alembic import op
 import sqlalchemy as sa
 revision = "11_broken"
-down_revision = "33"
+down_revision = "34"
 branch_labels = None
 depends_on = None
 
@@ -188,7 +188,7 @@ def test_populated_head10_evening_upgrade_through_runner(tmp_path):
         cli.migrate(engine)
         with engine.connect() as conn:
             assert (
-                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "33"
+                conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "34"
             )
             assert conn.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []

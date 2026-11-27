@@ -32,7 +32,7 @@ async function api(path, method = "GET", body = null, key = null) {
   const data = await response.json();
   if (!response.ok && response.status !== 409) {
     const detail = data.detail || data;
-    throw detail.reason === "bookings_outside" ? new Error(t("bookings_outside")) : detail.reason === "past_date" ? new Error(t("past_date")) : detail.reason === "wrong_code" ? new Error(t("wrong_code").replace("{count}", detail.attempts_left)) : window.NowaFeedback.requestError(response, data, labels, t("error"));
+    throw ["bookings_outside", "below_booked"].includes(detail.reason) ? new Error(t(detail.reason)) : detail.reason === "past_date" ? new Error(t("past_date")) : detail.reason === "wrong_code" ? new Error(t("wrong_code").replace("{count}", detail.attempts_left)) : window.NowaFeedback.requestError(response, data, labels, t("error"));
   }
   if (data.ok === false && data.reason !== "count_changed") throw new Error(t(path.startsWith("/d/api/questions/") ? "q_" + data.reason : data.reason) || t("error"));
   return data;
@@ -78,6 +78,17 @@ async function refresh() {
   const standbyCount = document.getElementById("standby-count");
   if (standbyCount) { standbyCount.hidden = !(data.standby_count > 0);
     standbyCount.textContent = t("standby_count").replace("{count}", data.standby_count || 0); }
+  const pauseButton = document.getElementById("pause");
+  if (pauseButton) {
+    pauseButton.hidden = !["running", "winding_down"].includes(data.evening_state);
+    pauseButton.dataset.action = data.paused_since ? "resume" : "pause";
+    pauseButton.textContent = t(pauseButton.dataset.action);
+  }
+  const pauseState = document.getElementById("pause-state");
+  if (pauseState) {
+    pauseState.hidden = !data.paused_since;
+    pauseState.textContent = data.paused_since ? t("pause_state").replace("{time}", new Date(data.paused_since).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"})) : "";
+  }
   const windDownButton = document.getElementById("wind-down");
   if (windDownButton) windDownButton.hidden = data.evening_state !== "running";
   const windDownState = document.getElementById("wind-down-state");
@@ -207,16 +218,18 @@ if (document.body.dataset.mode === "tonight") {
   function showClose(preview) {
     closePreview = preview; closePanel.hidden = false;
     const lines = [t("close_groups").replace("{untold}", preview.untold_count).replace("{told}", preview.told_count).replace("{passed}", preview.passed_count)];
-    for (const group of ["untold", "told", "passed"]) {
+    for (const group of ["untold", "told", "passed", "arrived"]) {
       lines.push(t("close_group_" + group));
-      for (const patient of preview[group]) {
+      for (const patient of preview[group] || []) {
         const at = patient.expected_shown ? new Date(patient.expected_shown).toLocaleTimeString("en-GB", {timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit"}) : "";
         lines.push(patient.patient_name + " · " + at);
       }
     }
+    if (preview.arrived_count) lines.push(t("arrived_present"));
+    document.getElementById("close-confirm").hidden = Boolean(preview.arrived_count);
     const details = document.getElementById("close-details");
     details.style.whiteSpace = "pre-line"; details.textContent = lines.join("\n");
-    document.getElementById("close-confirm").focus();
+    document.getElementById(preview.arrived_count ? "close-back" : "close-confirm").focus();
   }
   bindButton(document.getElementById("close"), async () => showClose(await api("/d/api/close/preview")));
   bindButton(document.getElementById("close-confirm"), async () => {
@@ -229,6 +242,8 @@ if (document.body.dataset.mode === "tonight") {
     if (event.key === "Escape") { closePanel.hidden = true; document.getElementById("close").focus(); }
     if (event.key === "Tab") { event.preventDefault(); const confirm = document.getElementById("close-confirm"), back = document.getElementById("close-back"); (document.activeElement === confirm ? back : confirm).focus(); }
   });
+  const pause = document.getElementById("pause");
+  bindButton(pause, () => command(pause.dataset.action));
   bindButton(document.getElementById("wind-down"), async () => {
     let preview = await api("/d/api/close/preview");
     while (window.confirm(t("wind_down_confirm").replace("{count}", preview.untold_count))) {
@@ -407,6 +422,11 @@ if (document.body.dataset.mode === "report") {
       value.className = minutes ? "num" : "num ltr"; if (!minutes) value.dir = "ltr";
       value.textContent = minutes ? data[key] + " " + (data[key] >= 3 && data[key] <= 10 ? t("unit_minutes_few") : t("unit_minutes_many")) : data[key];
             card.append(name, value); summary.append(card);
+    }
+    if (data.pause_count) {
+      const line = document.createElement("p");
+      line.textContent = t("report_pause").replace("{min}", data.pause_min).replace("{count}", data.pause_count);
+      summary.append(line);
     }
     for (const [key, label] of [["no_show_names", "report_no_show"], ["failed_names", "report_failed"]]) {
       if (!data[key]?.length) continue;

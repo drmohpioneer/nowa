@@ -429,7 +429,7 @@ def take_in_tx(
         patient_name_en=identity.name_en,
         origin_text=row["origin_text"],
     )
-    result = flows.book_in_tx(conn, clock, req)
+    result = flows.book_in_tx(conn, clock, req, allow_winding_down=True)
     conn.execute(
         s.standbys.update()
         .where(s.standbys.c.id == row["id"])

@@ -1,11 +1,12 @@
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, Literal
 
 from sqlalchemy import func, select, update
 from sqlalchemy.engine import Connection, Engine, RowMapping
 
 from nowa.clock import Clock
+from nowa.config import get_settings
 from nowa.core.timers import TimerContext, cancel_timer, schedule_timer
 from nowa.db import write_tx
 from nowa.messaging.adapters import ADAPTERS, SendResult
@@ -18,7 +19,52 @@ from nowa.messaging.outbox import (
     recipient,
 )
 from nowa.record import record_usage
-from nowa.schema import action_record, bookings, evenings, outbox, standbys, timers
+from nowa.schema import action_record, bookings, evening_pauses, evenings, outbox, standbys, timers
+
+EXEMPT_FROM_CLINIC_BRAKE = {
+    "2",
+    "4",
+    "op:reset_code",
+    "op:signup_code",
+    "op:doctor_alert_brake",
+}
+
+
+def _recipient_count(conn: Connection, row: RowMapping, start: datetime) -> int:
+    query = (
+        select(func.count())
+        .select_from(outbox)
+        .where(
+            outbox.c.clinic_id == row["clinic_id"],
+            outbox.c.template_id.in_(EXEMPT_FROM_CLINIC_BRAKE),
+            outbox.c.first_attempt_at >= start,
+            outbox.c.first_attempt_at < start + timedelta(days=1),
+        )
+    )
+    if row["recipient_kind"] == "patient_contact":
+        patient_id = conn.execute(
+            select(bookings.c.patient_id).where(
+                bookings.c.id == row["booking_id"],
+                bookings.c.clinic_id == row["clinic_id"],
+            )
+        ).scalar_one_or_none()
+        query = query.join(
+            bookings,
+            (bookings.c.id == outbox.c.booking_id) & (bookings.c.clinic_id == outbox.c.clinic_id),
+        ).where(
+            outbox.c.recipient_kind == "patient_contact",
+            bookings.c.patient_id == patient_id,
+        )
+    elif row["recipient_kind"] == "pending_signup":
+        query = query.where(
+            outbox.c.recipient_kind == "pending_signup",
+            outbox.c.pending_signup_id == row["pending_signup_id"],
+        )
+    elif row["recipient_kind"] in {"doctor", "screen"}:
+        query = query.where(outbox.c.recipient_kind.in_(("doctor", "screen")))
+    else:
+        return 0
+    return int(conn.execute(query).scalar_one())
 
 
 def _row(conn: Connection, oid: int) -> RowMapping | None:
@@ -49,6 +95,51 @@ def send_retry(ctx: TimerContext, payload: dict[str, Any]) -> None:
         or row["attempts"] >= attempt
     ):
         return
+    if row["template_id"] in {"1", "2"}:
+        state = ctx.conn.execute(
+            select(bookings.c.state).where(
+                bookings.c.id == row["booking_id"],
+                bookings.c.clinic_id == ctx.clinic_id,
+            )
+        ).scalar_one_or_none()
+        if state == "cancelled" or (row["template_id"] == "2" and state == "seen"):
+            ctx.conn.execute(
+                update(outbox)
+                .where(outbox.c.id == row["id"])
+                .values(status="superseded", next_attempt_at=None)
+            )
+            audit(ctx.conn, row, "message_superseded", state)
+            return
+    if row["template_id"] == "2":
+        paused = ctx.conn.execute(
+            select(evening_pauses.c.id)
+            .join(
+                bookings,
+                (bookings.c.evening_id == evening_pauses.c.evening_id)
+                & (bookings.c.clinic_id == evening_pauses.c.clinic_id),
+            )
+            .where(
+                bookings.c.id == row["booking_id"],
+                bookings.c.clinic_id == ctx.clinic_id,
+                evening_pauses.c.ended_at.is_(None),
+            )
+        ).first()
+        if paused is not None:
+            # A refused attempt cannot time out while its retry is deliberately deferred.
+            cancel_timer(ctx.conn, f"dt:{row['id']}:{row['attempts']}")
+            due = ctx.now + timedelta(seconds=60)
+            ctx.conn.execute(
+                update(outbox).where(outbox.c.id == row["id"]).values(next_attempt_at=due)
+            )
+            schedule_timer(
+                ctx.conn,
+                ctx.clinic_id,
+                "send_retry",
+                due,
+                payload,
+                f"send:{row['id']}:{attempt}:paused:{int(ctx.now.timestamp()) // 60}",
+            )
+            return
     if row["template_id"] == "op:standby_offer":
         offer = (
             ctx.conn.execute(
@@ -71,13 +162,12 @@ def send_retry(ctx: TimerContext, payload: dict[str, Any]) -> None:
     start = ctx.clock.now(ctx.clinic_id).replace(hour=0, minute=0, second=0, microsecond=0)
     count = ctx.conn.execute(
         select(func.count())
-        .select_from(action_record)
+        .select_from(outbox)
         .where(
-            action_record.c.clinic_id == ctx.clinic_id,
-            action_record.c.kind == "send_attempt",
-            action_record.c.text == row["channel"],
-            action_record.c.at >= start,
-            action_record.c.at < start + timedelta(days=1),
+            outbox.c.clinic_id == ctx.clinic_id,
+            outbox.c.channel == row["channel"],
+            outbox.c.first_attempt_at >= start,
+            outbox.c.first_attempt_at < start + timedelta(days=1),
         )
     ).scalar_one()
     booked = ctx.conn.execute(
@@ -90,7 +180,21 @@ def send_retry(ctx: TimerContext, payload: dict[str, Any]) -> None:
             bookings.c.state != "cancelled",
         )
     ).scalar_one()
-    exempt = row["template_id"] == "op:doctor_alert_brake"
+    exempt = row["template_id"] in EXEMPT_FROM_CLINIC_BRAKE
+    if (
+        exempt
+        and row["first_attempt_at"] is None
+        and _recipient_count(ctx.conn, row, start) >= get_settings().recipient_daily_cap
+    ):
+        ctx.conn.execute(
+            update(outbox)
+            .where(outbox.c.id == row["id"])
+            .values(status="blocked_by_brake", next_attempt_at=None)
+        )
+        audit(ctx.conn, row, "message_brake", "recipient")
+        audit(ctx.conn, row, "message_block", "recipient_cap")
+        alert_failure(ctx.conn, ctx.clock, row)
+        return
     if not exempt and count >= max(30, 3 * booked):
         ctx.conn.execute(
             update(outbox)
@@ -129,7 +233,11 @@ def send_retry(ctx: TimerContext, payload: dict[str, Any]) -> None:
     ctx.conn.execute(
         update(outbox)
         .where(outbox.c.id == row["id"])
-        .values(attempts=attempt, next_attempt_at=None)
+        .values(
+            attempts=attempt,
+            next_attempt_at=None,
+            first_attempt_at=row["first_attempt_at"] or ctx.now,
+        )
     )
     schedule_timer(
         ctx.conn,

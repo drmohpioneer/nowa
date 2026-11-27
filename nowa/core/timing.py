@@ -47,6 +47,7 @@ class CloseRefused:
     reason: str
     untold_count: int = 0
     ok: bool = False
+    arrived_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,8 @@ class ClosePreview:
     untold: list[ClosePatient] = field(default_factory=list)
     told: list[ClosePatient] = field(default_factory=list)
     passed: list[ClosePatient] = field(default_factory=list)
+    arrived: list[ClosePatient] = field(default_factory=list)
+    arrived_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -88,6 +91,7 @@ class Board:
     rows: list[BoardRow]
     cover_cap_reached: bool = False
     evening_state: str = "scheduled"
+    paused_since: datetime | None = None
 
 
 def _evening(conn: Connection, clinic_id: int, evening_id: int) -> RowMapping:
@@ -134,7 +138,12 @@ def _finish(
 
 
 def patient_blanks(
-    conn: Connection, booking_id: int, template: str, *, at: datetime | None = None
+    conn: Connection,
+    booking_id: int,
+    template: str,
+    *,
+    at: datetime | None = None,
+    projected_at: datetime | None = None,
 ) -> dict[str, Any]:
     row = conn.execute(select(s.bookings).where(s.bookings.c.id == booking_id)).mappings().one()
     doctor = (
@@ -168,13 +177,16 @@ def patient_blanks(
         )
     if template == "2":
         sent_at = at or row["told_to_leave_at"]
-        if sent_at is None:
-            raise ValueError("Message 2 requires its send time")
+        if sent_at is None or projected_at is None:
+            raise ValueError("Message 2 requires its send time and projection")
         cushion: int = conn.execute(
             select(s.clinics.c.cushion_min).where(s.clinics.c.id == row["clinic_id"])
         ).scalar_one()
         blanks["leave_by"] = sent_at + timedelta(minutes=GET_READY_MIN)
-        blanks["arrive_by"] = row["expected_shown"] - timedelta(minutes=cushion)
+        blanks["arrive_by"] = max(
+            projected_at - timedelta(minutes=cushion),
+            blanks["leave_by"] + timedelta(minutes=row["travel_min"] * 1.3),
+        )
         blanks["on_my_way_link"] = "/w/" + booking.link_code_for(booking_id)
     if template == "4":
         blanks["rebook_link"] = "/r/" + booking.link_code_for(booking_id)
@@ -306,6 +318,7 @@ def recompute(conn: Connection, clock: Clock, evening_id: int) -> None:
             changes["expected_shown"] = projected
         if (
             evening["state"] in {"doctor_on_way", "running"}
+            and not snap.paused
             and row["state"] == "booked"
             and row["source"] == "chat"
             and row["told_to_leave_at"] is None
@@ -331,7 +344,7 @@ def recompute(conn: Connection, clock: Clock, evening_id: int) -> None:
                     row["lang"],
                     "patient",
                     row["id"],
-                    patient_blanks(conn, row["id"], "2"),
+                    patient_blanks(conn, row["id"], "2", projected_at=projected),
                     f"leave_now:{row['id']}",
                 )
                 timers.schedule_timer(
@@ -502,6 +515,122 @@ def doctor_on_my_way_in_tx(
     return result
 
 
+def _open_pause(conn: Connection, clinic_id: int, evening_id: int) -> RowMapping | None:
+    return (
+        conn.execute(
+            select(s.evening_pauses).where(
+                s.evening_pauses.c.clinic_id == clinic_id,
+                s.evening_pauses.c.evening_id == evening_id,
+                s.evening_pauses.c.ended_at.is_(None),
+            )
+        )
+        .mappings()
+        .one_or_none()
+    )
+
+
+def _end_pause(conn: Connection, clock: Clock, evening: RowMapping, by: str) -> bool:
+    pause = _open_pause(conn, evening["clinic_id"], evening["id"])
+    if pause is None:
+        return False
+    now = clock.now(evening["clinic_id"])
+    visit = (
+        conn.execute(
+            select(s.visits).where(
+                s.visits.c.clinic_id == evening["clinic_id"],
+                s.visits.c.evening_id == evening["id"],
+                s.visits.c.ended_at.is_(None),
+            )
+        )
+        .mappings()
+        .one_or_none()
+    )
+    conn.execute(
+        s.evening_pauses.update().where(s.evening_pauses.c.id == pause["id"]).values(ended_at=now)
+    )
+    if visit is not None:
+        elapsed = max(
+            0.0, (now - max(pause["started_at"], visit["started_at"])).total_seconds() / 60
+        )
+        conn.execute(
+            s.visits.update()
+            .where(s.visits.c.id == visit["id"])
+            .values(paused_min=visit["paused_min"] + elapsed)
+        )
+    record.write_action(conn, evening["clinic_id"], by, "resume")
+    return True
+
+
+def _pause_command(
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    evening_id: int,
+    idempotency_key: str,
+    by: str,
+    *,
+    resume: bool,
+) -> TapResult:
+    command = "resume" if resume else "pause"
+    saved = _replay(conn, clinic_id, idempotency_key, command)
+    if saved is not None:
+        return TapResult(**saved)
+    evening = _evening(conn, clinic_id, evening_id)
+    if by not in {"doctor", "secretary", "system"}:
+        return TapResult(False, "unauthorized")
+    if evening["state"] not in {"running", "winding_down"}:
+        return TapResult(False, "invalid_state")
+    if resume:
+        changed = _end_pause(conn, clock, evening, by)
+    else:
+        changed = _open_pause(conn, clinic_id, evening_id) is None
+        if changed:
+            conn.execute(
+                s.evening_pauses.insert().values(
+                    clinic_id=clinic_id,
+                    evening_id=evening_id,
+                    started_at=clock.now(clinic_id),
+                    by=by,
+                )
+            )
+            record.write_action(conn, clinic_id, by, "pause")
+    result = TapResult(True)
+    conn.execute(
+        s.idempotency_keys.insert().values(
+            clinic_id=clinic_id,
+            key=idempotency_key,
+            command=command,
+            result_json=asdict(result),
+            created_at=clock.now(clinic_id),
+        )
+    )
+    if changed:
+        recompute(conn, clock, evening_id)
+    return result
+
+
+def pause_in_tx(
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    evening_id: int,
+    idempotency_key: str,
+    by: str = "doctor",
+) -> TapResult:
+    return _pause_command(conn, clock, clinic_id, evening_id, idempotency_key, by, resume=False)
+
+
+def resume_in_tx(
+    conn: Connection,
+    clock: Clock,
+    clinic_id: int,
+    evening_id: int,
+    idempotency_key: str,
+    by: str = "doctor",
+) -> TapResult:
+    return _pause_command(conn, clock, clinic_id, evening_id, idempotency_key, by, resume=True)
+
+
 def who_comes_in_in_tx(
     conn: Connection,
     clock: Clock,
@@ -535,6 +664,7 @@ def who_comes_in_in_tx(
             return TapResult(False, "invalid_booking")
     if evening["state"] not in {"scheduled", "doctor_on_way", "running", "winding_down"}:
         return TapResult(False, "invalid_state")
+    _end_pause(conn, clock, evening, "doctor")
     now = clock.now(clinic_id)
     tap = _tap_begin(
         conn,
@@ -556,7 +686,7 @@ def who_comes_in_in_tx(
         .one_or_none()
     )
     if visit is not None:
-        duration = (now - visit["started_at"]).total_seconds() / 60
+        duration = (now - visit["started_at"]).total_seconds() / 60 - visit["paused_min"]
         accepted = visit["est_at_start"] is None or duration <= 2 * visit["est_at_start"]
         _change(conn, s.visits, visit["id"], dict(ended_at=now, accepted=accepted), prior, after)
     pace = projection.current_pace(conn, clinic_id, evening_id)
@@ -603,7 +733,9 @@ def who_comes_in_in_tx(
             .mappings()
             .all()
         )
-        skipped = [b for b in waiting if b["order_key"] < row["order_key"]]
+        skipped = [
+            b for b in waiting if b["order_key"] < row["order_key"] and b["arrived_at"] is None
+        ]
         following = [b for b in waiting if b["order_key"] > row["order_key"]]
         if skipped:
             anchor = (
@@ -692,6 +824,17 @@ def undo_last_in_tx(
             for k, v in change["fields"].items()
         ):
             return TapResult(False, "changed_since")
+    # An arrival after a skip is a new fact: undo cannot move that patient again.
+    for change in tap["prior_json"]:
+        if change["table"] == "bookings" and change["fields"] and "order_key" in change["fields"]:
+            arrived = conn.execute(
+                select(s.bookings.c.arrived_at).where(
+                    s.bookings.c.id == change["id"],
+                    s.bookings.c.clinic_id == clinic_id,
+                )
+            ).scalar_one_or_none()
+            if arrived is not None:
+                return TapResult(False, "changed_since")
     for change in reversed(tap["prior_json"]):
         table = tables[change["table"]]
         fields = change["fields"]
@@ -706,6 +849,21 @@ def undo_last_in_tx(
             }
             if table is s.evenings and evening["state"] == "winding_down":
                 values.pop("state", None)
+            if table is s.visits and "ended_at" in values and values["ended_at"] is None:
+                # Undo extends this visit through any breaks in the undone visit.
+                started_at: datetime = conn.execute(
+                    select(s.visits.c.started_at).where(s.visits.c.id == change["id"])
+                ).scalar_one()
+                pauses = conn.execute(
+                    select(s.evening_pauses.c.started_at, s.evening_pauses.c.ended_at).where(
+                        s.evening_pauses.c.clinic_id == clinic_id,
+                        s.evening_pauses.c.evening_id == evening_id,
+                        s.evening_pauses.c.ended_at > started_at,
+                    )
+                )
+                values["paused_min"] = sum(
+                    (end - max(start, started_at)).total_seconds() / 60 for start, end in pauses
+                )
             if values:
                 conn.execute(table.update().where(table.c.id == change["id"]).values(**values))
     conn.execute(
@@ -874,7 +1032,11 @@ def _untold(conn: Connection, evening_id: int) -> int:
         conn.execute(
             select(func.count())
             .select_from(s.bookings)
-            .where(s.bookings.c.evening_id == evening_id, s.bookings.c.state == "booked")
+            .where(
+                s.bookings.c.evening_id == evening_id,
+                s.bookings.c.state == "booked",
+                s.bookings.c.arrived_at.is_(None),
+            )
         ).scalar_one()
     )
 
@@ -883,7 +1045,7 @@ def _close_preview_in_tx(
     conn: Connection, clock: Clock, clinic_id: int, evening_id: int, lang: str = "ar"
 ) -> ClosePreview:
     now = clock.now(clinic_id)
-    groups: dict[str, list[ClosePatient]] = {"untold": [], "told": [], "passed": []}
+    groups: dict[str, list[ClosePatient]] = {"untold": [], "told": [], "passed": [], "arrived": []}
     rows = conn.execute(
         select(s.bookings, s.patients.c.name, s.patients.c.name_en)
         .outerjoin(s.patients, s.patients.c.id == s.bookings.c.patient_id)
@@ -904,6 +1066,8 @@ def _close_preview_in_tx(
                 else "told"
             )
         )
+        if row["arrived_at"] is not None:
+            group = "arrived"
         groups[group].append(
             ClosePatient(
                 row["id"],
@@ -918,6 +1082,8 @@ def _close_preview_in_tx(
         groups["untold"],
         groups["told"],
         groups["passed"],
+        groups["arrived"],
+        len(groups["arrived"]),
     )
 
 
@@ -950,6 +1116,8 @@ def _cancel_bookings(
         .mappings()
         .all()
     )
+    if kind in {"wind_down", "close_untold", "close_told"}:
+        rows = [row for row in rows if row["arrived_at"] is None]
     if booking_ids is not None:
         rows = [row for row in rows if row["id"] in booking_ids]
     for row in rows:
@@ -993,6 +1161,7 @@ def wind_down_in_tx(
     count = _untold(conn, evening_id)
     if expected_untold != count:
         return CloseRefused("count_changed", count)
+    _end_pause(conn, clock, evening, "doctor")
     conn.execute(
         s.evenings.update().where(s.evenings.c.id == evening_id).values(state="winding_down")
     )
@@ -1022,9 +1191,13 @@ def close_evening_in_tx(
         return CloseResult()
     if actor not in {"doctor", "system"} or evening["state"] not in allowed:
         return CloseRefused("invalid_state")
+    preview = _close_preview_in_tx(conn, clock, clinic_id, evening_id)
+    if preview.arrived:
+        return CloseRefused("arrived_present", arrived_count=preview.arrived_count)
     count = _untold(conn, evening_id)
     if actor == "doctor" and expected_untold != count:
         return CloseRefused("count_changed", count)
+    _end_pause(conn, clock, evening, actor)
     now = clock.now(clinic_id)
     _cancel_timers(conn, evening_id)
     count = _cancel_bookings(conn, clock, evening, ("booked",), "close_untold")
@@ -1056,7 +1229,7 @@ def close_evening_in_tx(
             .one_or_none()
         )
         if visit is not None:
-            length = (now - visit["started_at"]).total_seconds() / 60
+            length = (now - visit["started_at"]).total_seconds() / 60 - visit["paused_min"]
             accepted = actor == "doctor" and (
                 visit["est_at_start"] is None or length <= 2 * visit["est_at_start"]
             )
@@ -1222,7 +1395,13 @@ def tonight_board(conn: Connection, clinic_id: int, evening_id: int, lang: str =
     )
     if evening is None:
         return Board([])
-    return Board(result, evening["covers_used"] >= COVER_CAP, evening["state"])
+    pause = _open_pause(conn, clinic_id, evening_id)
+    return Board(
+        result,
+        evening["covers_used"] >= COVER_CAP,
+        evening["state"],
+        pause["started_at"] if pause is not None else None,
+    )
 
 
 def doctor_on_my_way(

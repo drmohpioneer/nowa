@@ -26,7 +26,7 @@ def test_evening_migration_preserves_existing_rows_and_has_one_head(engine):
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
         conn.commit()
     migrate(engine)
-    assert ScriptDirectory.from_config(migration_config()).get_heads() == ["33"]
+    assert ScriptDirectory.from_config(migration_config()).get_heads() == ["34"]
     with engine.connect() as conn:
         for name, added, default in (
             ("evenings", "covers_used", 0),

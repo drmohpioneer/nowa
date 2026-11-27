@@ -22,12 +22,20 @@ STATIC = ROOT / "nowa/web/static"
 STATES = {"booked", "told_to_leave", "on_my_way", "seen", "cancelled", "didnt_come", "in_room"}
 # These are the possible runtime values, not a catalog imported from the implementation.
 DOCTOR_DYNAMIC = {
+    "detail.reason": {"bookings_outside", "below_booked"},
+    "pauseButton.dataset.action": {"pause", "resume"},
     '"learned_" + key + "_value"': {
-        "learned_visit_value", "learned_gap_value", "learned_no_show_value",
+        "learned_visit_value",
+        "learned_gap_value",
+        "learned_no_show_value",
     },
     '"unit_" + name + (few(n) ? "_few" : "_many")': {
-        "unit_minutes_few", "unit_minutes_many", "unit_evenings_few", "unit_evenings_many",
-        "unit_visits_few", "unit_visits_many",
+        "unit_minutes_few",
+        "unit_minutes_many",
+        "unit_evenings_few",
+        "unit_evenings_many",
+        "unit_visits_few",
+        "unit_visits_many",
     },
     "outcomeKey": {
         "q_saved",
@@ -59,7 +67,12 @@ DOCTOR_DYNAMIC = {
     'doctor.arrived_at ? "arrived_since" : "on_way_arrival"': {"arrived_since", "on_way_arrival"},
     'row.arrived_at ? "arrived" : row.state': STATES | {"arrived"},
     'row.arrived_at ? "undo_arrived" : "mark_arrived"': {"undo_arrived", "mark_arrived"},
-    '"close_group_" + group': {"close_group_untold", "close_group_told", "close_group_passed"},
+    '"close_group_" + group': {
+        "close_group_untold",
+        "close_group_told",
+        "close_group_passed",
+        "close_group_arrived",
+    },
     "row.state": STATES,
     'row.state === "in_room" ? "in_room" : row.state': STATES,
     'action === "draft" ? "q_answer" : "q_" + action': {
@@ -90,6 +103,7 @@ DOCTOR_DYNAMIC = {
         "changed_since",
         "invalid_token",
         "evening_running",
+        "arrived_present",
         "q_refused",
         "q_text_only",
         "q_already_done",

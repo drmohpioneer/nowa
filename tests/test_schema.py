@@ -24,7 +24,7 @@ def check_migration(engine):
             )
             == []
         )
-        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "33"
+        assert conn.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "34"
         assert len(conn.execute(select(s.areas)).all()) == 72
         assert list(conn.execute(select(s.clinics.c.slug)).scalars()) == ["_nowa"]
         assert not conn.execute(select(s.clinic_hours)).all()
@@ -311,6 +311,7 @@ def test_migration_postgres_ddl_portability():
                     str(column.server_default.arg.compile(dialect=postgresql.dialect())) == "false"
                 )
     assert set(captured.tables) == set(metadata.tables) - {
+        "evening_pauses",
         "geocode_cache",
         "standbys",
         "learned_no_show",
@@ -463,6 +464,13 @@ def test_migration_postgres_ddl_portability():
     geocode_spec.loader.exec_module(geocode_module)
     geocode_module.op = CaptureSignup
     geocode_module.upgrade()
+    pause_spec = importlib.util.spec_from_file_location(
+        "pause_migration", ROOT / "migrations/versions/34_pause.py"
+    )
+    pause_module = importlib.util.module_from_spec(pause_spec)
+    pause_spec.loader.exec_module(pause_module)
+    pause_module.op = CaptureSignup
+    pause_module.upgrade()
     assert set(captured.tables) == set(metadata.tables)
     for table in captured.sorted_tables:
         assert str(CreateTable(table).compile(dialect=postgresql.dialect()))

@@ -113,7 +113,7 @@ def test_standby_migration_single_head_and_postgres_ddl():
 
     from nowa.__main__ import migration_config
 
-    assert ScriptDirectory.from_config(migration_config()).get_heads() == ["33"]
+    assert ScriptDirectory.from_config(migration_config()).get_heads() == ["34"]
     path = Path(__file__).resolve().parents[2] / "migrations/versions/29_standbys.py"
     spec = importlib.util.spec_from_file_location("standby_migration", path)
     module = importlib.util.module_from_spec(spec)

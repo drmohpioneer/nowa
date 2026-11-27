@@ -19,7 +19,7 @@ const context = vm.createContext({document: {getElementById: get, createElement:
 const source = fs.readFileSync('nowa/web/static/dashboard.js', 'utf8');
 vm.runInContext(source.slice(source.indexOf('async function refresh()'), source.indexOf('async function command(')), context);
 vm.runInContext(source.slice(source.indexOf('  function showClose('), source.indexOf('  bindButton(document.getElementById("close"),')), context);
-vm.runInContext(source.slice(source.indexOf('  bindButton(document.getElementById("wind-down"),'), source.indexOf('  bindButton(document.getElementById("cancel"),')), context);
+vm.runInContext(source.slice(source.indexOf('  const pause = document.getElementById("pause");'), source.indexOf('  bindButton(document.getElementById("cancel"),')), context);
 (async () => {
   for (const data of input.states) {
     context.data = data;
@@ -27,6 +27,13 @@ vm.runInContext(source.slice(source.indexOf('  bindButton(document.getElementByI
     assert.equal(get('cover-limit').hidden, !data.cover_cap_reached);
     assert.equal(get('wind-down-state').hidden, data.evening_state !== 'winding_down');
     assert.equal(get('wind-down').hidden, data.evening_state !== 'running');
+    assert.equal(get('pause').hidden, !['running', 'winding_down'].includes(data.evening_state));
+    assert.equal(get('pause-state').hidden, !data.paused_since);
+    assert.equal(get('pause').textContent, input.texts[data.paused_since ? 'resume' : 'pause']);
+    if (!get('pause').hidden) {
+      await get('pause').action();
+      assert.equal(commands.at(-1).path, data.paused_since ? 'resume' : 'pause');
+    }
     for (const row of data.rows.filter(row => row.remaining)) {
       const card = get('queue').children.find(c => c.children[0].textContent === String(row.queue_number));
       const action = card.children.at(-1);
@@ -40,7 +47,7 @@ vm.runInContext(source.slice(source.indexOf('  bindButton(document.getElementByI
   context.preview = input.preview;
   vm.runInContext('showClose(preview)', context);
   assert.equal(get('close-panel').hidden, false);
-  for (const group of ['untold', 'told', 'passed']) {
+  for (const group of ['untold', 'told', 'passed', 'arrived']) {
     assert(get('close-details').textContent.includes(input.texts['close_group_' + group]));
     for (const patient of input.preview[group]) {
       assert(get('close-details').textContent.includes(patient.patient_name));
@@ -48,6 +55,7 @@ vm.runInContext(source.slice(source.indexOf('  bindButton(document.getElementByI
       assert(get('close-details').textContent.includes(at));
     }
   }
+  assert.equal(get('close-confirm').hidden, input.preview.arrived_count > 0);
   context.data = input.preview;
   await get('wind-down').action();
   assert.equal(confirms[0], input.texts.wind_down_confirm.replace('{count}', input.preview.untold_count));

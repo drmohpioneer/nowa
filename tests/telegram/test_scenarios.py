@@ -75,6 +75,7 @@ def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypa
         conn.execute(
             s.bookings.update().where(s.bookings.c.id == ids[0]).values(state="told_to_leave")
         )
+        conn.execute(s.bookings.update().where(s.bookings.c.id == ids[0]).values(travel_min=10))
         oid = enqueue_message(
             conn,
             clock,
@@ -83,7 +84,9 @@ def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypa
             "en",
             "patient",
             ids[0],
-            timing.patient_blanks(conn, ids[0], "2", at=clock.now(cid)),
+            timing.patient_blanks(
+                conn, ids[0], "2", at=clock.now(cid), projected_at=clock.now(cid)
+            ),
             "scenario-telegram",
         )
     for delay in (0, 1, 2):
@@ -102,6 +105,7 @@ def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypa
     assert {r["kind"] for r in rows(engine, s.telegram_links)} == {"doctor"}
     get_settings().demo_mode = False
     with write_tx(engine) as conn:
+        conn.execute(s.bookings.update().where(s.bookings.c.id == ids[0]).values(travel_min=10))
         enqueue_message(
             conn,
             clock,
@@ -110,7 +114,9 @@ def test_real_06_and_05_tokens_primary_delivery_and_unlink(bot, engine, monkeypa
             "en",
             "patient",
             ids[0],
-            timing.patient_blanks(conn, ids[0], "2", at=clock.now(cid)),
+            timing.patient_blanks(
+                conn, ids[0], "2", at=clock.now(cid), projected_at=clock.now(cid)
+            ),
             "after-unlink",
         )
     for delay in (0, 1, 2):

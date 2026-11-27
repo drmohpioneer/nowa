@@ -2,7 +2,7 @@ from datetime import date, time
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.engine import Connection
 
 from nowa import record
@@ -312,6 +312,19 @@ def update(
                 )
             )
         elif isinstance(value, Timing):
+            if value.max_per_evening is not None and tonight_before is not None:
+                booked = conn.execute(
+                    select(func.count())
+                    .select_from(s.bookings)
+                    .where(
+                        s.bookings.c.clinic_id == clinic_id,
+                        s.bookings.c.evening_id == tonight_before.evening_id,
+                        s.bookings.c.source == "chat",
+                        s.bookings.c.state != "cancelled",
+                    )
+                ).scalar_one()
+                if value.max_per_evening < booked:
+                    raise InvalidSetting("below_booked")
             changes_projection = any(
                 clinic[k] != getattr(value, k)
                 for k in ("usual_visit_min", "cushion_min", "safe_drive_min")

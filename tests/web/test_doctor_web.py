@@ -341,6 +341,14 @@ def test_settings_rollback_and_no_recompute_for_max(web, engine, monkeypatch):
         for k in ("usual_visit_min", "safe_drive_min", "cushion_min", "max_per_evening")
     }
     body["max_per_evening"] = 2
+    refused = client.put(
+        "/d/api/settings/timing",
+        json=body | {"idempotency_key": "below-booked"},
+        headers=headers(client),
+    )
+    assert refused.status_code == 422 and refused.json()["reason"] == "below_booked"
+    assert client.get("/d/api/settings").json() == original
+    body["max_per_evening"] = 6
     assert (
         client.put(
             "/d/api/settings/timing",
@@ -350,7 +358,7 @@ def test_settings_rollback_and_no_recompute_for_max(web, engine, monkeypatch):
         == 200
     )
     spy.assert_not_called()
-    assert row(engine, s.clinics, cid)["max_per_evening"] == 2
+    assert row(engine, s.clinics, cid)["max_per_evening"] == 6
 
 
 def test_no_evening_and_logout(web):

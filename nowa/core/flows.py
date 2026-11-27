@@ -56,9 +56,14 @@ def book(
 
 
 def book_in_tx(
-    conn: Connection, clock: Clock, req: BookingRequest, confirm: bool = True
+    conn: Connection,
+    clock: Clock,
+    req: BookingRequest,
+    confirm: bool = True,
+    *,
+    allow_winding_down: bool = False,
 ) -> BookingOk | BookingRefused:
-    result = booking.book_in_tx(conn, clock, req)
+    result = booking.book_in_tx(conn, clock, req, allow_winding_down=allow_winding_down)
     _booked(conn, clock, result, confirm)
     return result
 
@@ -149,11 +154,25 @@ def rebook(
         return rebook_in_tx(conn, clock, cancelled_booking_id, new_date, idempotency_key)
 
 
+def rebooked_booking_id(conn: Connection, clinic_id: int, cancelled_booking_id: int) -> int | None:
+    saved = conn.execute(
+        select(s.idempotency_keys.c.result_json).where(
+            s.idempotency_keys.c.clinic_id == clinic_id,
+            s.idempotency_keys.c.key == f"rebook:{cancelled_booking_id}",
+            s.idempotency_keys.c.command.in_(("book", "rebook")),
+        )
+    ).scalar_one_or_none()
+    return int(saved["booking_id"]) if saved is not None else None
+
+
 def rebook_in_tx(
     conn: Connection, clock: Clock, cancelled_booking_id: int, new_date: date, idempotency_key: str
 ) -> BookingOk | BookingRefused:
+    booking._advisory_lock(conn, f"rebook|{cancelled_booking_id}")
     row = (
-        conn.execute(select(s.bookings).where(s.bookings.c.id == cancelled_booking_id))
+        conn.execute(
+            select(s.bookings).where(s.bookings.c.id == cancelled_booking_id).with_for_update()
+        )
         .mappings()
         .one_or_none()
     )
@@ -169,6 +188,12 @@ def rebook_in_tx(
     ).first()
     if cancelled is None:
         return BookingRefused("invalid_input")
+    if not isinstance(new_date, date) or isinstance(new_date, datetime):
+        return BookingRefused("invalid_input")
+    key = f"rebook:{cancelled_booking_id}:{new_date.isoformat()}:{idempotency_key}"
+    prior = rebooked_booking_id(conn, row["clinic_id"], cancelled_booking_id)
+    if prior is not None and booking._replay(conn, key, row["clinic_id"], "book") is None:
+        return BookingRefused("already_rebooked")
     identity = conn.execute(
         select(s.patients.c.name, s.patients.c.name_en, s.contacts.c.phone_e164)
         .select_from(s.patients.join(s.contacts, s.contacts.c.id == row["contact_id"]))
@@ -187,10 +212,19 @@ def rebook_in_tx(
         row["lang"],
         row["area_id"],
         ConsentInput(consent["version"], consent["text_hash"], consent["booking_for"]),
-        f"rebook:{cancelled_booking_id}",
+        key,
         patient_name_en=identity.name_en,
         origin_text=row["origin_text"],
     )
     result = booking.book_in_tx(conn, clock, req)
+    if isinstance(result, BookingOk) and not result.repeated:
+        booking._remember(
+            conn,
+            clock,
+            row["clinic_id"],
+            f"rebook:{cancelled_booking_id}",
+            "rebook",
+            {"booking_id": result.booking_id},
+        )
     _booked(conn, clock, result)
     return result

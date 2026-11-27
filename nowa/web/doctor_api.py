@@ -25,13 +25,13 @@ router = APIRouter(prefix="/d/api")
 
 class Command(Input):
     idempotency_key: Annotated[str, Field(min_length=1, max_length=200)]
-    evening_id: Annotated[int | None, Field(strict=True, gt=0)] = None
+    evening_id: Annotated[int | None, Field(strict=True, gt=0, le=2**63 - 1)] = None
 
 
 class OnWay(Command):
     lat: Annotated[float | None, Field(ge=-90, le=90, allow_inf_nan=False)] = None
     lng: Annotated[float | None, Field(ge=-180, le=180, allow_inf_nan=False)] = None
-    area_id: Annotated[int | None, Field(strict=True, gt=0)] = None
+    area_id: Annotated[int | None, Field(strict=True, gt=0, le=2**63 - 1)] = None
 
     @model_validator(mode="after")
     def location(self) -> "OnWay":
@@ -44,7 +44,7 @@ class OnWay(Command):
 
 
 class Who(Command):
-    booking_id: Annotated[int | None, Field(strict=True, gt=0)] = None
+    booking_id: Annotated[int | None, Field(strict=True, gt=0, le=2**63 - 1)] = None
     walk_in: Annotated[bool, Field(strict=True)] = False
 
     @model_validator(mode="after")
@@ -55,7 +55,7 @@ class Who(Command):
 
 
 class Arrival(Command):
-    booking_id: Annotated[int, Field(strict=True, gt=0)]
+    booking_id: Annotated[int, Field(strict=True, gt=0, le=2**63 - 1)]
 
 
 class Close(Command):
@@ -142,6 +142,7 @@ def tonight(request: Request, session: Session) -> dict[str, Any]:
             "standby_count": count(conn, session.clinic_id, eid),
             "cover_cap_reached": board.cover_cap_reached,
             "evening_state": board.evening_state,
+            "paused_since": board.paused_since,
             **tap_state(conn, session.clinic_id, eid, lang),
             "can_undo": eid is not None
             and conn.execute(
@@ -203,6 +204,9 @@ def run(request: Request, session: auth.Session, body: Command, command: str) ->
                 if subject
                 else {"ok": False, "reason": "invalid_booking"}
             )
+        elif command in {"pause", "resume"}:
+            pause_action = timing.pause_in_tx if command == "pause" else timing.resume_in_tx
+            data = asdict(pause_action(conn, clock, cid, eid, key))
         elif command == "undo":
             data = asdict(timing.undo_last_in_tx(conn, clock, cid, eid, key))
         elif command in {"close", "wind-down"}:
@@ -215,7 +219,10 @@ def run(request: Request, session: auth.Session, body: Command, command: str) ->
                 )
             )
             data = asdict(result)
-            if isinstance(result, timing.CloseRefused) and result.reason == "count_changed":
+            if isinstance(result, timing.CloseRefused) and result.reason in {
+                "count_changed",
+                "arrived_present",
+            }:
                 status = 409
         elif command == "cancel-tonight/request":
             token = timing.request_cancel_tonight(
@@ -322,6 +329,16 @@ def preview(request: Request, session: Session, evening_id: int | None = None) -
 @router.post("/close")
 def close(request: Request, body: Close, session: CommandSession) -> JSONResponse:
     return run(request, session, body, "close")
+
+
+@router.post("/pause")
+def pause(request: Request, body: Command, session: CommandSession) -> JSONResponse:
+    return run(request, session, body, "pause")
+
+
+@router.post("/resume")
+def resume(request: Request, body: Command, session: CommandSession) -> JSONResponse:
+    return run(request, session, body, "resume")
 
 
 @router.post("/wind-down")

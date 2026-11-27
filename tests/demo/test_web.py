@@ -164,6 +164,7 @@ def test_gets_create_nothing_and_public_booking(
             bid = conn.execute(
                 select(s.bookings.c.id).where(s.bookings.c.clinic_id == cid)
             ).scalar_one()
+            conn.execute(s.bookings.update().where(s.bookings.c.id == bid).values(travel_min=10))
             oid = enqueue_message(
                 conn,
                 demo_clock,
@@ -172,7 +173,9 @@ def test_gets_create_nothing_and_public_booking(
                 "ar",
                 "patient",
                 bid,
-                timing.patient_blanks(conn, bid, "2", at=demo_clock.now(cid)),
+                timing.patient_blanks(
+                    conn, bid, "2", at=demo_clock.now(cid), projected_at=demo_clock.now(cid)
+                ),
                 "public-linked-leave",
             )
             sent = conn.execute(select(s.outbox).where(s.outbox.c.id == oid)).mappings().one()
@@ -368,9 +371,7 @@ def test_lifecycle_timer_after_expiry_and_reused_clinic_id(engine, demo_clock):
         ("franco", "Gay men: khareg el kayma"),
     ],
 )
-def test_public_unlisted_area_summary_uses_neutral_list_note(
-    demo_client, engine, lang, last_line
-):
+def test_public_unlisted_area_summary_uses_neutral_list_note(demo_client, engine, lang, last_line):
     from nowa.ai.sessions import session_hash
     from nowa.db import write_tx
 

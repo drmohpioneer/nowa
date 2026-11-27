@@ -28,9 +28,19 @@ COMMANDS = (
     "rebook",
 )
 TABLES = (
-    s.bookings, s.evenings, s.visits, s.evening_taps, s.outbox, s.timers,
-    s.idempotency_keys, s.action_record, s.learned_pace, s.learned_start_gap,
-    s.patients, s.contacts, s.consents,
+    s.bookings,
+    s.evenings,
+    s.visits,
+    s.evening_taps,
+    s.outbox,
+    s.timers,
+    s.idempotency_keys,
+    s.action_record,
+    s.learned_pace,
+    s.learned_start_gap,
+    s.patients,
+    s.contacts,
+    s.consents,
 )
 
 
@@ -233,5 +243,7 @@ def test_reads_remain_allowed_on_terminal_evenings(engine, terminal):
     assert len(timing.request_cancel_tonight(engine, clock, cid, eid, doctor)) == 32
     with engine.connect() as conn:
         assert len(timing.tonight_board(conn, cid, eid).rows) == 2
-        assert timing.patient_blanks(conn, ids[1], "2", at=clock.now(cid))
+        assert timing.patient_blanks(
+            conn, ids[1], "2", at=clock.now(cid), projected_at=clock.now(cid)
+        )
     assert snapshot(engine) == before

@@ -120,6 +120,8 @@ def test_shipped_evening_controls_and_close_lists(web, engine):
                 .values(state=state, expected_shown=clock.now(cid) + timedelta(minutes=delta))
             )
     states.append(client.get("/d/api/tonight").json())
+    assert post(client, "pause").json()["ok"]
+    states.append(client.get("/d/api/tonight").json())
     preview = client.get("/d/api/close/preview").json()
     assert post(client, "wind-down", {"expected_untold": preview["untold_count"]}).json()["ok"]
     states.append(client.get("/d/api/tonight").json())

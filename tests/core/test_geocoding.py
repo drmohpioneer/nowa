@@ -450,7 +450,7 @@ def test_migration_preserves_reference_ids_and_usage(tmp_path, frozen_clock):
             assert set(conn.execute(select(s.areas.c.source)).scalars()) == {"reference"}
             assert conn.execute(select(s.usage)).all() == usage_before
             assert conn.exec_driver_sql("PRAGMA foreign_key_check").all() == []
-        assert ScriptDirectory.from_config(config).get_heads() == ["33"]
+        assert ScriptDirectory.from_config(config).get_heads() == ["34"]
     finally:
         engine.dispose()
 
